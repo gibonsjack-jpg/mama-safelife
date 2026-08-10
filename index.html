@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>MAMA SAFE LIFE - LIVE DASHBOARD</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Arial,sans-serif;background:linear-gradient(135deg,#0A7A3A 0%,#004d26 100%);padding:15px;min-height:100vh}
+        .header{text-align:center;color:#fff;padding:10px 0 15px}
+        .header h1{font-size:24px;letter-spacing:1px;text-shadow:2px 2px 4px rgba(0,0,0,0.4)}
+        .header p{font-size:13px;opacity:.9;margin-top:4px}
+        .status-bar{text-align:center;background:rgba(255,255,255,0.12);color:#FFD700;padding:10px;border-radius:10px;font-weight:700;margin-bottom:15px;font-size:14px}
+        .status-bar.success{background:rgba(46,125,50,0.5);color:#a5d6a7}
+        .status-bar.error{background:rgba(183,28,28,0.4);color:#ffcdd2}
+        .card{background:#fff;padding:18px;border-radius:16px;margin-bottom:15px;box-shadow:0 6px 25px rgba(0,0,0,0.15);border-left:5px solid #0A7A3A}
+        .card h2{color:#0A7A3A;font-size:18px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+        .live-badge{background:#d32f2f;color:#fff;padding:3px 14px;border-radius:20px;font-size:11px;font-weight:700;margin-left:auto;animation:pulse 1.5s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+        .temp-big{font-size:60px;font-weight:800;color:#0A7A3A;text-align:center;padding:8px 0 4px;line-height:1.2}
+        .temp-big .deg{font-size:28px;font-weight:400;color:#777}
+        .temp-big .emoji{font-size:36px;display:block}
+        .info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #f0f0f0;font-size:15px}
+        .info-row:last-child{border-bottom:none}
+        .info-row .label{color:#555}
+        .info-row .value{font-weight:700;color:#1b5e20}
+        .badge-status{display:inline-block;padding:5px 18px;border-radius:30px;font-weight:700;font-size:15px}
+        .badge-status.normal{background:#e8f5e9;color:#1b5e20}
+        .badge-status.fever{background:#ffebee;color:#c62828}
+        .badge-status.cold{background:#e3f2fd;color:#0d47a1}
+        .warning-box{background:#fff3e0;border-left:5px solid #e65100;padding:12px 14px;border-radius:8px;margin-top:12px;font-weight:600;color:#e65100;font-size:14px}
+        .warning-box.danger{background:#ffebee;border-left-color:#c62828;color:#c62828}
+        .warning-box.success{background:#e8f5e9;border-left-color:#1b5e20;color:#1b5e20}
+        table{width:100%;border-collapse:collapse;font-size:13px}
+        th{background:#0A7A3A;color:#fff;padding:10px 6px;text-align:center}
+        td{padding:8px 6px;border-bottom:1px solid #eee;text-align:center}
+        .table-wrap{overflow-x:auto;max-height:280px;overflow-y:auto}
+        .empty-msg{text-align:center;color:#999;padding:25px 0;font-size:14px}
+        .btn-group{display:flex;gap:10px;margin-top:12px}
+        .btn-refresh{background:#0277bd;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-weight:700;cursor:pointer;flex:1;font-size:15px;transition:.3s}
+        .btn-refresh:hover{background:#01579b}
+        .btn-refresh:disabled{opacity:.6;cursor:not-allowed}
+        .btn-clear{background:#c62828;color:#fff;border:none;padding:12px 20px;border-radius:8px;font-weight:700;cursor:pointer;font-size:15px;transition:.3s}
+        .btn-clear:hover{background:#b71c1c}
+        .footer{text-align:center;color:#fff;font-size:12px;margin-top:15px;opacity:.8;padding-bottom:10px}
+        .data-count{font-size:12px;color:#888;margin-left:auto;font-weight:400}
+        @media(max-width:500px){.temp-big{font-size:44px}.header h1{font-size:20px}.info-row{font-size:14px;padding:8px 0}.card{padding:14px 12px}.btn-group{flex-direction:column}}
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🌿 MAMA SAFE LIFE</h1>
+    <p>Dashboard ya Ufuatiliaji wa Mgonjwa - LIVE</p>
+</div>
+
+<div class="status-bar" id="statusBar">⏳ Inasubiri data kutoka Telegram...</div>
+
+<!-- ===== KADI YA MGONJWA WA SASA ===== -->
+<div class="card">
+    <h2>
+        👤 Mgonjwa wa Sasa
+        <span class="live-badge">● LIVE</span>
+    </h2>
+    <div class="temp-big">
+        <span id="jotoValue">--</span><span class="deg"> °C</span>
+        <span class="emoji" id="statusEmoji">⏳</span>
+    </div>
+    <div style="text-align:center; margin-bottom:12px;">
+        <span class="badge-status normal" id="statusBadge">--</span>
+    </div>
+    <div class="info-row">
+        <span class="label">📛 Jina</span>
+        <span class="value" id="jinaValue">--</span>
+    </div>
+    <div class="info-row">
+        <span class="label">📊 Hali</span>
+        <span class="value" id="haliValue">--</span>
+    </div>
+    <div class="info-row">
+        <span class="label">🕒 Muda</span>
+        <span class="value" id="mudaValue">--</span>
+    </div>
+    <div class="warning-box" id="warningBox">⏳ Inasubiri data...</div>
+</div>
+
+<!-- ===== HISTORIA YA VIPIMO ===== -->
+<div class="card">
+    <h2>
+        📋 Historia ya Vipimo
+        <span class="data-count" id="recordCount">Vipimo: 0</span>
+    </h2>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr><th>#</th><th>Joto</th><th>Hali</th><th>Muda</th></tr>
+            </thead>
+            <tbody id="historyBody">
+                <tr><td colspan="4" class="empty-msg">Hakuna data bado. Subiri ESP32 itume...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="btn-group">
+        <button class="btn-refresh" id="refreshBtn" onclick="fetchLiveData()">🔄 Sasisha Sasa</button>
+        <button class="btn-clear" onclick="clearHistory()">🗑️ Futa Historia</button>
+    </div>
+</div>
+
+<div class="footer">
+    Developed by: GIBONS JACK | MAMA SAFE LIFE
+</div>
+
+<script>
+// =================================================================
+//  1. TELEGRAM BOT API CREDENTIALS
+// =================================================================
+const BOT_TOKEN = '8874545177:AAGMSupo_pUdp0vV5A3aRPmns0hVA01_B10';
+const CHAT_ID = '736400705';
+
+let updateOffset = 0;
+const STORAGE_KEY = 'mama_dashboard_history';
+let historyData = [];
+
+// =================================================================
+//  2. STORAGE FUNCTIONS
+// =================================================================
+function loadHistory() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        historyData = raw ? JSON.parse(raw) : [];
+    } catch {
+        historyData = [];
+    }
+}
+
+function saveHistory() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(historyData));
+    document.getElementById('recordCount').textContent = `Vipimo: ${historyData.length}`;
+}
+
+// =================================================================
+//  3. ADVANCED PARSING (Inaondoa HTML na Inatambua format zote)
+// =================================================================
+function parseJoto(text) {
+    if (!text) return null;
+    
+    // Safisha HTML tags kama zipo
+    let cleanText = text.replace(/<[^>]*>?/gm, '');
+
+    let match = cleanText.match(/JOTO:\s*([\d.,]+)/i);
+    if (!match) {
+        let alt = cleanText.match(/([\d.,]+)\s*[°C]/i);
+        if (alt) match = alt;
+    }
+    if (!match) return null;
+
+    let tempStr = match[1].replace(',', '.');
+    const temp = parseFloat(tempStr);
+    if (isNaN(temp) || temp < 10 || temp > 50) return null;
+    return temp;
+}
+
+function parseJina(text) {
+    if (!text) return 'Mgonjwa';
+    let cleanText = text.replace(/<[^>]*>?/gm, '');
+    let match = cleanText.match(/JINA:\s*([^\n]+)/i);
+    return match ? match[1].trim() : 'Mgonjwa';
+}
+
+function parseHali(text) {
+    if (!text) return '--';
+    let cleanText = text.replace(/<[^>]*>?/gm, '');
+    let match = cleanText.match(/Hali:\s*([^\n]+)/i);
+    if (match) return match[1].trim();
+    const temp = parseJoto(text);
+    if (temp !== null) return getStatusInfo(temp).label;
+    return '--';
+}
+
+function getStatusInfo(temp) {
+    if (temp === null || temp === undefined) {
+        return { label: '--', emoji: '⏳', css: 'normal', warning: 'Inasubiri data...', isDanger: false };
+    }
+    if (temp < 35.0) {
+        return { label: 'CHINI SANA', emoji: '🥶', css: 'cold', warning: '⚠️ ONYO: Joto ni chini sana! Hatari ya hypothermia. Tafuta msaada wa daktari haraka.', isDanger: true };
+    }
+    if (temp < 35.5) {
+        return { label: 'CHINI', emoji: '🌡️', css: 'cold', warning: '⚠️ ONYO: Joto ni chini! Mgonjwa anaweza kuwa na hypothermia. Fuatilia kwa karibu.', isDanger: true };
+    }
+    if (temp <= 37.5) {
+        return { label: 'KAWAIDA', emoji: '😊', css: 'normal', warning: '✅ Joto liko kawaida. Hakuna hatari.', isDanger: false };
+    }
+    if (temp <= 38.5) {
+        return { label: 'JUU', emoji: '🤒', css: 'fever', warning: '⚠️ ONYO: Joto ni juu! Mgonjwa ana homa. Fuatilia kwa karibu.', isDanger: false };
+    }
+    return { label: 'JUU SANA', emoji: '🚨', css: 'fever', warning: '🚨 DHARURA: Joto ni juu sana! Homa kali. Tafuta msaada wa daktari haraka.', isDanger: true };
+}
+
+// =================================================================
+//  4. FETCH DATA FROM TELEGRAM
+// =================================================================
+async function fetchLiveData() {
+    const btn = document.getElementById('refreshBtn');
+    const statusBar = document.getElementById('statusBar');
+    const origText = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Inapakua...';
+    statusBar.textContent = '⏳ Inapakua data...';
+    statusBar.className = 'status-bar';
+
+    try {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${updateOffset}&limit=10`;
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
+        const json = await resp.json();
+
+        if (!json.ok) {
+            throw new Error('Telegram API error: ' + (json.description || 'unknown'));
+        }
+
+        if (!json.result || json.result.length === 0) {
+            statusBar.textContent = 'ℹ️ Hakuna ujumbe mpya. Subiri ESP32 itume...';
+            statusBar.className = 'status-bar';
+            btn.innerHTML = origText;
+            btn.disabled = false;
+            return;
+        }
+
+        let found = false;
+        for (const u of json.result) {
+            if (u.update_id >= updateOffset) {
+                updateOffset = u.update_id + 1;
+            }
+
+            const msg = u.message;
+            if (!msg) continue;
+            const text = msg.text || '';
+            const date = msg.date || 0;
+
+            const temp = parseJoto(text);
+            if (temp !== null) {
+                const name = parseJina(text);
+                const hali = parseHali(text);
+                const timeStr = new Date(date * 1000).toLocaleString('sw-TZ', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+
+                const entry = {
+                    temp: temp,
+                    name: name,
+                    hali: hali,
+                    time: timeStr,
+                    timestamp: date * 1000,
+                    raw: text
+                };
+
+                historyData.unshift(entry);
+                if (historyData.length > 50) historyData.pop();
+                saveHistory();
+
+                updateUI(entry);
+                found = true;
+            }
+        }
+
+        if (found) {
+            statusBar.textContent = '✅ Data imesasishwa!';
+            statusBar.className = 'status-bar success';
+        } else {
+            statusBar.textContent = 'ℹ️ Hakuna joto katika ujumbe mpya.';
+            statusBar.className = 'status-bar';
+        }
+
+    } catch (err) {
+        console.error('Fetch error:', err);
+        statusBar.textContent = '❌ Hitilafu: ' + err.message;
+        statusBar.className = 'status-bar error';
+    }
+
+    btn.innerHTML = origText;
+    btn.disabled = false;
+}
+
+// =================================================================
+//  5. UPDATE UI
+// =================================================================
+function updateUI(entry) {
+    if (!entry) return;
+
+    const temp = entry.temp;
+    const info = getStatusInfo(temp);
+
+    document.getElementById('jotoValue').textContent = temp.toFixed(1);
+    document.getElementById('statusEmoji').textContent = info.emoji;
+
+    const badge = document.getElementById('statusBadge');
+    badge.textContent = `${info.emoji} ${info.label}`;
+    badge.className = `badge-status ${info.css}`;
+
+    document.getElementById('jinaValue').textContent = entry.name || 'Mgonjwa';
+    document.getElementById('haliValue').textContent = info.label;
+    document.getElementById('mudaValue').textContent = entry.time || '--';
+
+    const warning = document.getElementById('warningBox');
+    warning.textContent = info.warning;
+    warning.className = 'warning-box';
+    if (info.isDanger) warning.classList.add('danger');
+    else if (info.css === 'normal') warning.classList.add('success');
+
+    updateTable();
+}
+
+function updateTable() {
+    const tbody = document.getElementById('historyBody');
+    if (historyData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="empty-msg">Hakuna data bado. Subiri ESP32 itume...</td></tr>`;
+        return;
+    }
+
+    let html = '';
+    historyData.slice(0, 30).forEach((item, index) => {
+        const info = getStatusInfo(item.temp);
+        const css = info.css;
+        html += `
+            <tr>
+                <td>${index + 1}</td>
+                <td><strong>${item.temp.toFixed(1)} °C</strong></td>
+                <td><span class="badge-status ${css}" style="font-size:12px; padding:3px 14px;">${info.emoji} ${info.label}</span></td>
+                <td>${item.time || '--'}</td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+    document.getElementById('recordCount').textContent = `Vipimo: ${historyData.length}`;
+}
+
+// =================================================================
+//  6. CLEAR HISTORY
+// =================================================================
+function clearHistory() {
+    if (historyData.length === 0) return;
+    if (!confirm('Je, una uhakika unataka kufuta historia yote?')) return;
+
+    historyData = [];
+    saveHistory();
+    updateTable();
+
+    document.getElementById('jotoValue').textContent = '--';
+    document.getElementById('statusEmoji').textContent = '⏳';
+    document.getElementById('statusBadge').textContent = '--';
+    document.getElementById('statusBadge').className = 'badge-status normal';
+    document.getElementById('jinaValue').textContent = '--';
+    document.getElementById('haliValue').textContent = '--';
+    document.getElementById('mudaValue').textContent = '--';
+    document.getElementById('warningBox').textContent = '⏳ Inasubiri data...';
+    document.getElementById('warningBox').className = 'warning-box';
+
+    document.getElementById('statusBar').textContent = '🗑️ Historia imefutwa.';
+    document.getElementById('statusBar').className = 'status-bar';
+}
+
+// =================================================================
+//  7. AUTO-REFRESH & INIT
+// =================================================================
+let autoInterval = null;
+
+function startAutoRefresh(ms = 3000) {
+    if (autoInterval) clearInterval(autoInterval);
+    autoInterval = setInterval(fetchLiveData, ms);
+}
+
+window.onload = function() {
+    loadHistory();
+    saveHistory();
+
+    if (historyData.length > 0) {
+        updateUI(historyData[0]);
+        updateTable();
+        document.getElementById('statusBar').textContent = `📊 Data ya mwisho: ${historyData[0].time}`;
+        document.getElementById('statusBar').className = 'status-bar success';
+    }
+
+    fetchLiveData();
+    startAutoRefresh(3000); // Inacheki data mpya kila baada ya sekunde 3
+};
+
+window.fetchLiveData = fetchLiveData;
+window.clearHistory = clearHistory;
+</script>
+
+</body>
+</html>
