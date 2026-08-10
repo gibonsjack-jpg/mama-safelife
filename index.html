@@ -902,7 +902,8 @@
         .badge.fever { background:#ffebee; color:#c62828; }
         .badge.normal { background:#e8f5e9; color:#1b5e20; }
         .empty-msg { text-align:center; color:#999; padding:12px; }
-        /* Styles for edit mode */
+
+        /* Edit mode styles */
         .edit-mode td input {
             padding: 4px 6px;
             border: 1px solid #1b5e20;
@@ -1325,13 +1326,15 @@ async function loadLiveVitals() {
         const data = snapshot.val();
         if (data) {
             const now = new Date();
+            const timestamp = data.timestamp || now.getTime();
+            const dateStr = data.date || now.toISOString();
             liveVitals = {
                 temperature: data.temperature || 0,
                 systolic: data.systolic || 0,
                 diastolic: data.diastolic || 0,
                 pulse: data.pulse || 0,
-                timestamp: data.timestamp || now.getTime(),
-                date: data.date || now.toISOString()
+                timestamp: timestamp,
+                date: dateStr
             };
             updateLiveUI();
             // Add to history if changed significantly
@@ -1345,8 +1348,8 @@ async function loadLiveVitals() {
                     systolic: liveVitals.systolic,
                     diastolic: liveVitals.diastolic,
                     pulse: liveVitals.pulse,
-                    timestamp: liveVitals.timestamp || now.getTime(),
-                    date: liveVitals.date || now.toISOString()
+                    timestamp: timestamp,
+                    date: dateStr
                 });
                 // Keep only last 5
                 if (sensorHistory.length > 5) {
