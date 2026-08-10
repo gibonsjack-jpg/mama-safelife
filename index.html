@@ -7,7 +7,7 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <!-- MD5 library for password hashing -->
+    <!-- MD5 library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <style>
         /* ===== RESET & BASE ===== */
@@ -919,7 +919,7 @@
         <form id="loginForm" onsubmit="handleLogin(event)">
             <div class="form-group">
                 <label for="loginUsername">Jina la Mtumiaji / Namba ya Simu</label>
-                <input type="text" id="loginUsername" placeholder="Mf. 0752568172" required>
+                <input type="text" id="loginUsername" placeholder="Mf. 0752578172" required>
             </div>
             <div class="form-group">
                 <label for="loginPassword">Neno la Siri</label>
@@ -1064,20 +1064,22 @@ const DB = {
 };
 
 // =================================================================
-//  DEFAULT ADMIN ACCOUNT – 0752568172 / 1234
+//  DEFAULT ADMIN ACCOUNT – 0752578172 / 1234
+//  (NIMEBADILISHA KUTOKA 0752568172 KWENYE 0752578172)
 // =================================================================
 async function ensureDefaultAdmin() {
     try {
         const users = await DB.get('users', {});
-        if (!users['0752568172']) {
-            users['0752568172'] = {
+        // Use the same username that the user typed in the screenshot
+        if (!users['0752578172']) {
+            users['0752578172'] = {
                 password: md5('1234'),
                 role: 'admin',
                 name: 'Msimamizi Mkuu',
                 mustChangePassword: true
             };
             await DB.set('users', users);
-            console.log('✅ Default admin created: 0752568172 / 1234');
+            console.log('✅ Default admin created: 0752578172 / 1234');
         }
     } catch (error) {
         console.error('Ensure default admin error:', error);
@@ -1324,8 +1326,8 @@ async function handleLogin(e) {
         const users = await DB.get('users', {});
         let user = users[username];
 
-        // Default admin check
-        if (username === '0752568172' && password === '1234') {
+        // Default admin check – now using 0752578172
+        if (username === '0752578172' && password === '1234') {
             if (!user) {
                 users[username] = {
                     password: md5('1234'),
@@ -1339,7 +1341,7 @@ async function handleLogin(e) {
         }
 
         if (!user) {
-            alert('Jina au nenosiri si sahihi.');
+            alert('Jina au nenosiri si sahihi. Hakikisha unatumia username sahihi (0752578172) na nenosiri (1234).');
             return;
         }
 
