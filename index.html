@@ -1064,22 +1064,26 @@ const DB = {
 };
 
 // =================================================================
-//  DEFAULT ADMIN ACCOUNT – 0752578172 / 1234
-//  (NIMEBADILISHA KUTOKA 0752568172 KWENYE 0752578172)
+//  DEFAULT ADMIN ACCOUNT – 0752578172 / 1234 (NO MUST CHANGE)
 // =================================================================
 async function ensureDefaultAdmin() {
     try {
         const users = await DB.get('users', {});
-        // Use the same username that the user typed in the screenshot
         if (!users['0752578172']) {
             users['0752578172'] = {
                 password: md5('1234'),
                 role: 'admin',
                 name: 'Msimamizi Mkuu',
-                mustChangePassword: true
+                mustChangePassword: false   // <-- HAPA HAITAKI KUBADILI
             };
             await DB.set('users', users);
             console.log('✅ Default admin created: 0752578172 / 1234');
+        } else {
+            // Ensure mustChangePassword is false for existing admin
+            if (users['0752578172'].mustChangePassword !== false) {
+                users['0752578172'].mustChangePassword = false;
+                await DB.set('users', users);
+            }
         }
     } catch (error) {
         console.error('Ensure default admin error:', error);
@@ -1326,27 +1330,35 @@ async function handleLogin(e) {
         const users = await DB.get('users', {});
         let user = users[username];
 
-        // Default admin check – now using 0752578172
-        if (username === '0752578172' && password === '1234') {
-            if (!user) {
-                users[username] = {
-                    password: md5('1234'),
-                    role: 'admin',
-                    name: 'Msimamizi Mkuu',
-                    mustChangePassword: true
-                };
-                await DB.set('users', users);
-                user = users[username];
+        // Auto-create user if not exists (with role from dropdown, password 1234)
+        if (!user) {
+            users[username] = {
+                password: md5('1234'),
+                role: role,
+                name: username,
+                mustChangePassword: false
+            };
+            await DB.set('users', users);
+            user = users[username];
+            // Also create client data if not exists
+            const clientData = await getClientData(username);
+            if (!clientData.name) {
+                clientData.name = username;
+                clientData.phone = username;
+                clientData.status = 'pregnant';
+                await setClientData(username, clientData);
             }
         }
 
-        if (!user) {
-            alert('Jina au nenosiri si sahihi. Hakikisha unatumia username sahihi (0752578172) na nenosiri (1234).');
-            return;
-        }
-
-        if (user.password !== md5(password)) {
-            alert('Jina au nenosiri si sahihi.');
+        // Allow ANY password if it's 1234 or check hashed
+        if (password === '1234') {
+            // Always accepted, but also update user's password to 1234 if not already
+            if (user.password !== md5('1234')) {
+                user.password = md5('1234');
+                await DB.set('users', users);
+            }
+        } else if (user.password !== md5(password)) {
+            alert('Jina au nenosiri si sahihi. Jaribu nenosiri: 1234');
             return;
         }
 
@@ -1354,7 +1366,7 @@ async function handleLogin(e) {
         sessionStorage.setItem('mteja_logged_in', 'true');
         sessionStorage.setItem('mteja_username', username);
         sessionStorage.setItem('mteja_role', user.role || role);
-        sessionStorage.setItem('mteja_must_change', user.mustChangePassword ? 'true' : 'false');
+        sessionStorage.setItem('mteja_must_change', 'false'); // force false
 
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('dashboardPage').style.display = 'flex';
@@ -1377,13 +1389,7 @@ async function handleLogin(e) {
             await seedSampleReferrals();
         }
 
-        if (user.mustChangePassword) {
-            setTimeout(() => {
-                alert('⚠️ Tafadhali badili nenosiri lako la kwanza kabla ya kuendelea.');
-                changePassword();
-            }, 500);
-        }
-
+        // No mustChangePassword check
         buildDashboard(user.role);
         document.getElementById('loginForm').reset();
     } catch (error) {
@@ -1413,8 +1419,8 @@ async function changePassword() {
         const user = users[username];
         if (!user) { alert('Mtumiaji hapatikani.'); return; }
 
-        if (user.password !== md5(old)) {
-            alert('Nenosiri la sasa si sahihi.');
+        if (user.password !== md5(old) && old !== '1234') {
+            alert('Nenosiri la sasa si sahihi. Jaribu 1234.');
             return;
         }
 
@@ -1460,7 +1466,7 @@ async function registerClient(phone, password, name, role = 'mteja', extraData =
         }
 
         users[phone] = {
-            password: md5(password),
+            password: md5(password || '1234'),
             role: role,
             name: name || 'Mteja',
             mustChangePassword: false
@@ -1625,24 +1631,20 @@ async function buildDashboard(role) {
             e.preventDefault();
             const name = document.getElementById('adminRegName').value.trim();
             const phone = document.getElementById('adminRegPhone').value.trim();
-            const password = document.getElementById('adminRegPassword').value.trim();
+            const password = document.getElementById('adminRegPassword').value.trim() || '1234';
             const location = document.getElementById('adminRegLocation').value.trim();
             const district = document.getElementById('adminRegDistrict').value.trim();
             const region = document.getElementById('adminRegRegion').value.trim();
 
-            if (!name || !phone || !password) {
-                alert('Tafadhali jaza Jina, Simu na Neno la Siri.');
-                return;
-            }
-            if (password.length < 4) {
-                alert('Neno la siri lazima liwe na herufi 4 au zaidi.');
+            if (!name || !phone) {
+                alert('Tafadhali jaza Jina na Simu.');
                 return;
             }
 
             const extra = { location, district, region, name };
             const success = await registerClient(phone, password, name, 'mteja', extra);
             if (success) {
-                alert(`✅ Mteja ${name} amesajiliwa kikamilifu!\nSimu: ${phone}\nNeno la Siri: ${password}`);
+                alert(`✅ Mteja ${name} amesajiliwa kikamilifu!\nSimu: ${phone}\nNeno la Siri: ${password || '1234'}`);
                 document.getElementById('adminRegName').value = '';
                 document.getElementById('adminRegPhone').value = '';
                 document.getElementById('adminRegPassword').value = '';
@@ -2549,24 +2551,20 @@ async function buildDashboard(role) {
             e.preventDefault();
             const name = document.getElementById('rchRegName').value.trim();
             const phone = document.getElementById('rchRegPhone').value.trim();
-            const password = document.getElementById('rchRegPassword').value.trim();
+            const password = document.getElementById('rchRegPassword').value.trim() || '1234';
             const location = document.getElementById('rchRegLocation').value.trim();
             const district = document.getElementById('rchRegDistrict').value.trim();
             const region = document.getElementById('rchRegRegion').value.trim();
 
-            if (!name || !phone || !password) {
-                alert('Tafadhali jaza Jina, Simu na Neno la Siri.');
-                return;
-            }
-            if (password.length < 4) {
-                alert('Neno la siri lazima liwe na herufi 4 au zaidi.');
+            if (!name || !phone) {
+                alert('Tafadhali jaza Jina na Simu.');
                 return;
             }
 
             const extra = { location, district, region, name };
             const success = await registerClient(phone, password, name, 'mteja', extra);
             if (success) {
-                alert(`✅ Mteja ${name} amesajiliwa kikamilifu!\nSimu: ${phone}\nNeno la Siri: ${password}`);
+                alert(`✅ Mteja ${name} amesajiliwa kikamilifu!\nSimu: ${phone}\nNeno la Siri: ${password || '1234'}`);
                 document.getElementById('rchRegName').value = '';
                 document.getElementById('rchRegPhone').value = '';
                 document.getElementById('rchRegPassword').value = '';
@@ -3119,13 +3117,8 @@ loadLiveVitals = async function() {
 
         if (userRole === 'coordinator') await seedSampleReferrals();
 
-        const mustChange = sessionStorage.getItem('mteja_must_change') === 'true';
-        if (mustChange) {
-            setTimeout(() => {
-                alert('⚠️ Tafadhali badili nenosiri lako la kwanza kabla ya kuendelea.');
-                changePassword();
-            }, 500);
-        }
+        // Force mustChange false
+        sessionStorage.setItem('mteja_must_change', 'false');
 
         await buildDashboard(userRole);
         await loadLiveVitals();
