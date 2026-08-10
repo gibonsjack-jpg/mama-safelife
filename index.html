@@ -1011,7 +1011,7 @@
 <!-- ============================================================ -->
 <script>
 // =================================================================
-//  FIREBASE CONFIG – Tumia config yako mwenyewe
+//  FIREBASE CONFIG
 // =================================================================
 const firebaseConfig = {
     apiKey: "AIzaSyAC2cXvXcYqr_gzDkD18jYmdeUQskI4k",
@@ -1028,13 +1028,12 @@ const database = firebase.database();
 // =================================================================
 //  UTILITY FUNCTIONS
 // =================================================================
-// MD5 hashing using CryptoJS (loaded from CDN)
 function md5(str) {
     return CryptoJS.MD5(str).toString();
 }
 
 // =================================================================
-//  DATA STORE – Firebase Realtime Database (Asynchronous)
+//  DATA STORE – Firebase
 // =================================================================
 const DB = {
     async get(key, fallback) {
@@ -1068,23 +1067,26 @@ const DB = {
 //  DEFAULT ADMIN ACCOUNT – 0752568172 / 1234
 // =================================================================
 async function ensureDefaultAdmin() {
-    const users = await DB.get('users', {});
-    if (!users['0752568172']) {
-        users['0752568172'] = {
-            password: md5('1234'),
-            role: 'admin',
-            name: 'Msimamizi Mkuu',
-            mustChangePassword: true
-        };
-        await DB.set('users', users);
-        console.log('✅ Default admin created: 0752568172 / 1234');
+    try {
+        const users = await DB.get('users', {});
+        if (!users['0752568172']) {
+            users['0752568172'] = {
+                password: md5('1234'),
+                role: 'admin',
+                name: 'Msimamizi Mkuu',
+                mustChangePassword: true
+            };
+            await DB.set('users', users);
+            console.log('✅ Default admin created: 0752568172 / 1234');
+        }
+    } catch (error) {
+        console.error('Ensure default admin error:', error);
     }
 }
-// Call on load
 ensureDefaultAdmin();
 
 // =================================================================
-//  CLIENT DATA FUNCTIONS (kwa ajili ya mteja, RCH, n.k.)
+//  CLIENT DATA FUNCTIONS
 // =================================================================
 async function getClientData(username) {
     const all = await DB.get('clientsData', {});
@@ -1174,35 +1176,8 @@ async function getReferralsForClient(clientName) {
     return refs.filter(r => r.clientName === clientName);
 }
 
-// Seed sample referrals for demo
-async function seedSampleReferrals() {
-    const existing = await getReferrals();
-    if (existing.length > 0) return;
-    const sampleClients = [
-        { name: 'Aisha Mwinyi', from: 'RCH Clinic', reason: 'Ujauzito wa hatari' },
-        { name: 'Bina Juma', from: 'Labour Ward', reason: 'Kuvuja damu baada ya kujifungua' },
-        { name: 'Zainab Bakari', from: 'Postnatal Ward', reason: 'Homa kali na maumivu ya kichwa' },
-        { name: 'Neema Juma', from: 'RCH Clinic', reason: 'Mimba miezi 8 na presha juu' },
-        { name: 'Fatma Suleiman', from: 'Labour Ward', reason: 'Mwanzo wa kujifungua kabla ya muda' },
-        { name: 'Hawa Selemani', from: 'Postnatal Ward', reason: 'Kutokwa na damu nyingi' }
-    ];
-    for (const c of sampleClients) {
-        const ref = {
-            clientName: c.name,
-            fromWard: c.from,
-            toHospital: 'Inasubiri',
-            reason: c.reason,
-            doctorName: 'Dr. Fabiani Mwasabwite',
-            messageToClient: 'Ombi limewasilishwa kwa Mratibu.',
-            fromFacility: 'Tunduma Town Council Hospital',
-            status: 'pending'
-        };
-        await addReferral(ref);
-    }
-}
-
 // =================================================================
-//  ROSTER (Labour Ward)
+//  ROSTER
 // =================================================================
 async function getRoster() {
     const roster = await DB.get('labourRoster', null);
@@ -1268,7 +1243,7 @@ function calculateShockIndex(pulse, systolic) {
 }
 
 // =================================================================
-//  LIVE VITALS FROM ESP32 (Dr. SSH D001)
+//  LIVE VITALS FROM ESP32
 // =================================================================
 let liveVitals = {
     temperature: 0,
@@ -1283,12 +1258,13 @@ async function loadLiveVitals() {
         const snapshot = await database.ref('vitals/Dr_SSH_D001').once('value');
         const data = snapshot.val();
         if (data) {
-            const temp = data.temperature || 0;
-            const sys = data.systolic || 0;
-            const dia = data.diastolic || 0;
-            const pulse = data.pulse || 0;
-            const ts = data.timestamp || Date.now();
-            liveVitals = { temperature: temp, systolic: sys, diastolic: dia, pulse: pulse, timestamp: ts };
+            liveVitals = {
+                temperature: data.temperature || 0,
+                systolic: data.systolic || 0,
+                diastolic: data.diastolic || 0,
+                pulse: data.pulse || 0,
+                timestamp: data.timestamp || Date.now()
+            };
             updateLiveUI();
         }
     } catch (e) {
@@ -1297,7 +1273,6 @@ async function loadLiveVitals() {
 }
 
 function updateLiveUI() {
-    // Update all elements with class .live-temp, .live-bp, .live-pulse
     document.querySelectorAll('.live-temp').forEach(el => {
         el.textContent = liveVitals.temperature.toFixed(1);
     });
@@ -1307,7 +1282,6 @@ function updateLiveUI() {
     document.querySelectorAll('.live-pulse').forEach(el => {
         el.textContent = Math.round(liveVitals.pulse);
     });
-    // Update time
     if (liveVitals.timestamp) {
         const d = new Date(liveVitals.timestamp);
         const timeStr = d.toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
@@ -1315,9 +1289,6 @@ function updateLiveUI() {
             el.textContent = timeStr;
         });
     }
-    // Update danger warnings
-    updateWarnings(liveVitals.temperature, liveVitals.systolic, liveVitals.diastolic, liveVitals.pulse);
-    // Update status badge (if any)
     const statusEl = document.querySelector('.live-status-badge');
     if (statusEl) {
         const temp = liveVitals.temperature;
@@ -1330,48 +1301,6 @@ function updateLiveUI() {
         statusEl.textContent = status;
         statusEl.className = 'status-badge-live ' + cls;
     }
-}
-
-function updateWarnings(temp, sys, dia, pulse) {
-    const warnings = document.querySelectorAll('.danger-warning');
-    if (warnings.length === 0) return;
-    let msg = '';
-    let cls = '';
-    if (temp < 35.0) {
-        msg = '⚠️ ONYO: Joto ni chini sana! Hatari ya hypothermia. Tafuta msaada wa daktari haraka.';
-        cls = 'danger';
-    } else if (temp < 35.5) {
-        msg = '⚠️ ONYO: Joto ni chini! Mgonjwa anaweza kuwa na hypothermia. Fuatilia kwa karibu.';
-        cls = 'danger';
-    } else if (temp > 38.5) {
-        msg = '🚨 DHARURA: Joto ni juu sana! Homa kali. Tafuta msaada wa daktari haraka.';
-        cls = 'danger';
-    } else if (temp > 37.5) {
-        msg = '⚠️ ONYO: Joto ni juu! Mgonjwa ana homa. Fuatilia kwa karibu.';
-        cls = '';
-    } else {
-        msg = '✅ Joto liko kawaida. Hakuna hatari.';
-        cls = 'success';
-    }
-    // Ongeza taarifa ya BP na pulse
-    if (sys > 140 || dia > 90) {
-        msg += ' | BP iko juu.';
-        cls = 'danger';
-    } else if (sys < 110 || dia < 60) {
-        msg += ' | BP iko chini.';
-        cls = 'danger';
-    }
-    if (pulse > 90) {
-        msg += ' | Pulse iko juu.';
-        cls = 'danger';
-    } else if (pulse < 60) {
-        msg += ' | Pulse iko chini.';
-        cls = 'danger';
-    }
-    warnings.forEach(w => {
-        w.textContent = msg;
-        w.className = 'danger-warning ' + cls;
-    });
 }
 
 // Start live vitals refresh every 3 seconds
@@ -1391,72 +1320,74 @@ async function handleLogin(e) {
     if (!role) { alert('Tafadhali chagua wadhifa wako.'); return; }
     if (password.length < 4) { alert('Neno la siri lazima liwe na herufi angalau 4.'); return; }
 
-    // Thibitisha kwenye Firebase
-    const users = await DB.get('users', {});
-    let user = users[username];
+    try {
+        const users = await DB.get('users', {});
+        let user = users[username];
 
-    // Kama ni default admin na akaunti haipo, iundwe
-    if (username === '0752568172' && password === '1234') {
-        if (!user) {
-            users[username] = {
-                password: md5('1234'),
-                role: 'admin',
-                name: 'Msimamizi Mkuu',
-                mustChangePassword: true
-            };
-            await DB.set('users', users);
-            user = users[username];
+        // Default admin check
+        if (username === '0752568172' && password === '1234') {
+            if (!user) {
+                users[username] = {
+                    password: md5('1234'),
+                    role: 'admin',
+                    name: 'Msimamizi Mkuu',
+                    mustChangePassword: true
+                };
+                await DB.set('users', users);
+                user = users[username];
+            }
         }
+
+        if (!user) {
+            alert('Jina au nenosiri si sahihi.');
+            return;
+        }
+
+        if (user.password !== md5(password)) {
+            alert('Jina au nenosiri si sahihi.');
+            return;
+        }
+
+        // Session
+        sessionStorage.setItem('mteja_logged_in', 'true');
+        sessionStorage.setItem('mteja_username', username);
+        sessionStorage.setItem('mteja_role', user.role || role);
+        sessionStorage.setItem('mteja_must_change', user.mustChangePassword ? 'true' : 'false');
+
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('dashboardPage').style.display = 'flex';
+        document.getElementById('displayName').textContent = username;
+
+        const roleLabels = {
+            admin: 'Administrator',
+            chw: 'CHW',
+            driver: 'Dereva',
+            nurse_labour: 'Labour Ward',
+            nurse_postnatal: 'Postnatal Ward',
+            nurse_rch: 'RCH Clinic',
+            mteja: 'Mteja',
+            coordinator: 'Mratibu wa M-Mama'
+        };
+        document.getElementById('displayRole').textContent = roleLabels[user.role] || role;
+        document.getElementById('displayIcon').textContent = user.role === 'mteja' ? '👩‍🍼' : user.role === 'chw' ? '🩺' : user.role === 'driver' ? '🚑' : user.role === 'admin' ? '⚙️' : user.role === 'coordinator' ? '📋' : '🏥';
+
+        if (user.role === 'coordinator') {
+            await seedSampleReferrals();
+        }
+
+        if (user.mustChangePassword) {
+            setTimeout(() => {
+                alert('⚠️ Tafadhali badili nenosiri lako la kwanza kabla ya kuendelea.');
+                changePassword();
+            }, 500);
+        }
+
+        buildDashboard(user.role);
+        document.getElementById('loginForm').reset();
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('Hitilafu ya mfumo. Tafadhali jaribu tena.');
     }
-
-    if (!user) {
-        alert('Jina au nenosiri si sahihi.');
-        return;
-    }
-
-    // Thibitisha nenosiri
-    if (user.password !== md5(password)) {
-        alert('Jina au nenosiri si sahihi.');
-        return;
-    }
-
-    // Weka session
-    sessionStorage.setItem('mteja_logged_in', 'true');
-    sessionStorage.setItem('mteja_username', username);
-    sessionStorage.setItem('mteja_role', user.role || role);
-    sessionStorage.setItem('mteja_must_change', user.mustChangePassword ? 'true' : 'false');
-
-    // Onyesha dashboard
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('dashboardPage').style.display = 'flex';
-    document.getElementById('displayName').textContent = username;
-    const roleLabels = {
-        admin: 'Administrator',
-        chw: 'CHW',
-        driver: 'Dereva',
-        nurse_labour: 'Labour Ward',
-        nurse_postnatal: 'Postnatal Ward',
-        nurse_rch: 'RCH Clinic',
-        mteja: 'Mteja',
-        coordinator: 'Mratibu wa M-Mama'
-    };
-    document.getElementById('displayRole').textContent = roleLabels[user.role] || role;
-    document.getElementById('displayIcon').textContent = user.role === 'mteja' ? '👩‍🍼' : user.role === 'chw' ? '🩺' : user.role === 'driver' ? '🚑' : user.role === 'admin' ? '⚙️' : user.role === 'coordinator' ? '📋' : '🏥';
-
-    if (user.role === 'coordinator') {
-        await seedSampleReferrals();
-    }
-
-    // Ikiwa ni lazima abadili password, onyesha modal
-    if (user.mustChangePassword) {
-        setTimeout(() => {
-            alert('⚠️ Tafadhali badili nenosiri lako la kwanza kabla ya kuendelea.');
-            changePassword();
-        }, 500);
-    }
-
-    buildDashboard(user.role);
-    document.getElementById('loginForm').reset();
 }
 
 async function changePassword() {
@@ -1475,22 +1406,26 @@ async function changePassword() {
     if (confirmPass === null) return;
     if (newPass !== confirmPass) { alert('Nenosiri hazifanani.'); return; }
 
-    const users = await DB.get('users', {});
-    const user = users[username];
-    if (!user) { alert('Mtumiaji hapatikani.'); return; }
+    try {
+        const users = await DB.get('users', {});
+        const user = users[username];
+        if (!user) { alert('Mtumiaji hapatikani.'); return; }
 
-    // Thibitisha old password
-    if (user.password !== md5(old)) {
-        alert('Nenosiri la sasa si sahihi.');
-        return;
+        if (user.password !== md5(old)) {
+            alert('Nenosiri la sasa si sahihi.');
+            return;
+        }
+
+        user.password = md5(newPass);
+        user.mustChangePassword = false;
+        await DB.set('users', users);
+
+        sessionStorage.setItem('mteja_must_change', 'false');
+        alert('✅ Nenosiri limebadilishwa kikamilifu!');
+    } catch (error) {
+        console.error('Change password error:', error);
+        alert('Hitilafu wakati wa kubadili nenosiri.');
     }
-
-    user.password = md5(newPass);
-    user.mustChangePassword = false;
-    await DB.set('users', users);
-
-    sessionStorage.setItem('mteja_must_change', 'false');
-    alert('✅ Nenosiri limebadilishwa kikamilifu!');
 }
 
 function logout() {
@@ -1512,38 +1447,68 @@ function forgotPassword() {
 }
 
 // =================================================================
-//  REGISTER CLIENT FUNCTION (Admin & RCH Nurse)
+//  REGISTER CLIENT FUNCTION (Admin & RCH)
 // =================================================================
 async function registerClient(phone, password, name, role = 'mteja', extraData = {}) {
-    // Check if phone already exists as user
-    const users = await DB.get('users', {});
-    if (users[phone]) {
-        alert('Namba hii ya simu tayari imesajiliwa kama mtumiaji.');
+    try {
+        const users = await DB.get('users', {});
+        if (users[phone]) {
+            alert('Namba hii ya simu tayari imesajiliwa kama mtumiaji.');
+            return false;
+        }
+
+        users[phone] = {
+            password: md5(password),
+            role: role,
+            name: name || 'Mteja',
+            mustChangePassword: false
+        };
+        await DB.set('users', users);
+
+        const clientData = await getClientData(phone);
+        clientData.phone = phone;
+        clientData.name = name || 'Mteja';
+        clientData.status = 'pregnant';
+        clientData.createdAt = new Date().toISOString();
+        for (const [key, val] of Object.entries(extraData)) {
+            if (val) clientData[key] = val;
+        }
+        await setClientData(phone, clientData);
+        return true;
+    } catch (error) {
+        console.error('Registration error:', error);
+        alert('Hitilafu wakati wa kusajili. Tafadhali jaribu tena.');
         return false;
     }
+}
 
-    // Create user
-    users[phone] = {
-        password: md5(password),
-        role: role,
-        name: name || 'Mteja',
-        mustChangePassword: false
-    };
-    await DB.set('users', users);
-
-    // Create client data (if not exists)
-    const clientData = await getClientData(phone);
-    clientData.phone = phone;
-    clientData.name = name || 'Mteja';
-    clientData.status = 'pregnant'; // default
-    clientData.createdAt = new Date().toISOString();
-    // Merge extra data (like location, gravida etc.)
-    for (const [key, val] of Object.entries(extraData)) {
-        if (val) clientData[key] = val;
+// =================================================================
+//  SEED SAMPLE REFERRALS
+// =================================================================
+async function seedSampleReferrals() {
+    const existing = await getReferrals();
+    if (existing.length > 0) return;
+    const sampleClients = [
+        { name: 'Aisha Mwinyi', from: 'RCH Clinic', reason: 'Ujauzito wa hatari' },
+        { name: 'Bina Juma', from: 'Labour Ward', reason: 'Kuvuja damu baada ya kujifungua' },
+        { name: 'Zainab Bakari', from: 'Postnatal Ward', reason: 'Homa kali na maumivu ya kichwa' },
+        { name: 'Neema Juma', from: 'RCH Clinic', reason: 'Mimba miezi 8 na presha juu' },
+        { name: 'Fatma Suleiman', from: 'Labour Ward', reason: 'Mwanzo wa kujifungua kabla ya muda' },
+        { name: 'Hawa Selemani', from: 'Postnatal Ward', reason: 'Kutokwa na damu nyingi' }
+    ];
+    for (const c of sampleClients) {
+        const ref = {
+            clientName: c.name,
+            fromWard: c.from,
+            toHospital: 'Inasubiri',
+            reason: c.reason,
+            doctorName: 'Dr. Fabiani Mwasabwite',
+            messageToClient: 'Ombi limewasilishwa kwa Mratibu.',
+            fromFacility: 'Tunduma Town Council Hospital',
+            status: 'pending'
+        };
+        await addReferral(ref);
     }
-    await setClientData(phone, clientData);
-
-    return true;
 }
 
 // =================================================================
@@ -1610,7 +1575,7 @@ async function buildDashboard(role) {
     if (role === 'admin') {
         html = `
             ${getLiveSensorBlock('🖥️ Msimamizi – Data ya Kifaa', false, 'Kifaa: Dr. SSH D001')}
-            <div class="card admin-card" style="border:2px solid #1565c0; background:#f0f8ff;">
+            <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
                 <h3 style="color:#1565c0;">➕ Sajili Mteja Mpya</h3>
                 <form onsubmit="adminRegisterClient(event)">
                     <div class="form-grid">
@@ -1625,7 +1590,7 @@ async function buildDashboard(role) {
                 </form>
             </div>
             <div class="card admin-card">
-                <h3 style="color:#d32f2f;">🏥 1. Sajili Wafanyakazi wa Hospitali</h3>
+                <h3 style="color:#d32f2f;">🏥 Sajili Wafanyakazi wa Hospitali</h3>
                 <form onsubmit="alert('Mfanyakazi wa afya amesajiliwa!'); return false;">
                     <div class="form-grid">
                         <div><label>Idara:</label><select required><option value="" disabled selected>Chagua</option><option>RCH Clinic</option><option>Labour Ward</option><option>Postnatal Ward</option></select></div>
@@ -1637,42 +1602,8 @@ async function buildDashboard(role) {
                     <button type="submit" style="background:#2e7d32;">SAJILI</button>
                 </form>
             </div>
-            <div class="card admin-card">
-                <h3 style="color:#d32f2f;">👩‍⚕️ 2. Sajili CHW</h3>
-                <form onsubmit="alert('CHW amesajiliwa!'); return false;">
-                    <div class="form-grid">
-                        <div><label>Jina Kamili:</label><input type="text" placeholder="Mf. Amina Mwasabwite" required></div>
-                        <div><label>Simu:</label><input type="text" placeholder="07XXXXXXXX" required></div>
-                        <div class="form-full"><div class="section-title">📍 Eneo la Kazi</div></div>
-                        <div><label>Mtaa:</label><input type="text" placeholder="Mf. Sogea" required></div>
-                        <div><label>Anwani:</label><input type="text" placeholder="Mf. Nyumba Na. 12" required></div>
-                        <div><label>Kata:</label><input type="text" placeholder="Mf. Tunduma" required></div>
-                        <div><label>Wilaya:</label><input type="text" placeholder="Mf. Momba" required></div>
-                        <div class="form-full"><label>Mkoa:</label><input type="text" placeholder="Mf. Songwe" required></div>
-                        <div class="form-full"><div class="section-title">📞 Namba 3 za Wategemezi</div></div>
-                        <div><label>Mtegemezi 1:</label><input type="text" placeholder="Namba ya Simu 1" required></div>
-                        <div><label>Mtegemezi 2:</label><input type="text" placeholder="Namba ya Simu 2" required></div>
-                        <div class="form-full"><label>Mtegemezi 3:</label><input type="text" placeholder="Namba ya Simu 3" required></div>
-                        <div class="form-full"><label>NIDA:</label><input type="text" placeholder="1995XXXXXXXXXXXX-XXXX" required></div>
-                    </div>
-                    <button type="submit" style="background:#00796b;">SAJILI CHW</button>
-                </form>
-            </div>
-            <div class="card admin-card">
-                <h3 style="color:#d32f2f;">🚗 3. Sajili Dereva wa Ambulance</h3>
-                <form onsubmit="alert('Dereva amesajiliwa!'); return false;">
-                    <div class="form-grid">
-                        <div><label>Jina Kamili:</label><input type="text" placeholder="Mf. Juma Ally" required></div>
-                        <div><label>Simu:</label><input type="text" placeholder="07XXXXXXXX" required></div>
-                        <div><label>Anwani:</label><input type="text" placeholder="Mf. Sokoine St, Nyumba Na. 45" required></div>
-                        <div><label>Namba ya Gari:</label><input type="text" placeholder="Mf. T 452 ABC" required></div>
-                        <div class="form-full"><label>NIDA:</label><input type="text" placeholder="1990XXXXXXXXXXXX-XXXX" required></div>
-                    </div>
-                    <button type="submit" style="background:#0277bd;">SAJILI DEREVA</button>
-                </form>
-            </div>
             <div class="card admin-card" style="border-top:5px solid #d32f2f;">
-                <h3 style="color:#d32f2f;">🛠️ 4. Chumba cha Usimamizi</h3>
+                <h3 style="color:#d32f2f;">🛠️ Chumba cha Usimamizi</h3>
                 <p style="font-size:0.85rem; color:#555;">Ongeza vipengele, rekebisha au futa taarifa.</p>
                 <div style="background:#f9f9f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #ddd;">
                     <h4 style="margin-top:0; color:#1b5e20;">➕ Ongeza Kipengele Kipya</h4>
@@ -1685,23 +1616,9 @@ async function buildDashboard(role) {
                         <button type="submit" style="background:#43a047;">HIFADHI</button>
                     </form>
                 </div>
-                <div style="background:#fff8f8; padding:12px; border-radius:8px; border:1px solid #ffcdd2;">
-                    <h4 style="margin-top:0; color:#c62828;">✏️ Tafuta, Rekebisha au Futa</h4>
-                    <div style="display:flex; gap:8px; margin-bottom:12px;">
-                        <input type="text" placeholder="Tafuta kwa Jina..." style="margin-bottom:0;">
-                        <button type="button" style="width:120px; background:#0277bd;" onclick="alert('Inatafuta...')">Tafuta</button>
-                    </div>
-                    <table>
-                        <thead><tr><th>Aina</th><th>Jina</th><th>Taarifa</th><th>Vitendo</th></tr></thead>
-                        <tbody>
-                            <tr><td><span class="badge">CHW</span></td><td>Amina Mwasabwite</td><td>Mtaa: Sogea, Simu: 0711223344</td><td><button type="button" style="background:#f57f17; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="alert('Rekebisha')">Rekebisha</button><button type="button" style="background:#c62828; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="confirm('Futa?') && alert('Imefutwa!')">Futa</button></td></tr>
-                            <tr><td><span class="badge" style="background:#e3f2fd; color:#0277bd;">Dereva</span></td><td>Juma Ally</td><td>Gari: T 452 ABC, Simu: 0712345678</td><td><button type="button" style="background:#f57f17; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="alert('Rekebisha')">Rekebisha</button><button type="button" style="background:#c62828; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="confirm('Futa?') && alert('Imefutwa!')">Futa</button></td></tr>
-                        </tbody>
-                    </table>
-                </div>
             </div>
         `;
-        // Admin register client function
+        // Admin register client
         window.adminRegisterClient = async function(e) {
             e.preventDefault();
             const name = document.getElementById('adminRegName').value.trim();
@@ -1817,35 +1734,7 @@ async function buildDashboard(role) {
                 <h3 style="color:#c62828;">❌ Rufaa Zilizokataliwa</h3>
                 <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Maelezo</th><th>Tarehe</th></tr></thead><tbody>${rejectedRows}</tbody></table>
             </div>
-            <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
-                <h3 style="color:#0d47a1;">➕ Ongeza Rufaa Mpya</h3>
-                <form onsubmit="addNewReferral(event)">
-                    <div class="form-grid">
-                        <div><label>Jina la Mteja:</label><input type="text" id="newRefClient" placeholder="Mf. Zainab Mwakyusa" required></div>
-                        <div><label>Kutoka Wodi:</label><select id="newRefFrom"><option>RCH Clinic</option><option>Labour Ward</option><option>Postnatal Ward</option></select></div>
-                        <div class="form-full"><label>Sababu:</label><textarea id="newRefReason" placeholder="Sababu ya rufaa..." required></textarea></div>
-                        <div><label>Daktari:</label><input type="text" id="newRefDoctor" placeholder="Dr. ..." required></div>
-                    </div>
-                    <button type="submit" style="background:#0d47a1;">TUMA RUFAA</button>
-                </form>
-            </div>
         `;
-        // Define functions for coordinator
-        window.addNewReferral = async function(e) {
-            e.preventDefault();
-            const clientName = document.getElementById('newRefClient').value.trim();
-            const fromWard = document.getElementById('newRefFrom').value;
-            const reason = document.getElementById('newRefReason').value.trim();
-            const doctorName = document.getElementById('newRefDoctor').value.trim();
-            if (!clientName || !reason || !doctorName) { alert('Tafadhali jaza sehemu zote.'); return; }
-            const ref = { clientName, fromWard, toHospital: 'Inasubiri', reason, doctorName, messageToClient: 'Ombi limewasilishwa kwa Mratibu.', fromFacility: 'Tunduma Town Council Hospital' };
-            await addReferral(ref);
-            alert(`✅ Rufaa ya ${clientName} imeongezwa!`);
-            document.getElementById('newRefClient').value = '';
-            document.getElementById('newRefReason').value = '';
-            document.getElementById('newRefDoctor').value = '';
-            buildDashboard('coordinator');
-        };
         window.openReferralModal = openReferralModal;
         window.closeReferralModal = closeReferralModal;
         window.confirmApproveReferral = confirmApproveReferral;
@@ -1909,14 +1798,7 @@ async function buildDashboard(role) {
                     <button type="submit" style="background:#1565c0;">TUMA OMBI</button>
                 </form>
             </div>
-            <div class="card" style="border:2px solid #d32f2f; background:#fffdfd;">
-                <h3 style="color:#d32f2f;">🚨 Dharura: Ambulance Tracking</h3>
-                <table><thead><tr><th>Mteja & Anwani</th><th>Simu</th><th>Hali</th><th>Dereva</th><th>Hatua</th></tr></thead><tbody>
-                    <tr><td><b>Bina Juma</b><br><small>Nyumba Na. 12, Sogea</small></td><td>0765 432 100</td><td><span class="badge-red">Imechelewa</span></td><td>Juma (TMB 452C)</td><td><button class="btn-red" onclick="alert('Ombi limekwisha!')" style="font-size:0.8rem; padding:6px;">Omba Gari</button><button class="btn-blue" style="font-size:0.8rem; padding:6px; margin-top:4px;" onclick="alert('Piga simu!')">Piga Simu</button></td></tr>
-                </tbody></table>
-            </div>
         `;
-        // CHW functions
         window.chwApproveTransfer = async function(id) {
             const reason = prompt('Sababu ya kukubali? (Hiari)');
             const updated = await updateTransferRequest(id, { status:'approved', reviewNote: reason || 'Imekubaliwa na CHW', reviewedAt: new Date().toISOString() });
@@ -1979,19 +1861,7 @@ async function buildDashboard(role) {
                     <div class="gps-map-box"><span style="font-size:28px;">🗺️</span><span>Live GPS Map</span></div>
                 </div>
             </div>
-            <div class="card" style="border-top:5px solid #ff9800;">
-                <h3 style="color:#e65100;">⚠️ Umekwama? Omba Msaada</h3>
-                <form onsubmit="alert('Ombi limetumwa!'); return false;">
-                    <div class="driver-grid-2">
-                        <div><label>Sababu:</label><select required><option>Gari imeharibika</option><option>Tairi limepasuka</option><option>Njia imeziba</option><option>Mafuta yameisha</option></select></div>
-                        <div><label>Eneo:</label><input type="text" placeholder="Mf. Chapwa barabara kuu" required></div>
-                    </div>
-                    <label>Maelezo:</label><textarea placeholder="Maelezo mafupi..." rows="2"></textarea>
-                    <button type="submit" style="background:#e65100;">TUMA OMBI</button>
-                </form>
-            </div>
         `;
-        // Driver functions
         window.kubaliMgonjwa = function(name, address, phone, condition) {
             document.getElementById('requestSection').style.display = 'none';
             document.getElementById('activeTripCard').style.display = 'block';
@@ -2057,15 +1927,15 @@ async function buildDashboard(role) {
             ${getLiveSensorBlock('🚑 Joto la Mgonjwa Anayeingia Labour', false, 'Mgonjwa kutoka kwa Dereva wa Ambulance')}
             <div class="card" style="border:4px solid #d32f2f; background:#fff5f5; text-align:center; padding:20px;">
                 <h3 style="color:#d32f2f; border:none; padding:0;">🚨 ZARURA / DHARURA</h3>
-                <p style="font-size:0.9rem;">Bonyeza kitufe chini ikiwa kuna dharura. Ujumbe utatumwa kwa Mganga Mfawidhi, Muuguzi Mfawidhi, Supervisor wa Wiki na Timu ya Zarura.</p>
-                <button onclick="openEmergencyModal()" style="background:#d32f2f; font-size:1.2rem; padding:16px; border-radius:50px; width:auto; min-width:200px; box-shadow:0 0 20px rgba(211,47,47,0.5); animation:pulseEffect 2s infinite;">🚨 BONYEA ZARURA</button>
+                <p style="font-size:0.9rem;">Bonyeza kitufe chini ikiwa kuna dharura.</p>
+                <button onclick="openEmergencyModal()" style="background:#d32f2f; font-size:1.2rem; padding:16px; border-radius:50px; width:auto; min-width:200px;">🚨 BONYEA ZARURA</button>
             </div>
             <div class="card" style="border:2px solid #0d47a1;">
                 <h3 style="color:#0d47a1;">📋 ORODHA YA WAFANYAKAZI (ROSTER) - LABOUR</h3>
                 <table class="roster-table">
                     <tbody>
-                        <tr><td><strong>Daktari wa Zamu (Doctor on Duty)</strong></td><td>${roster.doctorOnDuty}</td></tr>
-                        <tr><td><strong>Daktari wa Pili (Second on Call)</strong></td><td>${roster.secondOnCall}</td></tr>
+                        <tr><td><strong>Daktari wa Zamu</strong></td><td>${roster.doctorOnDuty}</td></tr>
+                        <tr><td><strong>Daktari wa Pili</strong></td><td>${roster.secondOnCall}</td></tr>
                         <tr><td colspan="2"><strong>👩‍⚕️ Manesi wa Zamu</strong></td></tr>
                         ${rosterNursesHtml}
                     </tbody>
@@ -2135,7 +2005,6 @@ async function buildDashboard(role) {
                 </form>
             </div>
         `;
-        // Labour functions
         window.calculateLabourShock = function() {
             const pulse = parseFloat(document.getElementById('labourPulse').value);
             const sys = parseFloat(document.getElementById('labourBPSys').value);
@@ -2259,12 +2128,12 @@ async function buildDashboard(role) {
             ${getLiveSensorBlock('🏠 Joto la Mteja Nyumbani (Postnatal)', true, 'Mteja anafuatiliwa nyumbani')}
             <div class="card" style="border:4px solid #d32f2f; background:#fff5f5; text-align:center; padding:20px;">
                 <h3 style="color:#d32f2f; border:none; padding:0;">🚨 ZARURA / DHARURA</h3>
-                <p style="font-size:0.9rem;">Bonyeza kitufe chini ikiwa kuna dharura. Ujumbe utatumwa kwa Mganga Mfawidhi, Muuguzi Mfawidhi, Supervisor wa Wiki na Timu ya Zarura.</p>
-                <button onclick="openEmergencyModal()" style="background:#d32f2f; font-size:1.2rem; padding:16px; border-radius:50px; width:auto; min-width:200px; box-shadow:0 0 20px rgba(211,47,47,0.5); animation:pulseEffect 2s infinite;">🚨 BONYEA ZARURA</button>
+                <p style="font-size:0.9rem;">Bonyeza kitufe chini ikiwa kuna dharura.</p>
+                <button onclick="openEmergencyModal()" style="background:#d32f2f; font-size:1.2rem; padding:16px; border-radius:50px; width:auto; min-width:200px;">🚨 BONYEA ZARURA</button>
             </div>
             <div class="postnatal-alert-day3">⏰ ALARM: Aisha Mwinyi amefikisha Siku 3 baada ya kujifungua!</div>
             <div class="card" style="border:2px solid #00838f; background:#f5faff;">
-                <h3 style="color:#00838f;">📋 KADI YA KIELEKTRONIKI YA POSTNATAL (Inaweza Kuhaririwa)</h3>
+                <h3 style="color:#00838f;">📋 KADI YA KIELEKTRONIKI YA POSTNATAL</h3>
                 <div class="postnatal-card">
                     <h4>👩 Hali ya Mama</h4>
                     <div class="info-grid">
@@ -2280,18 +2149,14 @@ async function buildDashboard(role) {
                         <div class="info-item"><strong>Manjano:</strong> Hakuna</div>
                         <div class="info-item"><strong>Chanjo:</strong> BCG, Polio 0</div>
                     </div>
-                    <h4>📝 Mpango wa Kutolewa (Discharge Plan)</h4>
+                    <h4>📝 Mpango wa Kutolewa</h4>
                     <div class="info-item" style="background:#fff; padding:10px; border-radius:6px; border:1px solid #dde1e6;">
-                        <p><strong>Maelekezo:</strong> Rudi RCH baada ya siku 7 kwa uchunguzi wa mama na mtoto. Endelea na vitamini. Tafuta msaada ikiwa una homa au uvujaji wa damu.</p>
-                    </div>
-                    <div style="margin-top:10px; font-size:0.8rem; color:#555; border-top:1px dashed #ccc; padding-top:8px;">
-                        <span class="badge">Imetolewa: 07/08/2026</span>
-                        <span class="badge" style="background:#00838f; color:white;">Daktari: Dr. Mwakyusa</span>
+                        <p><strong>Maelekezo:</strong> Rudi RCH baada ya siku 7 kwa uchunguzi. Endelea na vitamini. Tafuta msaada ikiwa una homa au uvujaji wa damu.</p>
                     </div>
                 </div>
             </div>
             <div class="card" style="border:2px solid #2e7d32;">
-                <h3 style="color:#2e7d32;">📅 Mahudhurio ya Postnatal (Hariri / Ongeza)</h3>
+                <h3 style="color:#2e7d32;">📅 Mahudhurio ya Postnatal</h3>
                 <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
                     <label style="margin:0;">Chagua Mteja:</label>
                     <select id="pnClientSelectCard" onchange="loadPostnatalVisits(this.value)" style="flex:1; min-width:150px;">
@@ -2317,11 +2182,11 @@ async function buildDashboard(role) {
                 </form>
             </div>
             <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
-                <h3 style="color:#0d47a1;">📤 Toa Rufaa (Referral) - POSTNATAL</h3>
+                <h3 style="color:#0d47a1;">📤 Toa Rufaa - POSTNATAL</h3>
                 <form onsubmit="postnatalSubmitReferral(event)">
                     <div class="form-grid">
                         <div><label>Chagua Mteja:</label><select id="pnRefClient" required><option value="">-- Chagua --</option>${clientOpts}</select></div>
-                        <div><label>Hospitali Inayopokea:</label><select id="pnRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Chapwa Health Centre">Chapwa Health Centre</option></select></div>
+                        <div><label>Hospitali Inayopokea:</label><select id="pnRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option></select></div>
                         <div class="form-full"><label>Sababu ya Rufaa:</label><textarea id="pnRefReason" placeholder="Sababu ya kumpeleka mteja..." required></textarea></div>
                         <div><label>Jina la Daktari:</label><input type="text" id="pnRefDoctor" placeholder="Mf. Dr. Fabiani Mwasabwite" required></div>
                         <div class="form-full"><label>Ujumbe kwa Mteja:</label><textarea id="pnRefMsg" placeholder="Ujumbe wa kumjulisha mteja..." required></textarea></div>
@@ -2333,16 +2198,7 @@ async function buildDashboard(role) {
                 <h3 style="color:#d32f2f;">📥 Rufaa Zinazoingia - POSTNATAL</h3>
                 <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Daktari</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>${incomingRefRows}</tbody></table>
             </div>
-            <div class="card">
-                <h3 style="color:#00838f;">🛏️ Wateja Wodini</h3>
-                <table><thead><tr><th>Jina</th><th>Njia</th><th>Siku</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>
-                    <tr><td><b>Zainab Bakari</b></td><td><span class="postnatal-badge-normal">Kawaida</span></td><td>Siku 1</td><td>Salama</td><td><button style="background:#00838f; font-size:0.8rem; padding:6px;" onclick="alert('Rekodi')">Rekodi</button></td></tr>
-                    <tr><td><b>Aisha Mwinyi</b></td><td><span class="postnatal-badge-cs">C/S</span></td><td>Siku 3</td><td>Inaendelea</td><td><button style="background:#00838f; font-size:0.8rem; padding:6px;" onclick="alert('Rekodi')">Rekodi</button></td></tr>
-                    <tr><td><b>Neema Juma</b></td><td><span class="postnatal-badge-cs">C/S</span></td><td>Siku 2</td><td>Uangalizi</td><td><button style="background:#00838f; font-size:0.8rem; padding:6px;" onclick="alert('Rekodi')">Rekodi</button></td></tr>
-                </tbody></table>
-            </div>
         `;
-        // Postnatal functions
         window.postnatalDischarge = async function(e) {
             e.preventDefault();
             const client = document.getElementById('pndClient').value;
@@ -2457,7 +2313,6 @@ async function buildDashboard(role) {
             alert(`✅ Mahudhurio ya Postnatal kwa ${clientName} yamehifadhiwa!`);
             loadPostnatalVisits(clientName);
         };
-        // Load visits for first client if exists
         setTimeout(() => {
             const sel = document.getElementById('pnClientSelectCard');
             if (sel && sel.value) {
@@ -2471,24 +2326,6 @@ async function buildDashboard(role) {
 
     // ==================== RCH ====================
     else if (role === 'nurse_rch') {
-        // RCH can also register new clients
-        html = `
-            <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
-                <h3 style="color:#1565c0;">➕ Sajili Mteja Mpya</h3>
-                <form onsubmit="rchRegisterClient(event)">
-                    <div class="form-grid">
-                        <div><label>Jina Kamili:</label><input type="text" id="rchRegName" placeholder="Mf. Aisha Juma" required></div>
-                        <div><label>Simu (Username):</label><input type="text" id="rchRegPhone" placeholder="0712345678" required></div>
-                        <div><label>Neno la Siri:</label><input type="password" id="rchRegPassword" placeholder="******" required></div>
-                        <div><label>Kituo / Mtaa:</label><input type="text" id="rchRegLocation" placeholder="Tunduma / Sogea"></div>
-                        <div><label>Wilaya:</label><input type="text" id="rchRegDistrict" placeholder="Momba"></div>
-                        <div><label>Mkoa:</label><input type="text" id="rchRegRegion" placeholder="Songwe"></div>
-                    </div>
-                    <button type="submit" style="background:#1565c0;">SAJILI MTEJA</button>
-                </form>
-            </div>
-        `;
-        // Then the rest of RCH dashboard (existing)
         const username = sessionStorage.getItem('mteja_username') || 'Bina Juma';
         const clientData = await getClientData(username);
         const { lnmp = '', edd = '', gestationalAge = '', phone = '', partner = '', location = '',
@@ -2576,10 +2413,24 @@ async function buildDashboard(role) {
         let clientOptionsRCH = '';
         allClients.forEach(c => { clientOptionsRCH += `<option value="${c}">${c}</option>`; });
 
-        html += `
+        html = `
             ${getLiveSensorBlock('👩‍⚕️ Joto la Mgonjwa (RCH)', true, 'Mgonjwa anafuatiliwa katika Kliniki ya RCH')}
+            <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
+                <h3 style="color:#1565c0;">➕ Sajili Mteja Mpya</h3>
+                <form onsubmit="rchRegisterClient(event)">
+                    <div class="form-grid">
+                        <div><label>Jina Kamili:</label><input type="text" id="rchRegName" placeholder="Mf. Aisha Juma" required></div>
+                        <div><label>Simu (Username):</label><input type="text" id="rchRegPhone" placeholder="0712345678" required></div>
+                        <div><label>Neno la Siri:</label><input type="password" id="rchRegPassword" placeholder="******" required></div>
+                        <div><label>Kituo / Mtaa:</label><input type="text" id="rchRegLocation" placeholder="Tunduma / Sogea"></div>
+                        <div><label>Wilaya:</label><input type="text" id="rchRegDistrict" placeholder="Momba"></div>
+                        <div><label>Mkoa:</label><input type="text" id="rchRegRegion" placeholder="Songwe"></div>
+                    </div>
+                    <button type="submit" style="background:#1565c0;">SAJILI MTEJA</button>
+                </form>
+            </div>
             <div class="card" style="border-top:4px solid #2e7d32;">
-                <h3 style="color:#2e7d32;">📝 Sajili Mteja Mpya</h3>
+                <h3 style="color:#2e7d32;">📝 Sajili Mteja</h3>
                 <form id="rchForm" onsubmit="saveRCHData(event)">
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
                         <div><label>Jina Kamili:</label><input type="text" id="rchName" value="${username}" placeholder="Bina Juma" required></div>
@@ -2659,20 +2510,16 @@ async function buildDashboard(role) {
                 </form>
             </div>
             <div class="card" style="border:2px solid #d32f2f; background:#fff5f5;">
-                <h3 style="color:#d32f2f;">📥 Maombi ya Kuingia (Cross-Region) - RCH</h3>
-                <p style="font-size:0.85rem; color:#555;">Wateja wanaoomba kuhamia Mkoa wako. Onyesha Kituo na Wilaya walipotoka.</p>
+                <h3 style="color:#d32f2f;">📥 Maombi ya Kuingia - RCH</h3>
+                <p style="font-size:0.85rem; color:#555;">Wateja wanaoomba kuhamia Mkoa wako.</p>
                 <table><thead><tr><th>Mteja</th><th>Kutoka Kituo</th><th>Wilaya</th><th>Mkoa</th><th>Kwenda</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${transferRowsRCH}</tbody></table>
             </div>
-            <div class="card">
-                <h3 style="color:#2e7d32;">🔄 Usimamizi wa Maombi (Kwa Ujumla)</h3>
-                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Wilaya</th><th>Mkoa</th><th>Kwenda</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${transferRowsRCH}</tbody></table>
-            </div>
             <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
-                <h3 style="color:#0d47a1;">📤 Toa Rufaa (Referral) - RCH</h3>
+                <h3 style="color:#0d47a1;">📤 Toa Rufaa - RCH</h3>
                 <form onsubmit="rchSubmitReferral(event)">
                     <div class="form-grid">
                         <div><label>Chagua Mteja:</label><select id="rchRefClient" required><option value="">-- Chagua --</option>${clientOptionsRCH}</select></div>
-                        <div><label>Hospitali Inayopokea:</label><select id="rchRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Chapwa Health Centre">Chapwa Health Centre</option></select></div>
+                        <div><label>Hospitali Inayopokea:</label><select id="rchRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option></select></div>
                         <div class="form-full"><label>Sababu ya Rufaa:</label><textarea id="rchRefReason" placeholder="Sababu ya kumpeleka mteja..." required></textarea></div>
                         <div><label>Jina la Daktari:</label><input type="text" id="rchRefDoctor" placeholder="Mf. Dr. Fabiani Mwasabwite" required></div>
                         <div class="form-full"><label>Ujumbe kwa Mteja:</label><textarea id="rchRefMsg" placeholder="Ujumbe wa kumjulisha mteja..." required></textarea></div>
@@ -2696,7 +2543,6 @@ async function buildDashboard(role) {
                 </form>
             </div>
         `;
-        // RCH functions
         window.rchRegisterClient = async function(e) {
             e.preventDefault();
             const name = document.getElementById('rchRegName').value.trim();
@@ -3193,14 +3039,12 @@ async function buildDashboard(role) {
     }
 
     container.innerHTML = html;
-    // Update live vitals UI immediately
     updateLiveUI();
-    // Update history UI if exists
     updateHistoryUI();
 }
 
 // =================================================================
-//  SENSOR HISTORY (kwa ajili ya historia ya joto, BP, pulse)
+//  SENSOR HISTORY
 // =================================================================
 let sensorHistory = [];
 
@@ -3226,11 +3070,9 @@ function updateHistoryUI() {
     tbody.innerHTML = html;
 }
 
-// Override loadLiveVitals to also push to history
 const originalLoadLiveVitals = loadLiveVitals;
 loadLiveVitals = async function() {
     await originalLoadLiveVitals();
-    // Add to history if new data
     if (liveVitals.temperature > 0) {
         const last = sensorHistory.length > 0 ? sensorHistory[sensorHistory.length - 1] : null;
         if (!last || Math.abs(liveVitals.temperature - last.temperature) > 0.1 || Math.abs(liveVitals.systolic - last.systolic) > 2) {
@@ -3275,7 +3117,6 @@ loadLiveVitals = async function() {
 
         if (userRole === 'coordinator') await seedSampleReferrals();
 
-        // Ikiwa ni lazima abadili password
         const mustChange = sessionStorage.getItem('mteja_must_change') === 'true';
         if (mustChange) {
             setTimeout(() => {
@@ -3285,9 +3126,7 @@ loadLiveVitals = async function() {
         }
 
         await buildDashboard(userRole);
-        // Load live vitals immediately
         await loadLiveVitals();
-        // Refresh every 3 seconds
         setInterval(loadLiveVitals, 3000);
     } else {
         document.getElementById('loginPage').style.display = 'flex';
@@ -3342,9 +3181,6 @@ async function rejectReferral(id) {
     }
 }
 
-// =================================================================
-//  WINDOW EVENTS
-// =================================================================
 window.addEventListener('popstate', function() {
     const isLoggedIn = sessionStorage.getItem('mteja_logged_in') === 'true';
     if (!isLoggedIn) {
