@@ -115,11 +115,11 @@
 //  1. TELEGRAM BOT API CREDENTIALS
 // =================================================================
 const BOT_TOKEN = '8874545177:AAGMSupo_pUdp0vV5A3aRPmns0hVA01_B10';
-const CHAT_ID = '736400705';
 
 let updateOffset = 0;
 const STORAGE_KEY = 'mama_dashboard_history';
 let historyData = [];
+let isFetching = false; // Kuzuia maombi zaidi ya mmoja kwa wakati mmoja
 
 // =================================================================
 //  2. STORAGE FUNCTIONS
@@ -139,12 +139,10 @@ function saveHistory() {
 }
 
 // =================================================================
-//  3. ADVANCED PARSING (Inaondoa HTML na Inatambua format zote)
+//  3. PARSING FUNCTIONS
 // =================================================================
 function parseJoto(text) {
     if (!text) return null;
-    
-    // Safisha HTML tags kama zipo
     let cleanText = text.replace(/<[^>]*>?/gm, '');
 
     let match = cleanText.match(/JOTO:\s*([\d.,]+)/i);
@@ -197,21 +195,31 @@ function getStatusInfo(temp) {
 }
 
 // =================================================================
-//  4. FETCH DATA FROM TELEGRAM
+//  4. FETCH DATA FROM TELEGRAM (REKEBISHO LA HTTP 409)
 // =================================================================
 async function fetchLiveData() {
+    if (isFetching) return; // Kama kuna ombi tayari linafanyika, simamisha hapa
+    isFetching = true;
+
     const btn = document.getElementById('refreshBtn');
     const statusBar = document.getElementById('statusBar');
     const origText = btn.innerHTML;
 
     btn.disabled = true;
     btn.innerHTML = '⏳ Inapakua...';
-    statusBar.textContent = '⏳ Inapakua data...';
-    statusBar.className = 'status-bar';
 
     try {
         const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${updateOffset}&limit=10`;
         const resp = await fetch(url);
+
+        // Handle error status ya HTTP 409 (Conflict) vizuri
+        if (resp.status === 409) {
+            console.warn("Mgongano wa API (409): Kifaa kingine kinafanya maombi.");
+            statusBar.textContent = '⚡ Kifaa kingine kinasoma data kwa sasa...';
+            statusBar.className = 'status-bar';
+            return;
+        }
+
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
 
         const json = await resp.json();
@@ -221,10 +229,10 @@ async function fetchLiveData() {
         }
 
         if (!json.result || json.result.length === 0) {
-            statusBar.textContent = 'ℹ️ Hakuna ujumbe mpya. Subiri ESP32 itume...';
-            statusBar.className = 'status-bar';
-            btn.innerHTML = origText;
-            btn.disabled = false;
+            if (statusBar.textContent.includes('Hitilafu') || statusBar.textContent.includes('Inapakua')) {
+                statusBar.textContent = 'ℹ️ Hakuna ujumbe mpya. Subiri ESP32 itume...';
+                statusBar.className = 'status-bar';
+            }
             return;
         }
 
@@ -270,19 +278,17 @@ async function fetchLiveData() {
         if (found) {
             statusBar.textContent = '✅ Data imesasishwa!';
             statusBar.className = 'status-bar success';
-        } else {
-            statusBar.textContent = 'ℹ️ Hakuna joto katika ujumbe mpya.';
-            statusBar.className = 'status-bar';
         }
 
     } catch (err) {
         console.error('Fetch error:', err);
         statusBar.textContent = '❌ Hitilafu: ' + err.message;
         statusBar.className = 'status-bar error';
+    } finally {
+        isFetching = false;
+        btn.innerHTML = origText;
+        btn.disabled = false;
     }
-
-    btn.innerHTML = origText;
-    btn.disabled = false;
 }
 
 // =================================================================
@@ -368,7 +374,7 @@ function clearHistory() {
 // =================================================================
 let autoInterval = null;
 
-function startAutoRefresh(ms = 3000) {
+function startAutoRefresh(ms = 4000) {
     if (autoInterval) clearInterval(autoInterval);
     autoInterval = setInterval(fetchLiveData, ms);
 }
@@ -385,7 +391,7 @@ window.onload = function() {
     }
 
     fetchLiveData();
-    startAutoRefresh(3000); // Inacheki data mpya kila baada ya sekunde 3
+    startAutoRefresh(4000); // Kufanya auto-refresh kila sekunde 4 ili kutoziia overload
 };
 
 window.fetchLiveData = fetchLiveData;
