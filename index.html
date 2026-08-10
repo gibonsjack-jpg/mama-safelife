@@ -1,82 +1,3230 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAMA SAFELIFE - LIVE DASHBOARD</title>
-
-  <!-- Firebase Compatibility SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background-color: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; padding: 20px; min-height: 100vh; }
-    h1 { margin-bottom: 5px; color: #38bdf8; }
-    p.subtitle { margin-bottom: 25px; color: #94a3b8; }
-    .container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 800px; width: 100%; }
-    .card { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; width: 220px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-    .card h3 { font-size: 1.1rem; color: #94a3b8; margin-bottom: 10px; }
-    .value { font-size: 2.2rem; font-weight: bold; color: #38bdf8; margin-bottom: 5px; }
-    .unit { font-size: 0.9rem; color: #64748b; }
-    .status-box { margin-top: 10px; padding: 6px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; background: #334155; display: inline-block; }
-    .footer { margin-top: 40px; font-size: 0.85rem; color: #64748b; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>MAMA-SAFELIFE | Portal Kuu</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- MD5 library for password hashing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #f4f7f6;
+            color: #1e2a3a;
+            min-height: 100vh;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        #loginPage {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/3/38/Flag_of_Tanzania.svg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        #loginPage::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1;
+        }
+        .login-card {
+            position: relative;
+            z-index: 2;
+            background: rgba(255,255,255,0.95);
+            width: 100%;
+            max-width: 440px;
+            padding: 30px 24px 24px;
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            text-align: center;
+            animation: slideUp 0.5s ease;
+            backdrop-filter: blur(2px);
+        }
+        @keyframes slideUp { 0% { opacity:0; transform:translateY(30px); } 100% { opacity:1; transform:translateY(0); } }
+        .login-card .hero-emoji { font-size:48px; display:block; margin-bottom:2px; animation:floatEmoji 3s ease-in-out infinite alternate; }
+        @keyframes floatEmoji { 0% { transform:translateY(0); } 100% { transform:translateY(-8px); } }
+        .login-card h1 { color:#1b5e20; font-size:1.8rem; font-weight:800; letter-spacing:-0.5px; margin:0; }
+        .login-card .slogan { color:#1eb954; font-size:0.8rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-top:2px; margin-bottom:18px; }
+        .login-card .form-group { margin-bottom:16px; text-align:left; }
+        .login-card .form-group label { display:block; font-size:0.82rem; font-weight:700; color:#1e2a3a; margin-bottom:4px; }
+        .login-card .form-group input, .login-card .form-group select { width:100%; padding:12px 14px; border:2px solid #dde1e6; border-radius:10px; font-size:1rem; outline:none; transition:border-color 0.25s, box-shadow 0.25s; background:#fafbfc; -webkit-appearance:none; appearance:none; }
+        .login-card .form-group input:focus, .login-card .form-group select:focus { border-color:#1eb954; box-shadow:0 0 0 3px rgba(30,185,84,0.15); background:#fff; }
+        .login-card .btn-login { width:100%; padding:16px; background:linear-gradient(135deg,#1eb954,#138a3c); color:#fff; border:none; border-radius:10px; font-size:1.1rem; font-weight:800; transition:transform 0.25s, box-shadow 0.25s; margin-top:6px; letter-spacing:0.3px; cursor:pointer; touch-action:manipulation; }
+        .login-card .btn-login:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(30,185,84,0.35); }
+        .login-card .login-footer { border-top:1px solid #eef1f4; padding-top:14px; margin-top:18px; text-align:center; }
+        .login-card .login-footer .innovator { color:#1e2a3a; font-size:0.75rem; font-weight:600; }
+        .login-card .login-footer .motto { color:#c62828; font-size:0.75rem; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+        .forgot-password-link { display:block; margin-top:12px; color:#0d47a1; font-size:0.85rem; font-weight:600; text-decoration:underline; cursor:pointer; background:none; border:none; padding:6px; }
+        .forgot-password-link:hover { color:#1b5e20; }
+        #dashboardPage {
+            display: none;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .navbar {
+            background: #1b5e20;
+            color: white;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 4px solid #fcd116;
+        }
+        .navbar h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .navbar .logout-btn {
+            color: white;
+            font-weight: 700;
+            background: rgba(255,255,255,0.15);
+            padding: 8px 14px;
+            border-radius: 30px;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            touch-action: manipulation;
+        }
+        .navbar .logout-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        .navbar .change-pwd-btn {
+            color: #1b5e20;
+            font-weight: 700;
+            background: #fcd116;
+            padding: 8px 14px;
+            border-radius: 30px;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            touch-action: manipulation;
+        }
+        .navbar .change-pwd-btn:hover {
+            background: #f9c80e;
+        }
+        .wrapper {
+            padding: 16px;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex: 1;
+        }
+        .card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #e8f5e9;
+            padding-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.1rem;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+            gap: 12px;
+        }
+        .form-full {
+            grid-column: 1/-1;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin-top: 4px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            background: #fafafa;
+            transition: 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #1b5e20;
+            outline: none;
+            background: #fff;
+        }
+        input:disabled, textarea:disabled, select:disabled {
+            background: #f0f0f0;
+            color: #333;
+            cursor: not-allowed;
+        }
+        label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #444;
+            display: block;
+            margin-bottom: 2px;
+        }
+        button {
+            background: #1b5e20;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1rem;
+            touch-action: manipulation;
+            width: 100%;
+        }
+        button:hover {
+            background: #144517;
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.8rem;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 6px;
+            text-align: left;
+        }
+        th {
+            background: #f8f9fa;
+            color: #333;
+        }
+        .badge {
+            background: #e0f2f1;
+            color: #00796b;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .section-title {
+            background: #e8f5e9;
+            color: #1b5e20;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin: 12px 0 8px 0;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .readonly-field {
+            background: #f0f0f0;
+            color: #333;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            font-weight: 600;
+        }
+        .vital-signs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(120px,1fr));
+            gap: 8px;
+            background: #f8faff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dde1e6;
+            margin-bottom: 10px;
+        }
+        .vital-signs-grid .field {
+            display: flex;
+            flex-direction: column;
+        }
+        .vital-signs-grid .field label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1b5e20;
+        }
+        .vital-signs-grid .field input, .vital-signs-grid .field select {
+            padding: 6px 8px;
+            margin-top: 2px;
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        .shock-index {
+            background: #fff3cd;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 700;
+            border-left: 4px solid #ff9800;
+            margin-top: 8px;
+            font-size: 0.95rem;
+        }
+        .shock-index span {
+            font-weight: 700;
+            color: #c62828;
+        }
+        .rch-card-container {
+            border: 2px solid #1b5e20;
+            border-radius: 12px;
+            padding: 16px;
+            background: #fff;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .rch-card-header {
+            text-align: center;
+            border-bottom: 2px solid #1b5e20;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .rch-card-header h2 {
+            color: #1b5e20;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+        .rch-card-header h3 {
+            color: #1b5e20;
+            font-size: 1rem;
+            margin: 4px 0;
+            border: none;
+            padding: 0;
+        }
+        .rch-card-header .not-for-sale {
+            color: #c62828;
+            font-weight: 800;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+        .rch-card-body {
+            padding: 6px 0;
+        }
+        .rch-card-body .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .rch-card-body .row.three {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .rch-card-body .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .rch-card-body .field-group label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1b5e20;
+            margin-bottom: 2px;
+        }
+        .rch-card-body .field-group input, .rch-card-body .field-group select {
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            font-size: 0.85rem;
+            background: #fafafa;
+        }
+        .rch-card-body .field-group input:disabled, .rch-card-body .field-group select:disabled {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .rch-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.7rem;
+        }
+        .rch-table th, .rch-table td {
+            border: 1px solid #b0bec5;
+            padding: 4px 6px;
+            text-align: left;
+        }
+        .rch-table th {
+            background: #e8f5e9;
+            color: #1b5e20;
+        }
+        .rch-print-btn {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            width: auto;
+        }
+        .rch-print-btn:hover {
+            background: #1b5e20;
+        }
+        .chw-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .chw-stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 6px solid #ef6c00;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .chw-stat-card h3 {
+            margin: 0;
+            font-size: 1.6rem;
+            color: #ef6c00;
+            border: none;
+            padding: 0;
+        }
+        .chw-stat-card p {
+            margin: 5px 0 0 0;
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: bold;
+        }
+        .badge-green {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        .badge-yellow {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        .badge-red {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        .btn-blue {
+            background: #00838f;
+        }
+        .btn-red {
+            background: #d32f2f;
+        }
+        .driver-stats-box {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .driver-stat-card {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border-left: 5px solid #d32f2f;
+        }
+        .driver-stat-card h4 {
+            margin: 0;
+            color: #555;
+            font-size: 0.8rem;
+        }
+        .driver-stat-card p {
+            margin: 5px 0 0;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #d32f2f;
+        }
+        .driver-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .gps-map-box {
+            background: #e0f2f1;
+            border: 2px dashed #00897b;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            color: #00695c;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 140px;
+        }
+        .labour-badge-incoming {
+            background: #ff9800;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+        .labour-badge-arrived {
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+        }
+        .postnatal-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .postnatal-alert-day3 {
+            background: #fff3e0;
+            border-left: 6px solid #ef6c00;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .postnatal-badge-cs {
+            background: #e8eaf6;
+            color: #3f51b5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        .postnatal-badge-normal {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        .postnatal-badge-icu {
+            background: #ffebee;
+            color: #c62828;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.7rem;
+        }
+        .rch-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .rch-badge-danger {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #d32f2f;
+            margin-bottom: 12px;
+        }
+        .rch-badge-transfer {
+            background: #e3f2fd;
+            color: #0d47a1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #90caf9;
+            margin-bottom: 12px;
+        }
+        .mteja-nav-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .mteja-tab-btn {
+            padding: 10px 16px;
+            border: none;
+            background: #e0e0e0;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            flex: 1 0 auto;
+            touch-action: manipulation;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .mteja-tab-btn.active {
+            background: #1565c0;
+            color: white;
+        }
+        .mteja-tab-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .mteja-tab-content {
+            display: none;
+        }
+        .mteja-tab-content.active {
+            display: block;
+        }
+        .emergency-room {
+            background: #fff5f5;
+            border: 2px solid #d32f2f;
+            border-radius: 12px;
+            padding: 20px 16px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .pulse-btn {
+            width: 120px;
+            height: 120px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 0 rgba(211,47,47,0.4);
+            animation: pulseEffect 2s infinite;
+            margin: 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s;
+            touch-action: manipulation;
+        }
+        @keyframes pulseEffect { 0% { transform:scale(0.95); box-shadow:0 0 0 0 rgba(211,47,47,0.7); } 70% { transform:scale(1); box-shadow:0 0 0 20px rgba(211,47,47,0); } 100% { transform:scale(0.95); box-shadow:0 0 0 0 rgba(211,47,47,0); } }
+        .process-box {
+            background: #fffde7;
+            border: 1px dashed #fbc02d;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: left;
+            margin-top: 12px;
+            display: none;
+        }
+        .process-step {
+            margin: 6px 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #444;
+        }
+        .pregnancy-info {
+            background: #e3f2fd;
+            border-left: 4px solid #1565c0;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+        .pregnancy-info p {
+            margin: 4px 0;
+            font-size: 0.9rem;
+        }
+        .info-message {
+            background: #fff3cd;
+            border-left: 4px solid #ff9800;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 10px 0;
+            color: #856404;
+            font-size: 0.9rem;
+        }
+        .info-message.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .info-message.danger {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .transfer-status {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .transfer-status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .transfer-status.approved {
+            background: #d4edda;
+            color: #155724;
+        }
+        .transfer-status.rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .live-sensor-card {
+            background: #e8f5e9;
+            border-left: 6px solid #1b5e20;
+            padding: 16px 18px;
+            border-radius: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 16px;
+        }
+        .live-sensor-card .temp-big { font-size:2.4rem; font-weight:800; color:#1b5e20; min-width:80px; }
+        .live-sensor-card .temp-big .deg { font-size:1.2rem; font-weight:400; }
+        .live-sensor-card .status-badge-live { font-weight:700; padding:6px 16px; border-radius:30px; font-size:0.9rem; background:#fff; }
+        .live-sensor-card .status-badge-live.normal { color:#1b5e20; background:#e8f5e9; }
+        .live-sensor-card .status-badge-live.fever { color:#c62828; background:#ffebee; }
+        .live-sensor-card .status-badge-live.cold { color:#0d47a1; background:#e3f2fd; }
+        .live-sensor-card .meta-live { font-size:0.8rem; color:#555; margin-left:auto; }
+        .live-sensor-card .vital-group { display:flex; gap:30px; flex-wrap:wrap; }
+        .live-sensor-card .vital-item { display:flex; flex-direction:column; align-items:center; }
+        .live-sensor-card .vital-item .label { font-size:0.7rem; font-weight:700; color:#1b5e20; text-transform:uppercase; }
+        .live-sensor-card .vital-item .value { font-size:1.8rem; font-weight:800; color:#1b5e20; }
+        .live-sensor-card .vital-item .value .unit { font-size:0.9rem; font-weight:400; }
+        .danger-warning {
+            background: #fff3e0;
+            border-left: 4px solid #e65100;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-weight: 600;
+            color: #e65100;
+        }
+        .danger-warning.danger {
+            background: #ffebee;
+            border-left-color: #c62828;
+            color: #c62828;
+        }
+        .danger-warning.success {
+            background: #e8f5e9;
+            border-left-color: #1b5e20;
+            color: #1b5e20;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            max-width: 500px;
+            width: 100%;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalSlide 0.3s ease;
+        }
+        @keyframes modalSlide { 0% { transform:scale(0.9); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+        .modal-content h2 {
+            margin-top: 0;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 12px;
+        }
+        .modal-close-btn {
+            background: #888;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        .modal-close-btn:hover {
+            background: #555;
+        }
+        @media (max-width:650px) {
+            .wrapper { padding:12px; }
+            .navbar { padding:10px 12px; }
+            .navbar h2 { font-size:1rem; }
+            .driver-stats-box { grid-template-columns:1fr 1fr; }
+            .driver-grid-2, .postnatal-grid-2, .rch-grid-2 { grid-template-columns:1fr; }
+            .form-grid { grid-template-columns:1fr; }
+            .chw-stats-grid { grid-template-columns:1fr 1fr; }
+            .mteja-nav-tabs { gap:4px; }
+            .mteja-tab-btn { padding:8px 10px; font-size:0.75rem; }
+            .pulse-btn { width:100px; height:100px; font-size:0.9rem; }
+            .login-card { padding:20px 16px; }
+            .vital-signs-grid { grid-template-columns:1fr 1fr; }
+            .rch-card-body .row { grid-template-columns:1fr; }
+            .rch-card-body .row.three { grid-template-columns:1fr; }
+            .rch-card-header h2 { font-size:1.1rem; }
+            .card { padding:12px; }
+            table { font-size:0.7rem; }
+            th, td { padding:5px 4px; }
+            button { padding:12px 16px; font-size:0.95rem; }
+            input, select, textarea { font-size:0.95rem; padding:10px 10px; }
+            .live-sensor-card { flex-direction:column; align-items:stretch; text-align:center; }
+            .live-sensor-card .meta-live { margin-left:0; }
+            .live-sensor-card .vital-group { justify-content:center; }
+        }
+        @media print {
+            .rch-card-container, .rch-card-container * { visibility:visible; }
+            .rch-card-container { position:absolute; left:0; top:0; width:100%; border:none; box-shadow:none; }
+            .rch-print-btn, .navbar, .mteja-nav-tabs, .emergency-room, .mteja-tab-content:not(.active) { display:none !important; }
+            body { background:white; }
+        }
+        button, .mteja-tab-btn, .pulse-btn, .logout-btn, .btn-login, .change-pwd-btn {
+            min-height: 48px;
+            min-width: 48px;
+        }
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+        .login-header {
+            margin-bottom: 12px;
+        }
+        .login-header .gov-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #1b5e20;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            line-height: 1.4;
+        }
+        .login-header .gov-title .ministry {
+            color: #0d47a1;
+        }
+        .login-footer .copyright {
+            font-size: 0.7rem;
+            color: #1e2a3a;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .login-footer .innovator {
+            font-size: 0.7rem;
+            color: #1b5e20;
+            font-weight: 700;
+        }
+        .postnatal-card {
+            border: 2px solid #00838f;
+            border-radius: 12px;
+            padding: 16px;
+            background: #f5faff;
+            margin-top: 12px;
+        }
+        .postnatal-card h4 {
+            color: #00838f;
+            border-bottom: 1px dashed #b0bec5;
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+        }
+        .postnatal-card .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .postnatal-card .info-item {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #dde1e6;
+            font-size: 0.85rem;
+        }
+        .postnatal-card .info-item strong {
+            color: #1b5e20;
+        }
+        @media (max-width:600px) { .postnatal-card .info-grid { grid-template-columns:1fr; } }
+        .contact-list { margin-top:8px; }
+        .contact-item {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #e0e0e0;
+        }
+        .contact-item .info { font-size:0.85rem; }
+        .contact-item .actions button { width:auto; padding:4px 10px; font-size:0.7rem; margin-left:4px; }
+        .inline-form { display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end; }
+        .inline-form .form-group-inline { flex:1 0 120px; }
+        .inline-form .form-group-inline label { font-size:0.7rem; }
+        .inline-form .form-group-inline input { padding:6px 8px; margin-bottom:0; }
+        .inline-form button { width:auto; padding:8px 16px; }
+        .hidden { display:none; }
+        .referral-badge-pending { background:#fff3cd; color:#856404; padding:4px 10px; border-radius:20px; font-weight:bold; font-size:0.7rem; }
+        .referral-badge-approved { background:#d4edda; color:#155724; padding:4px 10px; border-radius:20px; font-weight:bold; font-size:0.7rem; }
+        .referral-badge-rejected { background:#f8d7da; color:#721c24; padding:4px 10px; border-radius:20px; font-weight:bold; font-size:0.7rem; }
+        .modal-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding:20px; }
+        .modal-overlay.active { display:flex; }
+        .modal-content { background:white; max-width:500px; width:100%; border-radius:16px; padding:24px; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation:modalSlide 0.3s ease; }
+        @keyframes modalSlide { 0% { transform:scale(0.9); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+        .modal-content h2 { color:#d32f2f; margin-top:0; border-bottom:2px solid #ffcdd2; padding-bottom:12px; }
+        .modal-options { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:16px 0; }
+        .modal-options button { padding:14px; border:none; border-radius:8px; font-weight:bold; font-size:1rem; cursor:pointer; transition:0.2s; background:#f5f5f5; color:#333; }
+        .modal-options button:hover { transform:scale(1.02); }
+        .modal-options .opt-pph { background:#ffebee; color:#c62828; border:2px solid #c62828; }
+        .modal-options .opt-eclampsia { background:#e3f2fd; color:#0d47a1; border:2px solid #0d47a1; }
+        .modal-options .opt-breathing { background:#fff3e0; color:#e65100; border:2px solid #e65100; }
+        .modal-options .opt-other { background:#e0e0e0; color:#333; border:2px solid #888; }
+        .modal-close-btn { background:#888; color:white; border:none; padding:10px; border-radius:6px; width:100%; font-weight:bold; margin-top:8px; }
+        .modal-close-btn:hover { background:#555; }
+        .roster-table td { padding:6px 12px; }
+        .roster-table .staff-title { font-size:0.7rem; color:#555; font-weight:600; }
+        .badge.cold { background:#e3f2fd; color:#0d47a1; }
+        .badge.fever { background:#ffebee; color:#c62828; }
+        .badge.normal { background:#e8f5e9; color:#1b5e20; }
+        .empty-msg { text-align:center; color:#999; padding:12px; }
+    </style>
 </head>
 <body>
 
-  <h1>MAMA SAFELIFE</h1>
-  <p class="subtitle">Live Vitals Monitoring Dashboard</p>
-
-  <div class="container">
-    <div class="card">
-      <h3>Joto la Mwili</h3>
-      <div id="temp" class="value">--</div>
-      <span class="unit">°C</span>
+<!-- ===== LOGIN PAGE ===== -->
+<div id="loginPage">
+    <div class="login-card">
+        <div class="login-header">
+            <div class="gov-title">Jamhuri ya Muungano wa Tanzania</div>
+            <div class="gov-title ministry">Wizara Ya Afya</div>
+        </div>
+        <span class="hero-emoji">👩‍🍼</span>
+        <h1>MAMA-SAFELIFE</h1>
+        <div class="slogan">WE CARE · WE MONITOR</div>
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="loginUsername">Jina la Mtumiaji / Namba ya Simu</label>
+                <input type="text" id="loginUsername" placeholder="Mf. 0752568172" required>
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Neno la Siri</label>
+                <input type="password" id="loginPassword" placeholder="Ingiza neno la siri" required>
+            </div>
+            <div class="form-group">
+                <label for="loginRole">Wadhifa (Role)</label>
+                <select id="loginRole" required>
+                    <option value="">-- Chagua Wadhifa --</option>
+                    <option value="mteja">Mteja / Mama Mjawazito</option>
+                    <option value="chw">CHW (Afisa Afya Jamii)</option>
+                    <option value="driver">Dereva wa Ambulance</option>
+                    <option value="nurse_labour">Mhudumu wa Zamu (Labour Ward)</option>
+                    <option value="nurse_postnatal">Nurse / Doctor (Postnatal Ward)</option>
+                    <option value="nurse_rch">Nurse / Doctor (RCH Clinic)</option>
+                    <option value="admin">Administrator</option>
+                    <option value="coordinator">Mratibu wa M-Mama</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-login">INGIA KWENYE MFUMO</button>
+        </form>
+        <button class="forgot-password-link" onclick="forgotPassword()">Umesahau neno la siri?</button>
+        <div class="login-footer">
+            <div class="copyright">Copyright © Mbeya University of Science and Technology</div>
+            <div class="innovator">Innovated by Gibons (MUST CITT)</div>
+        </div>
     </div>
+</div>
 
-    <div class="card">
-      <h3>Hali ya Mgonjwa</h3>
-      <div id="hali" class="status-box">Inasubiri...</div>
+<!-- ===== DASHBOARD ===== -->
+<div id="dashboardPage">
+    <div class="navbar">
+        <h2><span id="displayIcon">👩‍🍼</span> <span id="displayName">Mteja</span> - <span id="displayRole">Portal</span>
+            <span id="clientStatusBadge" style="font-size:0.6rem; background:#fcd116; color:#1b5e20; padding:2px 10px; border-radius:20px; margin-left:6px;"></span>
+        </h2>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <button class="change-pwd-btn" onclick="changePassword()">🔑 Badili Nenosiri</button>
+            <button class="logout-btn" onclick="logout()">🚪 Toka</button>
+        </div>
     </div>
+    <div class="wrapper" id="dashboardContent"></div>
+</div>
 
-    <div class="card">
-      <h3>Muda wa Mwisho</h3>
-      <div id="muda" class="value" style="font-size: 1.2rem; margin-top: 15px;">--:--</div>
+<!-- ===== EMERGENCY MODAL ===== -->
+<div id="emergencyModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>🚨 ZARURA / DHARURA</h2>
+        <p style="font-size:0.9rem; color:#555;">Chagua aina ya dharura. Ujumbe utatumwa kwa Timu ya Usimamizi na Zarura.</p>
+        <div class="modal-options">
+            <button class="opt-pph" onclick="sendEmergencyAlert('PPH (Kuvuja damu baada ya kujifungua)')">🩸 PPH</button>
+            <button class="opt-eclampsia" onclick="sendEmergencyAlert('Eclampsia (Mishipa ya damu)')">⚡ Eclampsia</button>
+            <button class="opt-breathing" onclick="sendEmergencyAlert('Shida ya Kupumua')">💨 Shida ya Kupumua</button>
+            <button class="opt-other" onclick="sendEmergencyAlert('Nyingine (Dharura)')">⚠️ Nyingine</button>
+        </div>
+        <button class="modal-close-btn" onclick="closeEmergencyModal()">Funga</button>
     </div>
-  </div>
+</div>
 
-  <div class="footer">
-    INNOVATED BY GIBONS JACK (MUST CITT)
-  </div>
+<!-- ===== MODAL YA KUCHAGUA HOSPITALI (KWA MRATIBU) ===== -->
+<div id="referralHospitalModal" class="modal-overlay">
+    <div class="modal-content">
+        <h2>🏥 Thibitisha Rufaa</h2>
+        <p style="font-size:0.9rem; color:#555;">Chagua hospitali ambayo mteja atatumwa.</p>
+        <input type="hidden" id="referralIdToApprove">
+        <div class="form-group">
+            <label>Mteja: <span id="approveClientName"></span></label>
+        </div>
+        <div class="form-group">
+            <label>Hospitali Inayopokea:</label>
+            <select id="approveHospitalSelect">
+                <option value="Muhimbili National Hospital">Muhimbili National Hospital</option>
+                <option value="Vwawa District Hospital">Vwawa District Hospital</option>
+                <option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option>
+                <option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option>
+                <option value="Songwe Regional Referral Hospital">Songwe Regional Referral Hospital</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Maelezo (hiari):</label>
+            <textarea id="approveNote" rows="2" placeholder="Maoni ya Mratibu..."></textarea>
+        </div>
+        <button onclick="confirmApproveReferral()" style="background:#2e7d32;">THIBITISHA</button>
+        <button class="modal-close-btn" onclick="closeReferralModal()">Funga</button>
+    </div>
+</div>
 
-  <script>
-    // Config halisi kutoka Firebase Console yako
-    const firebaseConfig = {
-      apiKey: "AIzaSyACzCxV6CYqr_gzDdKD18jYmMdeUQsK14k",
-      authDomain: "mama-safelife-216a3.firebaseapp.com",
-      databaseURL: "https://mama-safelife-216a3-default-rtdb.firebaseio.com",
-      projectId: "mama-safelife-216a3",
-      storageBucket: "mama-safelife-216a3.firebasestorage.app",
-      messagingSenderId: "782977810443",
-      appId: "1:782977810443:web:5e0003c3c3c6f79974470e"
+<!-- ============================================================ -->
+<!-- JAVASCRIPT - YOTE IMO HAPA -->
+<!-- ============================================================ -->
+<script>
+// =================================================================
+//  FIREBASE CONFIG – Tumia config yako mwenyewe
+// =================================================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAC2cXvXcYqr_gzDkD18jYmdeUQskI4k",
+    databaseURL: "https://mama-safelife-216a3-default-rtdb.firebaseio.com",
+    projectId: "mama-safelife-216a3",
+    storageBucket: "mama-safelife-216a3.firebasestorage.app",
+    messagingSenderId: "782977810443",
+    appId: "1:782977810443:web:5e0083c3c3c6f79974470e"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// =================================================================
+//  UTILITY FUNCTIONS
+// =================================================================
+// MD5 hashing using CryptoJS (loaded from CDN)
+function md5(str) {
+    return CryptoJS.MD5(str).toString();
+}
+
+// =================================================================
+//  DATA STORE – Firebase Realtime Database (Asynchronous)
+// =================================================================
+const DB = {
+    async get(key, fallback) {
+        try {
+            const snapshot = await database.ref(key).once('value');
+            const val = snapshot.val();
+            return val !== null && val !== undefined ? val : fallback;
+        } catch (error) {
+            console.error(`Firebase read error [${key}]:`, error);
+            return fallback;
+        }
+    },
+    async set(key, val) {
+        try {
+            await database.ref(key).set(val);
+        } catch (error) {
+            console.error(`Firebase write error [${key}]:`, error);
+            throw error;
+        }
+    },
+    async remove(key) {
+        try {
+            await database.ref(key).remove();
+        } catch (error) {
+            console.error(`Firebase remove error [${key}]:`, error);
+        }
+    }
+};
+
+// =================================================================
+//  DEFAULT ADMIN ACCOUNT – 0752568172 / 1234
+// =================================================================
+async function ensureDefaultAdmin() {
+    const users = await DB.get('users', {});
+    if (!users['0752568172']) {
+        users['0752568172'] = {
+            password: md5('1234'),
+            role: 'admin',
+            name: 'Msimamizi Mkuu',
+            mustChangePassword: true
+        };
+        await DB.set('users', users);
+        console.log('✅ Default admin created: 0752568172 / 1234');
+    }
+}
+// Call on load
+ensureDefaultAdmin();
+
+// =================================================================
+//  CLIENT DATA FUNCTIONS (kwa ajili ya mteja, RCH, n.k.)
+// =================================================================
+async function getClientData(username) {
+    const all = await DB.get('clientsData', {});
+    return all[username] || {};
+}
+async function setClientData(username, data) {
+    const all = await DB.get('clientsData', {});
+    all[username] = { ...all[username], ...data };
+    await DB.set('clientsData', all);
+}
+async function getAllClients() {
+    const all = await DB.get('clientsData', {});
+    return Object.keys(all);
+}
+async function getPostnatalClients() {
+    const all = await DB.get('clientsData', {});
+    const list = [];
+    for (const [name, data] of Object.entries(all)) {
+        if (data.status === 'postnatal') list.push(name);
+    }
+    return list;
+}
+
+// =================================================================
+//  TRANSFER REQUESTS
+// =================================================================
+async function getTransferRequests() {
+    return await DB.get('transferRequests', []);
+}
+async function setTransferRequests(requests) {
+    await DB.set('transferRequests', requests);
+}
+async function addTransferRequest(request) {
+    const requests = await getTransferRequests();
+    request.id = Date.now() + Math.random() * 1000;
+    request.status = 'pending';
+    request.createdAt = new Date().toISOString();
+    requests.push(request);
+    await setTransferRequests(requests);
+    return request;
+}
+async function updateTransferRequest(id, updates) {
+    const requests = await getTransferRequests();
+    const index = requests.findIndex(r => r.id === id);
+    if (index !== -1) {
+        requests[index] = { ...requests[index], ...updates };
+        await setTransferRequests(requests);
+        return requests[index];
+    }
+    return null;
+}
+async function getClientTransferRequests(clientName) {
+    const all = await getTransferRequests();
+    return all.filter(r => r.clientName === clientName);
+}
+
+// =================================================================
+//  REFERRALS
+// =================================================================
+async function getReferrals() {
+    return await DB.get('referrals', []);
+}
+async function setReferrals(refs) {
+    await DB.set('referrals', refs);
+}
+async function addReferral(ref) {
+    const refs = await getReferrals();
+    ref.id = Date.now() + Math.random() * 1000;
+    ref.status = 'pending';
+    ref.createdAt = new Date().toISOString();
+    refs.push(ref);
+    await setReferrals(refs);
+    return ref;
+}
+async function updateReferral(id, updates) {
+    const refs = await getReferrals();
+    const index = refs.findIndex(r => r.id === id);
+    if (index !== -1) {
+        refs[index] = { ...refs[index], ...updates };
+        await setReferrals(refs);
+        return refs[index];
+    }
+    return null;
+}
+async function getReferralsForClient(clientName) {
+    const refs = await getReferrals();
+    return refs.filter(r => r.clientName === clientName);
+}
+
+// Seed sample referrals for demo
+async function seedSampleReferrals() {
+    const existing = await getReferrals();
+    if (existing.length > 0) return;
+    const sampleClients = [
+        { name: 'Aisha Mwinyi', from: 'RCH Clinic', reason: 'Ujauzito wa hatari' },
+        { name: 'Bina Juma', from: 'Labour Ward', reason: 'Kuvuja damu baada ya kujifungua' },
+        { name: 'Zainab Bakari', from: 'Postnatal Ward', reason: 'Homa kali na maumivu ya kichwa' },
+        { name: 'Neema Juma', from: 'RCH Clinic', reason: 'Mimba miezi 8 na presha juu' },
+        { name: 'Fatma Suleiman', from: 'Labour Ward', reason: 'Mwanzo wa kujifungua kabla ya muda' },
+        { name: 'Hawa Selemani', from: 'Postnatal Ward', reason: 'Kutokwa na damu nyingi' }
+    ];
+    for (const c of sampleClients) {
+        const ref = {
+            clientName: c.name,
+            fromWard: c.from,
+            toHospital: 'Inasubiri',
+            reason: c.reason,
+            doctorName: 'Dr. Fabiani Mwasabwite',
+            messageToClient: 'Ombi limewasilishwa kwa Mratibu.',
+            fromFacility: 'Tunduma Town Council Hospital',
+            status: 'pending'
+        };
+        await addReferral(ref);
+    }
+}
+
+// =================================================================
+//  ROSTER (Labour Ward)
+// =================================================================
+async function getRoster() {
+    const roster = await DB.get('labourRoster', null);
+    if (roster) return roster;
+    return {
+        doctorOnDuty: 'Dr. Fabiani Mwasabwite',
+        secondOnCall: 'Dr. Amina Kikoti',
+        nurses: [
+            { name: 'Zainab Hassan', title: 'Mkuu wa Zamu (Head Nurse)' },
+            { name: 'Juma Ally', title: 'Manesi Mwandamizi (Senior Nurse)' },
+            { name: 'Grace Mwakyusa', title: 'Manesi wa Wodi (Staff Nurse)' }
+        ]
     };
+}
+async function setRoster(data) {
+    await DB.set('labourRoster', data);
+}
 
-    // Kuanzisha Firebase App
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
+// =================================================================
+//  EMERGENCY FUNCTIONS
+// =================================================================
+function openEmergencyModal() {
+    document.getElementById('emergencyModal').classList.add('active');
+}
+function closeEmergencyModal() {
+    document.getElementById('emergencyModal').classList.remove('active');
+}
+function sendEmergencyAlert(type) {
+    closeEmergencyModal();
+    const ward = document.getElementById('displayRole')?.textContent || 'Wodi';
+    const clientSelect = document.getElementById('mtejaSelect') || document.getElementById('pnClientSelectCard');
+    let clientName = 'Mgonjwa asiyejulikana';
+    if (clientSelect && clientSelect.value) {
+        clientName = clientSelect.value;
+    }
+    const msg = `🚨 DHARURA: ${ward}\n📌 Mgonjwa: ${clientName}\n⚠️ Aina: ${type}\n📢 Imetumwa kwa: Mganga Mfawidhi, Muuguzi Mfawidhi, Supervisor wa Wiki, Timu ya Zarura. Tafadhali jitokeze haraka.`;
+    alert(`📤 UJUMBE UMETUMWA:\n\n${msg}\n\n✅ Timu imearifiwa. Msaada unakuja.`);
+}
 
-    // Kusikiliza mabadiliko LIVE kutoka Firebase
-    database.ref('vitals').on('value', (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        document.getElementById('temp').innerText = data.temperature !== undefined ? data.temperature.toFixed(1) : '--';
-        document.getElementById('hali').innerText = data.hali || '--';
-        
-        const sasa = new Date();
-        document.getElementById('muda').innerText = sasa.toLocaleTimeString();
-      }
+// =================================================================
+//  CALCULATIONS
+// =================================================================
+function calculatePregnancy(lnmpDateStr) {
+    if (!lnmpDateStr) return { edd: '-', weeks: '-' };
+    const lnmp = new Date(lnmpDateStr);
+    if (isNaN(lnmp.getTime())) return { edd: '-', weeks: '-' };
+    const edd = new Date(lnmp);
+    edd.setDate(edd.getDate() + 7);
+    edd.setMonth(edd.getMonth() + 9);
+    const eddStr = edd.toISOString().split('T')[0];
+    const today = new Date();
+    const diffTime = today - lnmp;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    const weeks = Math.floor(diffDays / 7);
+    const days = diffDays % 7;
+    const weeksStr = weeks >= 0 ? `${weeks} wiki, ${days} siku` : '-';
+    return { edd: eddStr, weeks: weeksStr };
+}
+function calculateShockIndex(pulse, systolic) {
+    if (!pulse || !systolic || systolic <= 0) return '-';
+    const si = pulse / systolic;
+    return si.toFixed(2);
+}
+
+// =================================================================
+//  LIVE VITALS FROM ESP32 (Dr. SSH D001)
+// =================================================================
+let liveVitals = {
+    temperature: 0,
+    systolic: 0,
+    diastolic: 0,
+    pulse: 0,
+    timestamp: null
+};
+
+async function loadLiveVitals() {
+    try {
+        const snapshot = await database.ref('vitals/Dr_SSH_D001').once('value');
+        const data = snapshot.val();
+        if (data) {
+            const temp = data.temperature || 0;
+            const sys = data.systolic || 0;
+            const dia = data.diastolic || 0;
+            const pulse = data.pulse || 0;
+            const ts = data.timestamp || Date.now();
+            liveVitals = { temperature: temp, systolic: sys, diastolic: dia, pulse: pulse, timestamp: ts };
+            updateLiveUI();
+        }
+    } catch (e) {
+        console.warn('Live vitals read error:', e);
+    }
+}
+
+function updateLiveUI() {
+    // Update all elements with class .live-temp, .live-bp, .live-pulse
+    document.querySelectorAll('.live-temp').forEach(el => {
+        el.textContent = liveVitals.temperature.toFixed(1);
     });
-  </script>
+    document.querySelectorAll('.live-bp').forEach(el => {
+        el.textContent = `${Math.round(liveVitals.systolic)}/${Math.round(liveVitals.diastolic)}`;
+    });
+    document.querySelectorAll('.live-pulse').forEach(el => {
+        el.textContent = Math.round(liveVitals.pulse);
+    });
+    // Update time
+    if (liveVitals.timestamp) {
+        const d = new Date(liveVitals.timestamp);
+        const timeStr = d.toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        document.querySelectorAll('.live-time').forEach(el => {
+            el.textContent = timeStr;
+        });
+    }
+    // Update danger warnings
+    updateWarnings(liveVitals.temperature, liveVitals.systolic, liveVitals.diastolic, liveVitals.pulse);
+    // Update status badge (if any)
+    const statusEl = document.querySelector('.live-status-badge');
+    if (statusEl) {
+        const temp = liveVitals.temperature;
+        let status = 'KAWAIDA';
+        let cls = 'normal';
+        if (temp < 35.0) { status = 'CHINI SANA'; cls = 'cold'; }
+        else if (temp < 35.5) { status = 'CHINI'; cls = 'cold'; }
+        else if (temp > 37.5 && temp <= 38.5) { status = 'JUU'; cls = 'fever'; }
+        else if (temp > 38.5) { status = 'JUU SANA'; cls = 'fever'; }
+        statusEl.textContent = status;
+        statusEl.className = 'status-badge-live ' + cls;
+    }
+}
+
+function updateWarnings(temp, sys, dia, pulse) {
+    const warnings = document.querySelectorAll('.danger-warning');
+    if (warnings.length === 0) return;
+    let msg = '';
+    let cls = '';
+    if (temp < 35.0) {
+        msg = '⚠️ ONYO: Joto ni chini sana! Hatari ya hypothermia. Tafuta msaada wa daktari haraka.';
+        cls = 'danger';
+    } else if (temp < 35.5) {
+        msg = '⚠️ ONYO: Joto ni chini! Mgonjwa anaweza kuwa na hypothermia. Fuatilia kwa karibu.';
+        cls = 'danger';
+    } else if (temp > 38.5) {
+        msg = '🚨 DHARURA: Joto ni juu sana! Homa kali. Tafuta msaada wa daktari haraka.';
+        cls = 'danger';
+    } else if (temp > 37.5) {
+        msg = '⚠️ ONYO: Joto ni juu! Mgonjwa ana homa. Fuatilia kwa karibu.';
+        cls = '';
+    } else {
+        msg = '✅ Joto liko kawaida. Hakuna hatari.';
+        cls = 'success';
+    }
+    // Ongeza taarifa ya BP na pulse
+    if (sys > 140 || dia > 90) {
+        msg += ' | BP iko juu.';
+        cls = 'danger';
+    } else if (sys < 110 || dia < 60) {
+        msg += ' | BP iko chini.';
+        cls = 'danger';
+    }
+    if (pulse > 90) {
+        msg += ' | Pulse iko juu.';
+        cls = 'danger';
+    } else if (pulse < 60) {
+        msg += ' | Pulse iko chini.';
+        cls = 'danger';
+    }
+    warnings.forEach(w => {
+        w.textContent = msg;
+        w.className = 'danger-warning ' + cls;
+    });
+}
+
+// Start live vitals refresh every 3 seconds
+setInterval(loadLiveVitals, 3000);
+loadLiveVitals();
+
+// =================================================================
+//  LOGIN / LOGOUT / PASSWORD CHANGE
+// =================================================================
+async function handleLogin(e) {
+    e.preventDefault();
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    const role = document.getElementById('loginRole').value;
+
+    if (!username || !password) { alert('Tafadhali jaza jina la mtumiaji na neno la siri.'); return; }
+    if (!role) { alert('Tafadhali chagua wadhifa wako.'); return; }
+    if (password.length < 4) { alert('Neno la siri lazima liwe na herufi angalau 4.'); return; }
+
+    // Thibitisha kwenye Firebase
+    const users = await DB.get('users', {});
+    let user = users[username];
+
+    // Kama ni default admin na akaunti haipo, iundwe
+    if (username === '0752568172' && password === '1234') {
+        if (!user) {
+            users[username] = {
+                password: md5('1234'),
+                role: 'admin',
+                name: 'Msimamizi Mkuu',
+                mustChangePassword: true
+            };
+            await DB.set('users', users);
+            user = users[username];
+        }
+    }
+
+    if (!user) {
+        alert('Jina au nenosiri si sahihi.');
+        return;
+    }
+
+    // Thibitisha nenosiri
+    if (user.password !== md5(password)) {
+        alert('Jina au nenosiri si sahihi.');
+        return;
+    }
+
+    // Weka session
+    sessionStorage.setItem('mteja_logged_in', 'true');
+    sessionStorage.setItem('mteja_username', username);
+    sessionStorage.setItem('mteja_role', user.role || role);
+    sessionStorage.setItem('mteja_must_change', user.mustChangePassword ? 'true' : 'false');
+
+    // Onyesha dashboard
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('dashboardPage').style.display = 'flex';
+    document.getElementById('displayName').textContent = username;
+    const roleLabels = {
+        admin: 'Administrator',
+        chw: 'CHW',
+        driver: 'Dereva',
+        nurse_labour: 'Labour Ward',
+        nurse_postnatal: 'Postnatal Ward',
+        nurse_rch: 'RCH Clinic',
+        mteja: 'Mteja',
+        coordinator: 'Mratibu wa M-Mama'
+    };
+    document.getElementById('displayRole').textContent = roleLabels[user.role] || role;
+    document.getElementById('displayIcon').textContent = user.role === 'mteja' ? '👩‍🍼' : user.role === 'chw' ? '🩺' : user.role === 'driver' ? '🚑' : user.role === 'admin' ? '⚙️' : user.role === 'coordinator' ? '📋' : '🏥';
+
+    if (user.role === 'coordinator') {
+        await seedSampleReferrals();
+    }
+
+    // Ikiwa ni lazima abadili password, onyesha modal
+    if (user.mustChangePassword) {
+        setTimeout(() => {
+            alert('⚠️ Tafadhali badili nenosiri lako la kwanza kabla ya kuendelea.');
+            changePassword();
+        }, 500);
+    }
+
+    buildDashboard(user.role);
+    document.getElementById('loginForm').reset();
+}
+
+async function changePassword() {
+    const username = sessionStorage.getItem('mteja_username');
+    if (!username) { alert('Tafadhali ingia kwanza.'); return; }
+
+    const old = prompt('Ingiza nenosiri la sasa:');
+    if (old === null) return;
+    if (!old.trim()) { alert('Nenosiri la sasa linahitajika.'); return; }
+
+    const newPass = prompt('Ingiza nenosiri jipya (angalau herufi 4):');
+    if (newPass === null) return;
+    if (!newPass.trim() || newPass.length < 4) { alert('Nenosiri lazima liwe na herufi 4 au zaidi.'); return; }
+
+    const confirmPass = prompt('Thibitisha nenosiri jipya:');
+    if (confirmPass === null) return;
+    if (newPass !== confirmPass) { alert('Nenosiri hazifanani.'); return; }
+
+    const users = await DB.get('users', {});
+    const user = users[username];
+    if (!user) { alert('Mtumiaji hapatikani.'); return; }
+
+    // Thibitisha old password
+    if (user.password !== md5(old)) {
+        alert('Nenosiri la sasa si sahihi.');
+        return;
+    }
+
+    user.password = md5(newPass);
+    user.mustChangePassword = false;
+    await DB.set('users', users);
+
+    sessionStorage.setItem('mteja_must_change', 'false');
+    alert('✅ Nenosiri limebadilishwa kikamilifu!');
+}
+
+function logout() {
+    if (confirm('Je, una uhakika unataka kutoka?')) {
+        sessionStorage.removeItem('mteja_logged_in');
+        sessionStorage.removeItem('mteja_username');
+        sessionStorage.removeItem('mteja_role');
+        sessionStorage.removeItem('mteja_must_change');
+        document.getElementById('dashboardPage').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+    }
+}
+
+function forgotPassword() {
+    const username = prompt("Tafadhali ingiza jina la mtumiaji (namba ya simu):");
+    if (username && username.trim() !== "") {
+        alert("Ombi la kuweka upya nenosiri limetumwa kwa Msimamizi. Tafadhali wasiliana naye.");
+    }
+}
+
+// =================================================================
+//  BUILD DASHBOARD – KAMILI
+// =================================================================
+async function buildDashboard(role) {
+    const container = document.getElementById('dashboardContent');
+    const username = sessionStorage.getItem('mteja_username') || 'Mteja';
+    let html = '';
+
+    // ==================== LIVE SENSOR BLOCK ====================
+    function getLiveSensorBlock(title, showDanger = false, context = '') {
+        let dangerHtml = '';
+        if (showDanger) {
+            dangerHtml = `<div class="danger-warning">⏳ Inasubiri data...</div>`;
+        }
+        return `
+            <div class="live-sensor-card">
+                <div style="display:flex; flex-wrap:wrap; align-items:center; gap:20px; width:100%;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:1.8rem;">🌡️</span>
+                        <div>
+                            <div style="font-size:0.8rem; font-weight:600; color:#555;">${title}</div>
+                            <div class="vital-group" style="display:flex; gap:30px; flex-wrap:wrap; margin-top:4px;">
+                                <div class="vital-item">
+                                    <span class="label">Joto</span>
+                                    <span class="value"><span class="live-temp">--</span><span class="unit"> °C</span></span>
+                                </div>
+                                <div class="vital-item">
+                                    <span class="label">BP</span>
+                                    <span class="value"><span class="live-bp">--/--</span><span class="unit"> mmHg</span></span>
+                                </div>
+                                <div class="vital-item">
+                                    <span class="label">Pulse</span>
+                                    <span class="value"><span class="live-pulse">--</span><span class="unit"> bpm</span></span>
+                                </div>
+                            </div>
+                            <div class="live-status-badge status-badge-live normal" style="margin-top:4px;">--</div>
+                        </div>
+                    </div>
+                    <div class="meta-live">
+                        <span>🕒 <span class="live-time">--</span></span>
+                        ${context ? `<span style="margin-left:12px;">📌 ${context}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+            ${dangerHtml}
+            <div class="card" style="border:2px solid #1b5e20;">
+                <h3 style="color:#1b5e20;">📋 Historia ya Vipimo</h3>
+                <div class="table-wrap" style="max-height:200px; overflow-y:auto;">
+                    <table>
+                        <thead><tr><th>#</th><th>Joto (°C)</th><th>BP (mmHg)</th><th>Pulse (bpm)</th><th>Muda</th></tr></thead>
+                        <tbody id="sensorHistoryBody">
+                            <tr><td colspan="5" class="empty-msg">Hakuna data bado. Subiri ESP32 itume...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <button onclick="loadLiveVitals()" style="background:#0277bd; width:auto; padding:6px 14px; margin-top:6px;">🔄 Sasisha Sasa</button>
+            </div>
+        `;
+    }
+
+    // ==================== ADMIN ====================
+    if (role === 'admin') {
+        html = `
+            ${getLiveSensorBlock('🖥️ Msimamizi – Data ya Kifaa', false, 'Kifaa: Dr. SSH D001')}
+            <div class="card admin-card">
+                <h3 style="color:#d32f2f;">🏥 1. Sajili Wafanyakazi wa Hospitali</h3>
+                <form onsubmit="alert('Mfanyakazi wa afya amesajiliwa!'); return false;">
+                    <div class="form-grid">
+                        <div><label>Idara:</label><select required><option value="" disabled selected>Chagua</option><option>RCH Clinic</option><option>Labour Ward</option><option>Postnatal Ward</option></select></div>
+                        <div><label>Kada:</label><select required><option value="" disabled selected>Chagua</option><option>Doctor</option><option>Nurse</option></select></div>
+                        <div><label>Jina Kamili:</label><input type="text" placeholder="Mf. Dr. Erasto Mwakyusa" required></div>
+                        <div><label>Simu / Username:</label><input type="text" placeholder="07XXXXXXXX" required></div>
+                        <div class="form-full"><label>Neno la Siri:</label><input type="password" placeholder="******" required></div>
+                    </div>
+                    <button type="submit" style="background:#2e7d32;">SAJILI</button>
+                </form>
+            </div>
+            <div class="card admin-card">
+                <h3 style="color:#d32f2f;">👩‍⚕️ 2. Sajili CHW</h3>
+                <form onsubmit="alert('CHW amesajiliwa!'); return false;">
+                    <div class="form-grid">
+                        <div><label>Jina Kamili:</label><input type="text" placeholder="Mf. Amina Mwasabwite" required></div>
+                        <div><label>Simu:</label><input type="text" placeholder="07XXXXXXXX" required></div>
+                        <div class="form-full"><div class="section-title">📍 Eneo la Kazi</div></div>
+                        <div><label>Mtaa:</label><input type="text" placeholder="Mf. Sogea" required></div>
+                        <div><label>Anwani:</label><input type="text" placeholder="Mf. Nyumba Na. 12" required></div>
+                        <div><label>Kata:</label><input type="text" placeholder="Mf. Tunduma" required></div>
+                        <div><label>Wilaya:</label><input type="text" placeholder="Mf. Momba" required></div>
+                        <div class="form-full"><label>Mkoa:</label><input type="text" placeholder="Mf. Songwe" required></div>
+                        <div class="form-full"><div class="section-title">📞 Namba 3 za Wategemezi</div></div>
+                        <div><label>Mtegemezi 1:</label><input type="text" placeholder="Namba ya Simu 1" required></div>
+                        <div><label>Mtegemezi 2:</label><input type="text" placeholder="Namba ya Simu 2" required></div>
+                        <div class="form-full"><label>Mtegemezi 3:</label><input type="text" placeholder="Namba ya Simu 3" required></div>
+                        <div class="form-full"><label>NIDA:</label><input type="text" placeholder="1995XXXXXXXXXXXX-XXXX" required></div>
+                    </div>
+                    <button type="submit" style="background:#00796b;">SAJILI CHW</button>
+                </form>
+            </div>
+            <div class="card admin-card">
+                <h3 style="color:#d32f2f;">🚗 3. Sajili Dereva wa Ambulance</h3>
+                <form onsubmit="alert('Dereva amesajiliwa!'); return false;">
+                    <div class="form-grid">
+                        <div><label>Jina Kamili:</label><input type="text" placeholder="Mf. Juma Ally" required></div>
+                        <div><label>Simu:</label><input type="text" placeholder="07XXXXXXXX" required></div>
+                        <div><label>Anwani:</label><input type="text" placeholder="Mf. Sokoine St, Nyumba Na. 45" required></div>
+                        <div><label>Namba ya Gari:</label><input type="text" placeholder="Mf. T 452 ABC" required></div>
+                        <div class="form-full"><label>NIDA:</label><input type="text" placeholder="1990XXXXXXXXXXXX-XXXX" required></div>
+                    </div>
+                    <button type="submit" style="background:#0277bd;">SAJILI DEREVA</button>
+                </form>
+            </div>
+            <div class="card admin-card" style="border-top:5px solid #d32f2f;">
+                <h3 style="color:#d32f2f;">🛠️ 4. Chumba cha Usimamizi</h3>
+                <p style="font-size:0.85rem; color:#555;">Ongeza vipengele, rekebisha au futa taarifa.</p>
+                <div style="background:#f9f9f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px solid #ddd;">
+                    <h4 style="margin-top:0; color:#1b5e20;">➕ Ongeza Kipengele Kipya</h4>
+                    <form onsubmit="alert('Kipengele kimeongezwa!'); return false;">
+                        <div class="form-grid">
+                            <div><label>Dashboard:</label><select required><option>CHW</option><option>Labour</option><option>RCH</option><option>Postnatal</option></select></div>
+                            <div><label>Jina la Kipengele:</label><input type="text" placeholder="Mf. Kugawa Vitamini" required></div>
+                            <div class="form-full"><label>Maelezo:</label><input type="text" placeholder="Maelezo ya kipengele..." required></div>
+                        </div>
+                        <button type="submit" style="background:#43a047;">HIFADHI</button>
+                    </form>
+                </div>
+                <div style="background:#fff8f8; padding:12px; border-radius:8px; border:1px solid #ffcdd2;">
+                    <h4 style="margin-top:0; color:#c62828;">✏️ Tafuta, Rekebisha au Futa</h4>
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <input type="text" placeholder="Tafuta kwa Jina..." style="margin-bottom:0;">
+                        <button type="button" style="width:120px; background:#0277bd;" onclick="alert('Inatafuta...')">Tafuta</button>
+                    </div>
+                    <table>
+                        <thead><tr><th>Aina</th><th>Jina</th><th>Taarifa</th><th>Vitendo</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="badge">CHW</span></td><td>Amina Mwasabwite</td><td>Mtaa: Sogea, Simu: 0711223344</td><td><button type="button" style="background:#f57f17; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="alert('Rekebisha')">Rekebisha</button><button type="button" style="background:#c62828; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="confirm('Futa?') && alert('Imefutwa!')">Futa</button></td></tr>
+                            <tr><td><span class="badge" style="background:#e3f2fd; color:#0277bd;">Dereva</span></td><td>Juma Ally</td><td>Gari: T 452 ABC, Simu: 0712345678</td><td><button type="button" style="background:#f57f17; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="alert('Rekebisha')">Rekebisha</button><button type="button" style="background:#c62828; padding:4px 8px; width:auto; font-size:0.7rem;" onclick="confirm('Futa?') && alert('Imefutwa!')">Futa</button></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    // ==================== COORDINATOR ====================
+    else if (role === 'coordinator') {
+        const referrals = await getReferrals();
+        const pending = referrals.filter(r => r.status === 'pending');
+        const approved = referrals.filter(r => r.status === 'approved');
+        const rejected = referrals.filter(r => r.status === 'rejected');
+
+        let pendingRows = '';
+        if (pending.length === 0) {
+            pendingRows = `<tr><td colspan="7" style="text-align:center;">Hakuna rufaa zinazosubiri</td></tr>`;
+        } else {
+            pending.forEach(r => {
+                pendingRows += `
+                    <tr>
+                        <td>${r.clientName}</td>
+                        <td>${r.fromWard}</td>
+                        <td>${r.reason || '-'}</td>
+                        <td>${r.doctorName || '-'}</td>
+                        <td>${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : '-'}</td>
+                        <td>
+                            <button onclick="openReferralModal(${r.id}, '${r.clientName}')" style="background:#2e7d32; padding:4px 8px; font-size:0.7rem; margin-right:4px; width:auto;">✅ Kubali</button>
+                            <button onclick="rejectReferral(${r.id})" style="background:#c62828; padding:4px 8px; font-size:0.7rem; width:auto;">❌ Kataa</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        let approvedRows = '';
+        if (approved.length === 0) {
+            approvedRows = `<tr><td colspan="6" style="text-align:center;">Hakuna rufaa zilizothibitishwa</td></tr>`;
+        } else {
+            approved.forEach(r => {
+                approvedRows += `
+                    <tr>
+                        <td>${r.clientName}</td>
+                        <td>${r.fromWard}</td>
+                        <td>${r.toHospital}</td>
+                        <td>${r.coordinatorNote || '-'}</td>
+                        <td>${r.reviewedAt ? new Date(r.reviewedAt).toLocaleDateString() : '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        let rejectedRows = '';
+        if (rejected.length === 0) {
+            rejectedRows = `<tr><td colspan="5" style="text-align:center;">Hakuna rufaa zilizokataliwa</td></tr>`;
+        } else {
+            rejected.forEach(r => {
+                rejectedRows += `
+                    <tr>
+                        <td>${r.clientName}</td>
+                        <td>${r.fromWard}</td>
+                        <td>${r.reason || '-'}</td>
+                        <td>${r.coordinatorNote || '-'}</td>
+                        <td>${r.reviewedAt ? new Date(r.reviewedAt).toLocaleDateString() : '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        html = `
+            ${getLiveSensorBlock('🌡️ Joto la Rufaa Zinazoingia', false, 'Mratibu wa M-Mama')}
+            <div class="chw-stats-grid">
+                <div class="chw-stat-card" style="border-left-color:#ff9800;"><h3>${pending.length}</h3><p>Rufaa Zinazosubiri</p></div>
+                <div class="chw-stat-card" style="border-left-color:#2e7d32;"><h3>${approved.length}</h3><p>Zimethibitishwa</p></div>
+                <div class="chw-stat-card" style="border-left-color:#d32f2f;"><h3>${rejected.length}</h3><p>Zimekataliwa</p></div>
+                <div class="chw-stat-card" style="border-left-color:#0d47a1;"><h3>${referrals.length}</h3><p>Jumla</p></div>
+            </div>
+            <div class="card" style="border-top:5px solid #ff9800;">
+                <h3 style="color:#e65100;">⏳ Rufaa Zinazosubiri</h3>
+                <p style="font-size:0.85rem; color:#555;">Thibitisha au kataa rufaa. Unapothibitisha, chagua hospitali inayopokea.</p>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Daktari</th><th>Tarehe</th><th>Kitendo</th></tr></thead><tbody>${pendingRows}</tbody></table>
+            </div>
+            <div class="card" style="border-top:5px solid #2e7d32;">
+                <h3 style="color:#2e7d32;">✅ Rufaa Zilizothibitishwa</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Hospitali</th><th>Maelezo</th><th>Tarehe</th></tr></thead><tbody>${approvedRows}</tbody></table>
+            </div>
+            <div class="card" style="border-top:5px solid #d32f2f;">
+                <h3 style="color:#c62828;">❌ Rufaa Zilizokataliwa</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Maelezo</th><th>Tarehe</th></tr></thead><tbody>${rejectedRows}</tbody></table>
+            </div>
+            <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
+                <h3 style="color:#0d47a1;">➕ Ongeza Rufaa Mpya</h3>
+                <form onsubmit="addNewReferral(event)">
+                    <div class="form-grid">
+                        <div><label>Jina la Mteja:</label><input type="text" id="newRefClient" placeholder="Mf. Zainab Mwakyusa" required></div>
+                        <div><label>Kutoka Wodi:</label><select id="newRefFrom"><option>RCH Clinic</option><option>Labour Ward</option><option>Postnatal Ward</option></select></div>
+                        <div class="form-full"><label>Sababu:</label><textarea id="newRefReason" placeholder="Sababu ya rufaa..." required></textarea></div>
+                        <div><label>Daktari:</label><input type="text" id="newRefDoctor" placeholder="Dr. ..." required></div>
+                    </div>
+                    <button type="submit" style="background:#0d47a1;">TUMA RUFAA</button>
+                </form>
+            </div>
+        `;
+        // Define functions for coordinator
+        window.addNewReferral = async function(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('newRefClient').value.trim();
+            const fromWard = document.getElementById('newRefFrom').value;
+            const reason = document.getElementById('newRefReason').value.trim();
+            const doctorName = document.getElementById('newRefDoctor').value.trim();
+            if (!clientName || !reason || !doctorName) { alert('Tafadhali jaza sehemu zote.'); return; }
+            const ref = { clientName, fromWard, toHospital: 'Inasubiri', reason, doctorName, messageToClient: 'Ombi limewasilishwa kwa Mratibu.', fromFacility: 'Tunduma Town Council Hospital' };
+            await addReferral(ref);
+            alert(`✅ Rufaa ya ${clientName} imeongezwa!`);
+            document.getElementById('newRefClient').value = '';
+            document.getElementById('newRefReason').value = '';
+            document.getElementById('newRefDoctor').value = '';
+            buildDashboard('coordinator');
+        };
+        window.openReferralModal = openReferralModal;
+        window.closeReferralModal = closeReferralModal;
+        window.confirmApproveReferral = confirmApproveReferral;
+        window.rejectReferral = rejectReferral;
+    }
+
+    // ==================== CHW ====================
+    else if (role === 'chw') {
+        const transfers = await getTransferRequests();
+        let transferRows = '';
+        if (transfers.length === 0) {
+            transferRows = `<tr><td colspan="6" style="text-align:center;">Hakuna maombi</td></tr>`;
+        } else {
+            transfers.forEach(t => {
+                const statusClass = t.status === 'pending' ? 'pending' : t.status === 'approved' ? 'approved' : 'rejected';
+                const statusLabel = t.status === 'pending' ? 'Inasubiri' : t.status === 'approved' ? 'Imekubaliwa' : 'Imekataliwa';
+                transferRows += `
+                    <tr>
+                        <td>${t.clientName}</td>
+                        <td>${t.fromFacility}</td>
+                        <td>${t.toFacility}</td>
+                        <td>${t.reason || '-'}</td>
+                        <td><span class="transfer-status ${statusClass}">${statusLabel}</span></td>
+                        <td>
+                            ${t.status === 'pending' ? 
+                                `<button onclick="chwApproveTransfer(${t.id})" style="background:#2e7d32; padding:4px 8px; font-size:0.7rem; margin-right:4px; width:auto;">Kubali</button>
+                                 <button onclick="chwRejectTransfer(${t.id})" style="background:#c62828; padding:4px 8px; font-size:0.7rem; width:auto;">Kataa</button>` : 
+                                t.status === 'approved' ? 
+                                `<span style="color:#2e7d32; font-weight:bold;">✅ Imekubaliwa</span>` :
+                                `<span style="color:#c62828; font-weight:bold;">❌ Imekataliwa</span>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        const allClients = await getAllClients();
+        let clientOptions = '';
+        allClients.forEach(c => { clientOptions += `<option value="${c}">${c}</option>`; });
+
+        html = `
+            ${getLiveSensorBlock('🌡️ Joto la Mteja Anayefuatiliwa', false, 'CHW')}
+            <div class="chw-stats-grid">
+                <div class="chw-stat-card"><h3>${transfers.filter(t=>t.status==='pending').length}</h3><p>Maombi Yanayosubiri</p></div>
+                <div class="chw-stat-card" style="border-left-color:#2e7d32;"><h3>${transfers.filter(t=>t.status==='approved').length}</h3><p>Yamekubaliwa</p></div>
+                <div class="chw-stat-card" style="border-left-color:#d32f2f;"><h3>${transfers.filter(t=>t.status==='rejected').length}</h3><p>Yamekataliwa</p></div>
+                <div class="chw-stat-card" style="border-left-color:#00838f;"><h3>${transfers.length}</h3><p>Jumla</p></div>
+            </div>
+            <div class="card" style="border-top:5px solid #ef6c00;">
+                <h3>🔄 Usimamizi wa Maombi ya Uhamisho</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Kwenda</th><th>Sababu</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>${transferRows}</tbody></table>
+            </div>
+            <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
+                <h3 style="color:#1565c0;">➕ Omba Uhamisho kwa Mteja</h3>
+                <form onsubmit="chwSubmitTransfer(event)">
+                    <div class="form-grid">
+                        <div><label>Chagua Mteja:</label><select id="chwClientSelect" required><option value="">-- Chagua --</option>${clientOptions}</select></div>
+                        <div><label>Kituo Anachotaka:</label><select id="chwTargetFacility" required><option value="">-- Chagua --</option><option value="Chapwa Health Centre">Chapwa Health Centre</option><option value="Tunduma Health Centre">Tunduma Health Centre</option><option value="Sogea Dispensary">Sogea Dispensary</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option></select></div>
+                        <div class="form-full"><label>Sababu:</label><textarea id="chwReason" placeholder="Sababu ya uhamisho..." required></textarea></div>
+                    </div>
+                    <button type="submit" style="background:#1565c0;">TUMA OMBI</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid #d32f2f; background:#fffdfd;">
+                <h3 style="color:#d32f2f;">🚨 Dharura: Ambulance Tracking</h3>
+                <table><thead><tr><th>Mteja & Anwani</th><th>Simu</th><th>Hali</th><th>Dereva</th><th>Hatua</th></tr></thead><tbody>
+                    <tr><td><b>Bina Juma</b><br><small>Nyumba Na. 12, Sogea</small></td><td>0765 432 100</td><td><span class="badge-red">Imechelewa</span></td><td>Juma (TMB 452C)</td><td><button class="btn-red" onclick="alert('Ombi limekwisha!')" style="font-size:0.8rem; padding:6px;">Omba Gari</button><button class="btn-blue" style="font-size:0.8rem; padding:6px; margin-top:4px;" onclick="alert('Piga simu!')">Piga Simu</button></td></tr>
+                </tbody></table>
+            </div>
+        `;
+        // CHW functions
+        window.chwApproveTransfer = async function(id) {
+            const reason = prompt('Sababu ya kukubali? (Hiari)');
+            const updated = await updateTransferRequest(id, { status:'approved', reviewNote: reason || 'Imekubaliwa na CHW', reviewedAt: new Date().toISOString() });
+            if (updated) { alert(`✅ Ombi la ${updated.clientName} limekubaliwa!`); buildDashboard('chw'); }
+        };
+        window.chwRejectTransfer = async function(id) {
+            const reason = prompt('Sababu ya kukataa:');
+            if (reason === null) return;
+            if (!reason.trim()) { alert('Tafadhali ingiza sababu.'); return; }
+            const updated = await updateTransferRequest(id, { status:'rejected', reviewNote: reason.trim(), reviewedAt: new Date().toISOString() });
+            if (updated) { alert(`❌ Ombi la ${updated.clientName} limekataliwa. Sababu: "${reason.trim()}"`); buildDashboard('chw'); }
+        };
+        window.chwSubmitTransfer = async function(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('chwClientSelect').value;
+            const toFacility = document.getElementById('chwTargetFacility').value;
+            const reason = document.getElementById('chwReason').value.trim();
+            if (!clientName || !toFacility || !reason) { alert('Tafadhali jaza sehemu zote.'); return; }
+            const clientData = await getClientData(clientName);
+            const fromFacility = clientData.location || 'Tunduma Town Council Hospital';
+            const request = { clientName, fromFacility, toFacility, reason, clientPhone: clientData.phone || '-', requestedBy:'CHW', fromDistrict: clientData.district || '-', fromRegion: clientData.region || '-' };
+            await addTransferRequest(request);
+            alert(`✅ Ombi la uhamisho kwa ${clientName} limetumwa!`);
+            document.getElementById('chwClientSelect').value = '';
+            document.getElementById('chwTargetFacility').value = '';
+            document.getElementById('chwReason').value = '';
+            buildDashboard('chw');
+        };
+    }
+
+    // ==================== DRIVER ====================
+    else if (role === 'driver') {
+        html = `
+            ${getLiveSensorBlock('🚑 Joto la Mgonjwa (Dereva)', false, 'Dereva wa Ambulance')}
+            <div class="driver-stats-box">
+                <div class="driver-stat-card"><h4>Km Leo</h4><p>48</p></div>
+                <div class="driver-stat-card"><h4>Km Wiki</h4><p>320</p></div>
+                <div class="driver-stat-card"><h4>Km Mwezi</h4><p>1,450</p></div>
+            </div>
+            <div class="card" id="requestSection">
+                <h3 style="color:#d32f2f;">🚨 Maombi Mapya</h3>
+                <table><thead><tr><th>Mteja</th><th>Eneo</th><th>Simu</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>
+                    <tr><td><b>Bina Juma</b></td><td>Sogea Mtaa wa Kwanza</td><td>0711223344</td><td><span style="color:red; font-weight:bold;">BP Juu</span></td><td><button style="background:#2e7d32; font-size:0.8rem; padding:6px;" onclick="kubaliMgonjwa('Bina Juma','Sogea Mtaa wa Kwanza','0711223344','BP Juu')">Kubali</button></td></tr>
+                    <tr><td><b>Aisha Mwinyi</b></td><td>Chapwa Mtaa wa Pili</td><td>0765432100</td><td><span style="color:red; font-weight:bold;">Kuvuja damu</span></td><td><button style="background:#2e7d32; font-size:0.8rem; padding:6px;" onclick="kubaliMgonjwa('Aisha Mwinyi','Chapwa Mtaa wa Pili','0765432100','Kuvuja damu')">Kubali</button></td></tr>
+                </tbody></table>
+            </div>
+            <div class="card" style="border:2px solid #d32f2f; display:none;" id="activeTripCard">
+                <h3 style="color:#c62828;">📍 Safari Inayoendelea</h3>
+                <div class="driver-grid-2">
+                    <div style="background:#ffebee; padding:12px; border-radius:8px;">
+                        <p><b>Jina:</b> <span id="activeClientName" style="color:#d32f2f; font-weight:bold;">-</span></p>
+                        <p><b>Anwani:</b> <span id="activeClientAddress">-</span></p>
+                        <p><b>Simu:</b> <span id="activeClientPhone">-</span></p>
+                        <p><b>Hali:</b> <span id="activeClientCondition" style="color:red;">-</span></p>
+                        <a id="callClientBtn" href="#" style="display:inline-block; background:#0277bd; color:white; padding:8px 12px; border-radius:6px; text-decoration:none; font-weight:bold; font-size:0.9rem; margin-bottom:10px;">📞 Piga Simu</a>
+                        <div id="tripStep1"><button style="background:#e65100; width:100%;" onclick="fikaKwaMgonjwa()">📍 Nimefika</button></div>
+                        <div id="tripStep2" style="display:none;"><label>Chagua Kituo:</label><select id="hospitalSelect"><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Tunduma Health Center">Tunduma Health Center</option><option value="Chapwa Dispensary">Chapwa Dispensary</option></select><button style="background:#0277bd; width:100%; margin-top:6px;" onclick="anzaSafariKituoni()">🚀 Anza Safari</button></div>
+                        <div id="tripStep3" style="display:none;"><p>Unaelekea: <span id="selectedHospitalName">-</span></p><button style="background:#2e7d32; width:100%;" onclick="fikaKituoni()">🏥 Nimefika</button></div>
+                    </div>
+                    <div class="gps-map-box"><span style="font-size:28px;">🗺️</span><span>Live GPS Map</span></div>
+                </div>
+            </div>
+            <div class="card" style="border-top:5px solid #ff9800;">
+                <h3 style="color:#e65100;">⚠️ Umekwama? Omba Msaada</h3>
+                <form onsubmit="alert('Ombi limetumwa!'); return false;">
+                    <div class="driver-grid-2">
+                        <div><label>Sababu:</label><select required><option>Gari imeharibika</option><option>Tairi limepasuka</option><option>Njia imeziba</option><option>Mafuta yameisha</option></select></div>
+                        <div><label>Eneo:</label><input type="text" placeholder="Mf. Chapwa barabara kuu" required></div>
+                    </div>
+                    <label>Maelezo:</label><textarea placeholder="Maelezo mafupi..." rows="2"></textarea>
+                    <button type="submit" style="background:#e65100;">TUMA OMBI</button>
+                </form>
+            </div>
+        `;
+        // Driver functions
+        window.kubaliMgonjwa = function(name, address, phone, condition) {
+            document.getElementById('requestSection').style.display = 'none';
+            document.getElementById('activeTripCard').style.display = 'block';
+            document.getElementById('activeClientName').innerText = name;
+            document.getElementById('activeClientAddress').innerText = address;
+            document.getElementById('activeClientPhone').innerText = phone;
+            document.getElementById('activeClientCondition').innerText = condition;
+            document.getElementById('callClientBtn').href = "tel:" + phone;
+            alert(`Umemkubali ${name}.`);
+        };
+        window.fikaKwaMgonjwa = function() {
+            alert('Umemfikia mgonjwa.');
+            document.getElementById('tripStep1').style.display = 'none';
+            document.getElementById('tripStep2').style.display = 'block';
+        };
+        window.anzaSafariKituoni = function() {
+            const hospital = document.getElementById('hospitalSelect').value;
+            document.getElementById('selectedHospitalName').innerText = hospital;
+            document.getElementById('tripStep2').style.display = 'none';
+            document.getElementById('tripStep3').style.display = 'block';
+            alert(`Safari imeanza kuelekea ${hospital}.`);
+        };
+        window.fikaKituoni = function() {
+            alert('Umefika kituoni! Safari imekamilika.');
+            document.getElementById('activeTripCard').style.display = 'none';
+            document.getElementById('requestSection').style.display = 'block';
+            document.getElementById('tripStep1').style.display = 'block';
+            document.getElementById('tripStep3').style.display = 'none';
+        };
+    }
+
+    // ==================== LABOUR ====================
+    else if (role === 'nurse_labour') {
+        const referrals = await getReferrals();
+        const incomingRefs = referrals.filter(r => r.toHospital === 'Tunduma Town Council Hospital' && r.status === 'pending');
+        let incomingRefRows = '';
+        if (incomingRefs.length === 0) {
+            incomingRefRows = `<tr><td colspan="6" style="text-align:center;">Hakuna rufaa zinazoingia</td></tr>`;
+        } else {
+            incomingRefs.forEach(r => {
+                incomingRefRows += `
+                    <tr>
+                        <td>${r.clientName}</td>
+                        <td>${r.fromWard}</td>
+                        <td>${r.reason || '-'}</td>
+                        <td>${r.doctorName || '-'}</td>
+                        <td><span class="referral-badge-pending">Inasubiri</span></td>
+                        <td><button onclick="labourViewClientCard('${r.clientName}')" style="background:#00838f; padding:4px 8px; font-size:0.7rem; width:auto;">Ona Kadi</button></td>
+                    </tr>
+                `;
+            });
+        }
+        const roster = await getRoster();
+        let rosterNursesHtml = '';
+        roster.nurses.forEach(n => {
+            rosterNursesHtml += `<tr><td>${n.name}</td><td><span class="staff-title">${n.title}</span></td></tr>`;
+        });
+        const allClients = await getAllClients();
+        let clientOpts = '';
+        allClients.forEach(c => { clientOpts += `<option value="${c}">${c}</option>`; });
+
+        html = `
+            ${getLiveSensorBlock('🚑 Joto la Mgonjwa Anayeingia Labour', false, 'Mgonjwa kutoka kwa Dereva wa Ambulance')}
+            <div class="card" style="border:4px solid #d32f2f; background:#fff5f5; text-align:center; padding:20px;">
+                <h3 style="color:#d32f2f; border:none; padding:0;">🚨 ZARURA / DHARURA</h3>
+                <p style="font-size:0.9rem;">Bonyeza kitufe chini ikiwa kuna dharura. Ujumbe utatumwa kwa Mganga Mfawidhi, Muuguzi Mfawidhi, Supervisor wa Wiki na Timu ya Zarura.</p>
+                <button onclick="openEmergencyModal()" style="background:#d32f2f; font-size:1.2rem; padding:16px; border-radius:50px; width:auto; min-width:200px; box-shadow:0 0 20px rgba(211,47,47,0.5); animation:pulseEffect 2s infinite;">🚨 BONYEA ZARURA</button>
+            </div>
+            <div class="card" style="border:2px solid #0d47a1;">
+                <h3 style="color:#0d47a1;">📋 ORODHA YA WAFANYAKAZI (ROSTER) - LABOUR</h3>
+                <table class="roster-table">
+                    <tbody>
+                        <tr><td><strong>Daktari wa Zamu (Doctor on Duty)</strong></td><td>${roster.doctorOnDuty}</td></tr>
+                        <tr><td><strong>Daktari wa Pili (Second on Call)</strong></td><td>${roster.secondOnCall}</td></tr>
+                        <tr><td colspan="2"><strong>👩‍⚕️ Manesi wa Zamu</strong></td></tr>
+                        ${rosterNursesHtml}
+                    </tbody>
+                </table>
+                <details style="margin-top:10px;">
+                    <summary style="cursor:pointer; font-weight:bold; color:#0d47a1;">✏️ Hariri Roster</summary>
+                    <form onsubmit="editRoster(event)" style="margin-top:10px;">
+                        <div class="form-grid">
+                            <div><label>Daktari wa Zamu</label><input type="text" id="rosterDoctor" value="${roster.doctorOnDuty}" required></div>
+                            <div><label>Daktari wa Pili</label><input type="text" id="rosterSecond" value="${roster.secondOnCall}" required></div>
+                        </div>
+                        <div class="form-full"><label>Manesi (Jina - Cheo, kila mmoja kwenye mstari mpya)</label>
+                            <textarea id="rosterNurses" rows="4">${roster.nurses.map(n => n.name + ' - ' + n.title).join('\n')}</textarea>
+                        </div>
+                        <button type="submit" style="background:#0d47a1;">HIFADHI ROSTER</button>
+                    </form>
+                </details>
+            </div>
+            <div class="card" style="border:2px solid #d32f2f; background:#fff5f5;">
+                <h3 style="color:#d32f2f;">📥 Rufaa Zinazoingia - LABOUR</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Daktari</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>${incomingRefRows}</tbody></table>
+            </div>
+            <div class="card">
+                <h3 style="color:#6a1b9a;">👶 Sajili Kujifungua</h3>
+                <form onsubmit="kamilishaUzazi(event)">
+                    <label>Chagua Mteja:</label>
+                    <select id="mtejaSelect" required><option>Bina Juma</option><option>Aisha Juma</option></select>
+                    <div class="section-title">📊 Vipimo vya Mama</div>
+                    <div class="vital-signs-grid">
+                        <div class="field"><label>Uzito (kg)</label><input type="number" step="0.1" id="labourWeight" placeholder="65.5"></div>
+                        <div class="field"><label>Kimo (cm)</label><input type="number" step="0.1" id="labourHeight" placeholder="160"></div>
+                        <div class="field"><label>BP Systolic</label><input type="number" id="labourBPSys" placeholder="120" onchange="calculateLabourShock()" oninput="calculateLabourShock()"></div>
+                        <div class="field"><label>BP Diastolic</label><input type="number" id="labourBPDia" placeholder="80"></div>
+                        <div class="field"><label>Mapigo / min</label><input type="number" id="labourPulse" placeholder="80" onchange="calculateLabourShock()" oninput="calculateLabourShock()"></div>
+                        <div class="field"><label>Joto (°C)</label><input type="number" step="0.1" id="labourTemp" placeholder="36.5"></div>
+                        <div class="field"><label>Hb (g/dL)</label><input type="number" step="0.1" id="labourHb" placeholder="11.5"></div>
+                        <div class="field"><label>Mkojo</label><select id="labourUrine"><option>Negative</option><option>Positive</option></select></div>
+                        <div class="field"><label>HIV</label><select id="labourHIV"><option>Negative</option><option>Positive</option></select></div>
+                        <div class="field"><label>VDRL</label><select id="labourVDRL"><option>Negative</option><option>Positive</option></select></div>
+                    </div>
+                    <div class="shock-index" id="labourShockIndex">🔴 Shock Index: <span id="labourShockValue">-</span> (Kawaida &lt; 0.9)</div>
+                    <label>Njia ya Uzazi:</label>
+                    <select id="njiaDelivery" required><option>Kawaida (SVD)</option><option>Upasuaji (C/S)</option></select>
+                    <label>Maoni ya Daktari:</label>
+                    <textarea id="maoniDaktari" placeholder="Maelezo ya hali ya mama na mtoto..." rows="2" required></textarea>
+                    <div style="background:#fdf2f8; border:1.5px dashed #6a1b9a; padding:12px; border-radius:8px; margin-bottom:12px;">
+                        <h4 style="margin-top:0; color:#6a1b9a;">👥 Taarifa kwa Ndugu na CHW</h4>
+                        <label>Ujumbe kwa Ndugu:</label>
+                        <select id="ujumbeNdugu"><option>Mama na mtoto wapo salama</option><option>Mama amejifungua salama, anasubiri ruksa</option><option>Dharura: Mama anahitaji msaada</option></select>
+                        <label style="margin-top:8px; display:block;">Agizo kwa CHW:</label>
+                        <textarea id="ujumbeCHW" placeholder="Maelekezo maalum kwa CHW..." rows="2"></textarea>
+                    </div>
+                    <button type="submit" style="width:100%; background:#6a1b9a;">HIFADHI, TUMA, HAMISHIA POSTNATAL</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
+                <h3 style="color:#0d47a1;">📤 Toa Rufaa (Referral) - LABOUR</h3>
+                <form onsubmit="labourSubmitReferral(event)">
+                    <div class="form-grid">
+                        <div><label>Chagua Mteja:</label><select id="labourRefClient" required><option value="">-- Chagua --</option>${clientOpts}</select></div>
+                        <div><label>Hospitali Inayopokea:</label><select id="labourRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Chapwa Health Centre">Chapwa Health Centre</option></select></div>
+                        <div class="form-full"><label>Sababu ya Rufaa:</label><textarea id="labourRefReason" placeholder="Sababu ya kumpeleka mteja..." required></textarea></div>
+                        <div><label>Jina la Daktari:</label><input type="text" id="labourRefDoctor" placeholder="Mf. Dr. Fabiani Mwasabwite" required></div>
+                        <div class="form-full"><label>Ujumbe kwa Mteja:</label><textarea id="labourRefMsg" placeholder="Ujumbe wa kumjulisha mteja..." required></textarea></div>
+                    </div>
+                    <button type="submit" style="background:#0d47a1;">TOA RUFAA</button>
+                </form>
+            </div>
+        `;
+        // Labour functions
+        window.calculateLabourShock = function() {
+            const pulse = parseFloat(document.getElementById('labourPulse').value);
+            const sys = parseFloat(document.getElementById('labourBPSys').value);
+            const si = calculateShockIndex(pulse, sys);
+            document.getElementById('labourShockValue').textContent = si;
+        };
+        window.kamilishaUzazi = async function(e) {
+            e.preventDefault();
+            const mteja = document.getElementById("mtejaSelect").value;
+            const njia = document.getElementById("njiaDelivery").value;
+            const maoni = document.getElementById("maoniDaktari").value;
+            const msgNdugu = document.getElementById("ujumbeNdugu").value;
+            const msgCHW = document.getElementById("ujumbeCHW").value;
+            await setClientStatus(mteja, 'postnatal');
+            const clientData = await getClientData(mteja);
+            await setClientData(mteja, { ...clientData, deliveryDate: new Date().toISOString().split('T')[0], deliveryMode: njia, deliveryNotes: maoni, status:'postnatal' });
+            alert(`✅ ${mteja} amejifungua!\nNjia: ${njia}\n\n📢 Ujumbe kwa Ndugu: "${msgNdugu}"\nKwa CHW: "${msgCHW}"\n\n✅ Amehamishwa Postnatal.`);
+            e.target.reset();
+            document.getElementById('labourShockValue').textContent = '-';
+        };
+        window.labourSubmitReferral = async function(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('labourRefClient').value;
+            const toHospital = document.getElementById('labourRefHospital').value;
+            const reason = document.getElementById('labourRefReason').value.trim();
+            const doctorName = document.getElementById('labourRefDoctor').value.trim();
+            const msg = document.getElementById('labourRefMsg').value.trim();
+            if (!clientName || !toHospital || !reason || !doctorName || !msg) { alert('Jaza sehemu zote.'); return; }
+            const ref = { clientName, fromWard:'Labour Ward', toHospital, reason, doctorName, messageToClient: msg, fromFacility:'Tunduma Town Council Hospital' };
+            await addReferral(ref);
+            alert(`✅ Rufaa imetolewa kwa ${clientName} kwenda ${toHospital}. Ujumbe: "${msg}"\nInasubiri idhini ya Mratibu wa M-Mama.`);
+            document.getElementById('labourRefClient').value = '';
+            document.getElementById('labourRefHospital').value = '';
+            document.getElementById('labourRefReason').value = '';
+            document.getElementById('labourRefDoctor').value = '';
+            document.getElementById('labourRefMsg').value = '';
+            buildDashboard('nurse_labour');
+        };
+        window.labourViewClientCard = async function(clientName) {
+            const data = await getClientData(clientName);
+            const visits = data.visits || [];
+            let visitsHtml = '';
+            if (visits.length === 0) {
+                visitsHtml = `<tr><td colspan="5" style="text-align:center;">Hakuna mahudhurio</td></tr>`;
+            } else {
+                visits.forEach((v, i) => {
+                    visitsHtml += `<tr><td>${i+1}</td><td>${v.date || '-'}</td><td>${v.weight || '-'} kg</td><td>${v.bp || '-'} mmHg</td><td>${v.temp || '-'} °C</td></tr>`;
+                });
+            }
+            alert(`📋 KADI YA MTEJA: ${clientName}\n\n📞 Simu: ${data.phone || '-'}\n📍 Kituo: ${data.location || '-'}\n👶 Gravida: ${data.gravida || '-'} | Para: ${data.para || '-'}\n📅 LNMP: ${data.lnmp || '-'}\n📊 EDD: ${data.edd || '-'}\n\n📊 VIPIMO VYA MWISHO:\nUzito: ${data.weight || '-'} kg | BP: ${data.bp_sys || '-'}/${data.bp_dia || '-'} | Mapigo: ${data.pulse || '-'} | Joto: ${data.temp || '-'}\n\n📋 MAHUDHURIO:\n${visits.map(v => `📅 ${v.date || '-'}: Uzito ${v.weight || '-'} kg, BP ${v.bp || '-'}, Joto ${v.temp || '-'}°C, Ushauri: ${v.advice || '-'}`).join('\n') || 'Hakuna mahudhurio'}`);
+        };
+        window.editRoster = async function(e) {
+            e.preventDefault();
+            const doctor = document.getElementById('rosterDoctor').value.trim();
+            const second = document.getElementById('rosterSecond').value.trim();
+            const nursesText = document.getElementById('rosterNurses').value;
+            const nurses = nursesText.split('\n').filter(line => line.trim() !== '').map(line => {
+                const parts = line.split('-').map(s => s.trim());
+                if (parts.length === 2) return { name: parts[0], title: parts[1] };
+                return { name: parts[0], title:'Manesi' };
+            });
+            if (!doctor || !second) { alert('Jaza sehemu zote.'); return; }
+            await setRoster({ doctorOnDuty: doctor, secondOnCall: second, nurses });
+            alert('✅ Roster imehifadhiwa!');
+            buildDashboard('nurse_labour');
+        };
+    }
+
+    // ==================== POSTNATAL ====================
+    else if (role === 'nurse_postnatal') {
+        const postnatalClients = await getPostnatalClients();
+        const referrals = await getReferrals();
+        const incomingRefs = referrals.filter(r => r.toHospital === 'Tunduma Town Council Hospital' && r.status === 'pending');
+        let incomingRefRows = '';
+        if (incomingRefs.length === 0) {
+            incomingRefRows = `<tr><td colspan="6" style="text-align:center;">Hakuna rufaa zinazoingia</td></tr>`;
+        } else {
+            incomingRefs.forEach(r => {
+                incomingRefRows += `
+                    <tr>
+                        <td>${r.clientName}</td>
+                        <td>${r.fromWard}</td>
+                        <td>${r.reason || '-'}</td>
+                        <td>${r.doctorName || '-'}</td>
+                        <td><span class="referral-badge-pending">Inasubiri</span></td>
+                        <td><button onclick="postnatalViewClientCard('${r.clientName}')" style="background:#00838f; padding:4px 8px; font-size:0.7rem; width:auto;">Ona Kadi</button></td>
+                    </tr>
+                `;
+            });
+        }
+        let pnOptions = '';
+        postnatalClients.forEach(c => { pnOptions += `<option value="${c}">${c}</option>`; });
+        if (postnatalClients.length === 0) pnOptions = `<option value="">Hakuna mteja wa Postnatal</option>`;
+
+        const allClients = await getAllClients();
+        let clientOpts = '';
+        allClients.forEach(c => { clientOpts += `<option value="${c}">${c}</option>`; });
+
+        const selectedClient = postnatalClients.length > 0 ? postnatalClients[0] : '';
+        const selectedData = selectedClient ? await getClientData(selectedClient) : {};
+        const visits = selectedData.postnatalVisits || [];
+        let visitRows = '';
+        if (visits.length === 0) {
+            visitRows = `<tr><td colspan="6" style="text-align:center;">Hakuna mahudhurio ya Postnatal</td></tr>`;
+        } else {
+            visits.forEach((v, i) => {
+                visitRows += `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><input type="date" class="pn-visit-date" value="${v.date || ''}" onchange="updatePostnatalVisit(${i}, 'date', this.value)"></td>
+                        <td><input type="number" step="0.1" class="pn-visit-weight" value="${v.weight || ''}" onchange="updatePostnatalVisit(${i}, 'weight', this.value)" placeholder="kg"></td>
+                        <td><input type="text" class="pn-visit-bp" value="${v.bp || ''}" onchange="updatePostnatalVisit(${i}, 'bp', this.value)" placeholder="S/D"></td>
+                        <td><input type="number" step="0.1" class="pn-visit-temp" value="${v.temp || ''}" onchange="updatePostnatalVisit(${i}, 'temp', this.value)" placeholder="°C"></td>
+                        <td><input type="text" class="pn-visit-advice" value="${v.advice || ''}" onchange="updatePostnatalVisit(${i}, 'advice', this.value)" placeholder="Ushauri"></td>
+                    </tr>
+                `;
+            });
+        }
+
+        html = `
+            ${getLiveSensorBlock('🏠 Joto la Mteja Nyumbani (Postnatal)', true, 'Mteja anafuatiliwa nyumbani')}
+            <div class="card" style="border:4px solid #d32f2f; background:#fff5f5; text-align:center; padding:20px;">
+                <h3 style="color:#d32f2f; border:none; padding:0;">🚨 ZARURA / DHARURA</h3>
+                <p style="font-size:0.9rem;">Bonyeza kitufe chini ikiwa kuna dharura. Ujumbe utatumwa kwa Mganga Mfawidhi, Muuguzi Mfawidhi, Supervisor wa Wiki na Timu ya Zarura.</p>
+                <button onclick="openEmergencyModal()" style="background:#d32f2f; font-size:1.2rem; padding:16px; border-radius:50px; width:auto; min-width:200px; box-shadow:0 0 20px rgba(211,47,47,0.5); animation:pulseEffect 2s infinite;">🚨 BONYEA ZARURA</button>
+            </div>
+            <div class="postnatal-alert-day3">⏰ ALARM: Aisha Mwinyi amefikisha Siku 3 baada ya kujifungua!</div>
+            <div class="card" style="border:2px solid #00838f; background:#f5faff;">
+                <h3 style="color:#00838f;">📋 KADI YA KIELEKTRONIKI YA POSTNATAL (Inaweza Kuhaririwa)</h3>
+                <div class="postnatal-card">
+                    <h4>👩 Hali ya Mama</h4>
+                    <div class="info-grid">
+                        <div class="info-item"><strong>BP:</strong> 120/80 mmHg</div>
+                        <div class="info-item"><strong>Mapigo:</strong> 78 bpm</div>
+                        <div class="info-item"><strong>Joto:</strong> 36.6 °C</div>
+                        <div class="info-item"><strong>Uzito:</strong> 65 kg</div>
+                    </div>
+                    <h4>👶 Hali ya Mtoto</h4>
+                    <div class="info-grid">
+                        <div class="info-item"><strong>Uzito wa Kuzaliwa:</strong> 3.2 kg</div>
+                        <div class="info-item"><strong>Kulisha:</strong> Kunyonya vizuri</div>
+                        <div class="info-item"><strong>Manjano:</strong> Hakuna</div>
+                        <div class="info-item"><strong>Chanjo:</strong> BCG, Polio 0</div>
+                    </div>
+                    <h4>📝 Mpango wa Kutolewa (Discharge Plan)</h4>
+                    <div class="info-item" style="background:#fff; padding:10px; border-radius:6px; border:1px solid #dde1e6;">
+                        <p><strong>Maelekezo:</strong> Rudi RCH baada ya siku 7 kwa uchunguzi wa mama na mtoto. Endelea na vitamini. Tafuta msaada ikiwa una homa au uvujaji wa damu.</p>
+                    </div>
+                    <div style="margin-top:10px; font-size:0.8rem; color:#555; border-top:1px dashed #ccc; padding-top:8px;">
+                        <span class="badge">Imetolewa: 07/08/2026</span>
+                        <span class="badge" style="background:#00838f; color:white;">Daktari: Dr. Mwakyusa</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="border:2px solid #2e7d32;">
+                <h3 style="color:#2e7d32;">📅 Mahudhurio ya Postnatal (Hariri / Ongeza)</h3>
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px;">
+                    <label style="margin:0;">Chagua Mteja:</label>
+                    <select id="pnClientSelectCard" onchange="loadPostnatalVisits(this.value)" style="flex:1; min-width:150px;">
+                        ${pnOptions}
+                    </select>
+                    <button onclick="addPostnatalVisit()" style="background:#2e7d32; width:auto; padding:8px 16px;">➕ Ongeza Mahudhurio</button>
+                </div>
+                <table class="rch-table" id="pnVisitsTable">
+                    <thead><tr><th>#</th><th>Tarehe</th><th>Uzito (kg)</th><th>BP (S/D)</th><th>Joto (°C)</th><th>Ushauri</th></tr></thead>
+                    <tbody id="pnVisitsBody">${visitRows}</tbody>
+                </table>
+                <button onclick="savePostnatalVisits()" style="background:#2e7d32; margin-top:8px;">HIFADHI MAHUDHURIO</button>
+            </div>
+            <div class="card" style="border:2px solid #00838f;">
+                <h3 style="color:#00838f;">🛏️ Kipaumbele (Discharge) Mteja</h3>
+                <form onsubmit="postnatalDischarge(event)">
+                    <div class="form-grid">
+                        <div><label>Chagua Mteja:</label><select id="pndClient" required><option value="">-- Chagua --</option>${pnOptions}</select></div>
+                        <div><label>Anaenda wapi:</label><select id="pndDestination" required><option value="Nyumbani">Nyumbani</option><option value="Hospitali nyingine">Hospitali nyingine</option><option value="Kituo cha Afya">Kituo cha Afya</option></select></div>
+                        <div class="form-full"><label>Maelezo ya Discharge:</label><textarea id="pndNotes" placeholder="Maelezo ya hali na mapendekezo..." required></textarea></div>
+                    </div>
+                    <button type="submit" style="background:#00838f;">RUHUSU</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
+                <h3 style="color:#0d47a1;">📤 Toa Rufaa (Referral) - POSTNATAL</h3>
+                <form onsubmit="postnatalSubmitReferral(event)">
+                    <div class="form-grid">
+                        <div><label>Chagua Mteja:</label><select id="pnRefClient" required><option value="">-- Chagua --</option>${clientOpts}</select></div>
+                        <div><label>Hospitali Inayopokea:</label><select id="pnRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Chapwa Health Centre">Chapwa Health Centre</option></select></div>
+                        <div class="form-full"><label>Sababu ya Rufaa:</label><textarea id="pnRefReason" placeholder="Sababu ya kumpeleka mteja..." required></textarea></div>
+                        <div><label>Jina la Daktari:</label><input type="text" id="pnRefDoctor" placeholder="Mf. Dr. Fabiani Mwasabwite" required></div>
+                        <div class="form-full"><label>Ujumbe kwa Mteja:</label><textarea id="pnRefMsg" placeholder="Ujumbe wa kumjulisha mteja..." required></textarea></div>
+                    </div>
+                    <button type="submit" style="background:#0d47a1;">TOA RUFAA</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid #d32f2f; background:#fff5f5;">
+                <h3 style="color:#d32f2f;">📥 Rufaa Zinazoingia - POSTNATAL</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Daktari</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>${incomingRefRows}</tbody></table>
+            </div>
+            <div class="card">
+                <h3 style="color:#00838f;">🛏️ Wateja Wodini</h3>
+                <table><thead><tr><th>Jina</th><th>Njia</th><th>Siku</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>
+                    <tr><td><b>Zainab Bakari</b></td><td><span class="postnatal-badge-normal">Kawaida</span></td><td>Siku 1</td><td>Salama</td><td><button style="background:#00838f; font-size:0.8rem; padding:6px;" onclick="alert('Rekodi')">Rekodi</button></td></tr>
+                    <tr><td><b>Aisha Mwinyi</b></td><td><span class="postnatal-badge-cs">C/S</span></td><td>Siku 3</td><td>Inaendelea</td><td><button style="background:#00838f; font-size:0.8rem; padding:6px;" onclick="alert('Rekodi')">Rekodi</button></td></tr>
+                    <tr><td><b>Neema Juma</b></td><td><span class="postnatal-badge-cs">C/S</span></td><td>Siku 2</td><td>Uangalizi</td><td><button style="background:#00838f; font-size:0.8rem; padding:6px;" onclick="alert('Rekodi')">Rekodi</button></td></tr>
+                </tbody></table>
+            </div>
+        `;
+        // Postnatal functions
+        window.postnatalDischarge = async function(e) {
+            e.preventDefault();
+            const client = document.getElementById('pndClient').value;
+            const dest = document.getElementById('pndDestination').value;
+            const notes = document.getElementById('pndNotes').value.trim();
+            if (!client) { alert('Chagua mteja.'); return; }
+            if (!notes) { alert('Ingiza maelezo.'); return; }
+            alert(`✅ ${client} ameruhusiwa kwenda ${dest}. Maelezo: "${notes}". Taarifa imetumwa kwa CHW.`);
+            const data = await getClientData(client);
+            await setClientData(client, { ...data, dischargeDestination: dest, dischargeNotes: notes, dischargeDate: new Date().toISOString().split('T')[0], status:'discharged' });
+            document.getElementById('pndClient').value = '';
+            document.getElementById('pndDestination').value = 'Nyumbani';
+            document.getElementById('pndNotes').value = '';
+            buildDashboard('nurse_postnatal');
+        };
+        window.postnatalSubmitReferral = async function(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('pnRefClient').value;
+            const toHospital = document.getElementById('pnRefHospital').value;
+            const reason = document.getElementById('pnRefReason').value.trim();
+            const doctorName = document.getElementById('pnRefDoctor').value.trim();
+            const msg = document.getElementById('pnRefMsg').value.trim();
+            if (!clientName || !toHospital || !reason || !doctorName || !msg) { alert('Jaza sehemu zote.'); return; }
+            const ref = { clientName, fromWard:'Postnatal Ward', toHospital, reason, doctorName, messageToClient: msg, fromFacility:'Tunduma Town Council Hospital' };
+            await addReferral(ref);
+            alert(`✅ Rufaa imetolewa kwa ${clientName} kwenda ${toHospital}. Ujumbe: "${msg}"\nInasubiri idhini ya Mratibu wa M-Mama.`);
+            document.getElementById('pnRefClient').value = '';
+            document.getElementById('pnRefHospital').value = '';
+            document.getElementById('pnRefReason').value = '';
+            document.getElementById('pnRefDoctor').value = '';
+            document.getElementById('pnRefMsg').value = '';
+            buildDashboard('nurse_postnatal');
+        };
+        window.postnatalViewClientCard = async function(clientName) {
+            const data = await getClientData(clientName);
+            const visits = data.visits || [];
+            let visitsHtml = '';
+            if (visits.length === 0) {
+                visitsHtml = `<tr><td colspan="5" style="text-align:center;">Hakuna mahudhurio</td></tr>`;
+            } else {
+                visits.forEach((v, i) => {
+                    visitsHtml += `<tr><td>${i+1}</td><td>${v.date || '-'}</td><td>${v.weight || '-'} kg</td><td>${v.bp || '-'} mmHg</td><td>${v.temp || '-'} °C</td></tr>`;
+                });
+            }
+            alert(`📋 KADI YA MTEJA: ${clientName}\n\n📞 Simu: ${data.phone || '-'}\n📍 Kituo: ${data.location || '-'}\n👶 Gravida: ${data.gravida || '-'} | Para: ${data.para || '-'}\n📅 LNMP: ${data.lnmp || '-'}\n📊 EDD: ${data.edd || '-'}\n\n📊 VIPIMO VYA MWISHO:\nUzito: ${data.weight || '-'} kg | BP: ${data.bp_sys || '-'}/${data.bp_dia || '-'} | Mapigo: ${data.pulse || '-'} | Joto: ${data.temp || '-'}\n\n📋 MAHUDHURIO:\n${visits.map(v => `📅 ${v.date || '-'}: Uzito ${v.weight || '-'} kg, BP ${v.bp || '-'}, Joto ${v.temp || '-'}°C, Ushauri: ${v.advice || '-'}`).join('\n') || 'Hakuna mahudhurio'}`);
+        };
+        window.loadPostnatalVisits = async function(clientName) {
+            if (!clientName) return;
+            const data = await getClientData(clientName);
+            const visits = data.postnatalVisits || [];
+            const tbody = document.getElementById('pnVisitsBody');
+            if (!tbody) return;
+            let rows = '';
+            if (visits.length === 0) {
+                rows = `<tr><td colspan="6" style="text-align:center;">Hakuna mahudhurio ya Postnatal</td></tr>`;
+            } else {
+                visits.forEach((v, i) => {
+                    rows += `
+                        <tr>
+                            <td>${i+1}</td>
+                            <td><input type="date" class="pn-visit-date" value="${v.date || ''}" onchange="updatePostnatalVisit(${i}, 'date', this.value)"></td>
+                            <td><input type="number" step="0.1" class="pn-visit-weight" value="${v.weight || ''}" onchange="updatePostnatalVisit(${i}, 'weight', this.value)" placeholder="kg"></td>
+                            <td><input type="text" class="pn-visit-bp" value="${v.bp || ''}" onchange="updatePostnatalVisit(${i}, 'bp', this.value)" placeholder="S/D"></td>
+                            <td><input type="number" step="0.1" class="pn-visit-temp" value="${v.temp || ''}" onchange="updatePostnatalVisit(${i}, 'temp', this.value)" placeholder="°C"></td>
+                            <td><input type="text" class="pn-visit-advice" value="${v.advice || ''}" onchange="updatePostnatalVisit(${i}, 'advice', this.value)" placeholder="Ushauri"></td>
+                        </tr>
+                    `;
+                });
+            }
+            tbody.innerHTML = rows;
+            window._pnCurrentClient = clientName;
+        };
+        window.updatePostnatalVisit = function(index, field, value) {
+            if (!window._pnTempVisits) window._pnTempVisits = {};
+            if (!window._pnTempVisits[index]) window._pnTempVisits[index] = {};
+            window._pnTempVisits[index][field] = value;
+        };
+        window.addPostnatalVisit = function() {
+            const tbody = document.getElementById('pnVisitsBody');
+            if (!tbody) return;
+            const count = tbody.children.length;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${count+1}</td>
+                <td><input type="date" class="pn-visit-date" onchange="updatePostnatalVisit(${count}, 'date', this.value)"></td>
+                <td><input type="number" step="0.1" class="pn-visit-weight" onchange="updatePostnatalVisit(${count}, 'weight', this.value)" placeholder="kg"></td>
+                <td><input type="text" class="pn-visit-bp" onchange="updatePostnatalVisit(${count}, 'bp', this.value)" placeholder="S/D"></td>
+                <td><input type="number" step="0.1" class="pn-visit-temp" onchange="updatePostnatalVisit(${count}, 'temp', this.value)" placeholder="°C"></td>
+                <td><input type="text" class="pn-visit-advice" onchange="updatePostnatalVisit(${count}, 'advice', this.value)" placeholder="Ushauri"></td>
+            `;
+            tbody.appendChild(tr);
+        };
+        window.savePostnatalVisits = async function() {
+            const clientName = window._pnCurrentClient;
+            if (!clientName) { alert('Chagua mteja kwanza.'); return; }
+            const data = await getClientData(clientName);
+            const rows = document.querySelectorAll('#pnVisitsBody tr');
+            const domVisits = [];
+            rows.forEach(row => {
+                const date = row.querySelector('.pn-visit-date')?.value || '';
+                const weight = row.querySelector('.pn-visit-weight')?.value || '';
+                const bp = row.querySelector('.pn-visit-bp')?.value || '';
+                const temp = row.querySelector('.pn-visit-temp')?.value || '';
+                const advice = row.querySelector('.pn-visit-advice')?.value || '';
+                if (date || weight || bp || temp || advice) {
+                    domVisits.push({ date, weight, bp, temp, advice });
+                }
+            });
+            data.postnatalVisits = domVisits;
+            await setClientData(clientName, data);
+            window._pnTempVisits = {};
+            alert(`✅ Mahudhurio ya Postnatal kwa ${clientName} yamehifadhiwa!`);
+            loadPostnatalVisits(clientName);
+        };
+        // Load visits for first client if exists
+        setTimeout(() => {
+            const sel = document.getElementById('pnClientSelectCard');
+            if (sel && sel.value) {
+                loadPostnatalVisits(sel.value);
+            } else if (sel && sel.options.length > 1) {
+                sel.selectedIndex = 1;
+                loadPostnatalVisits(sel.value);
+            }
+        }, 300);
+    }
+
+    // ==================== RCH ====================
+    else if (role === 'nurse_rch') {
+        const username = sessionStorage.getItem('mteja_username') || 'Bina Juma';
+        const clientData = await getClientData(username);
+        const { lnmp = '', edd = '', gestationalAge = '', phone = '', partner = '', location = '',
+            gravida = '', para = '', weight = '', height = '', bp_sys = '', bp_dia = '', pulse = '',
+            temp = '', hb = '', urine = 'Negative', hiv = 'Negative', vdrl = 'Negative',
+            shock_index = '', visits = [], status = 'pregnant' } = clientData;
+
+        let visitsRows = '';
+        if (visits && visits.length) {
+            visits.forEach((v, i) => {
+                visitsRows += `
+                    <tr>
+                        <td>${i+1}</td>
+                        <td><input type="text" class="visit-date" value="${v.date || ''}" placeholder="dd/mm/yyyy"></td>
+                        <td><input type="text" class="visit-weight" value="${v.weight || ''}" placeholder="Kg"></td>
+                        <td><input type="text" class="visit-bp" value="${v.bp || ''}" placeholder="S/D"></td>
+                        <td><input type="text" class="visit-temp" value="${v.temp || ''}" placeholder="°C"></td>
+                        <td><input type="text" class="visit-advice" value="${v.advice || ''}" placeholder="Ushauri"></td>
+                    </tr>
+                `;
+            });
+        } else {
+            visitsRows = `
+                <tr><td>1</td><td><input type="text" class="visit-date" value="15/07/2026" placeholder="dd/mm/yyyy"></td><td><input type="text" class="visit-weight" value="65.4" placeholder="Kg"></td><td><input type="text" class="visit-bp" value="130/85" placeholder="S/D"></td><td><input type="text" class="visit-temp" value="36.8" placeholder="°C"></td><td><input type="text" class="visit-advice" value="Ujauzito unaendelea vizuri. Apewe Chuma." placeholder="Ushauri"></td></tr>
+                <tr><td>2</td><td><input type="text" class="visit-date" value="05/08/2026" placeholder="dd/mm/yyyy"></td><td><input type="text" class="visit-weight" value="66.2" placeholder="Kg"></td><td><input type="text" class="visit-bp" value="145/95" placeholder="S/D"></td><td><input type="text" class="visit-temp" value="37.1" placeholder="°C"></td><td><input type="text" class="visit-advice" value="Presha imepanda. Uangalizi wa karibu." placeholder="Ushauri"></td></tr>
+            `;
+        }
+
+        const transfers = await getTransferRequests();
+        let transferRowsRCH = '';
+        const pendingTransfers = transfers.filter(t => t.status === 'pending');
+        if (pendingTransfers.length === 0) {
+            transferRowsRCH = `<tr><td colspan="7" style="text-align:center;">Hakuna maombi yanayosubiri</td></tr>`;
+        } else {
+            pendingTransfers.forEach(t => {
+                transferRowsRCH += `
+                    <tr>
+                        <td>${t.clientName}</td>
+                        <td>${t.fromFacility}</td>
+                        <td>${t.fromDistrict || '-'}</td>
+                        <td>${t.fromRegion || '-'}</td>
+                        <td>${t.toFacility}</td>
+                        <td>${t.reason || '-'}</td>
+                        <td>
+                            <button onclick="rchApproveTransfer(${t.id})" style="background:#2e7d32; padding:4px 8px; font-size:0.7rem; margin-right:4px; width:auto;">Kubali</button>
+                            <button onclick="rchRejectTransfer(${t.id})" style="background:#c62828; padding:4px 8px; font-size:0.7rem; width:auto;">Kataa</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        const referrals = await getReferrals();
+        let refRowsRCH = '';
+        const rchRefs = referrals.filter(r => r.fromWard === 'RCH Clinic' || r.toHospital === 'Tunduma Town Council Hospital');
+        if (rchRefs.length === 0) {
+            refRowsRCH = `<tr><td colspan="7" style="text-align:center;">Hakuna rufaa</td></tr>`;
+        } else {
+            rchRefs.forEach(r => {
+                const statusClass = r.status === 'pending' ? 'referral-badge-pending' : r.status === 'approved' ? 'referral-badge-approved' : 'referral-badge-rejected';
+                const statusLabel = r.status === 'pending' ? 'Inasubiri' : r.status === 'approved' ? 'Imethibitishwa' : 'Imekataliwa';
+                refRowsRCH += `
+                    <tr>
+                        <td>${r.clientName}</td>
+                        <td>${r.fromWard}</td>
+                        <td>${r.toHospital}</td>
+                        <td>${r.reason || '-'}</td>
+                        <td>${r.doctorName || '-'}</td>
+                        <td><span class="${statusClass}">${statusLabel}</span></td>
+                        <td>
+                            ${r.status === 'pending' ? 
+                                `<button onclick="rchApproveReferral(${r.id})" style="background:#2e7d32; padding:4px 8px; font-size:0.7rem; margin-right:4px; width:auto;">Kubali</button>
+                                 <button onclick="rchRejectReferral(${r.id})" style="background:#c62828; padding:4px 8px; font-size:0.7rem; width:auto;">Kataa</button>` : 
+                                r.status === 'approved' ? 
+                                `<span style="color:#2e7d32; font-weight:bold;">✅ Imethibitishwa</span>` :
+                                `<span style="color:#c62828; font-weight:bold;">❌ Imekataliwa</span>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        const allClients = await getAllClients();
+        let clientOptionsRCH = '';
+        allClients.forEach(c => { clientOptionsRCH += `<option value="${c}">${c}</option>`; });
+
+        html = `
+            ${getLiveSensorBlock('👩‍⚕️ Joto la Mgonjwa (RCH)', true, 'Mgonjwa anafuatiliwa katika Kliniki ya RCH')}
+            <div class="card" style="border-top:4px solid #2e7d32;">
+                <h3 style="color:#2e7d32;">📝 Sajili Mteja Mpya</h3>
+                <form id="rchForm" onsubmit="saveRCHData(event)">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                        <div><label>Jina Kamili:</label><input type="text" id="rchName" value="${username}" placeholder="Bina Juma" required></div>
+                        <div><label>Simu:</label><input type="text" id="rchPhone" value="${phone}" placeholder="07XXXXXXXX" required></div>
+                        <div><label>Mume / Mtegemezi:</label><input type="text" id="rchPartner" value="${partner}" placeholder="Hamisi Ally"></div>
+                        <div><label>Kituo / Mtaa:</label><input type="text" id="rchLocation" value="${location}" placeholder="Tunduma / Sogea"></div>
+                        <div><label>Wilaya:</label><input type="text" id="rchDistrict" value="${clientData.district || ''}" placeholder="Mf. Momba"></div>
+                        <div><label>Mkoa:</label><input type="text" id="rchRegion" value="${clientData.region || ''}" placeholder="Mf. Songwe"></div>
+                        <div><label>Gravida:</label><input type="text" id="rchGravida" value="${gravida}" placeholder="G3"></div>
+                        <div><label>Para:</label><input type="text" id="rchPara" value="${para}" placeholder="P2"></div>
+                    </div>
+                    <div style="margin-top:16px; border-top:2px dashed #2e7d32; padding-top:12px;">
+                        <h4 style="color:#2e7d32;">📅 LNMP na Hesabu ya Mimba</h4>
+                        <div class="form-grid">
+                            <div><label>LNMP:</label><input type="date" id="rchLnmp" value="${lnmp}" onchange="rchCalculatePregnancy()" required></div>
+                            <div><label>EDD:</label><input type="text" id="rchEdd" value="${edd}" class="readonly-field" readonly></div>
+                            <div><label>Umri wa Mimba:</label><input type="text" id="rchGestAge" value="${gestationalAge}" class="readonly-field" readonly></div>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px; border-top:2px dashed #2e7d32; padding-top:12px;">
+                        <h4 style="color:#2e7d32;">📊 Vipimo vya Mama</h4>
+                        <div class="vital-signs-grid">
+                            <div class="field"><label>Uzito (kg)</label><input type="number" step="0.1" id="rchWeight" value="${weight}" placeholder="65.5"></div>
+                            <div class="field"><label>Kimo (cm)</label><input type="number" step="0.1" id="rchHeight" value="${height}" placeholder="160"></div>
+                            <div class="field"><label>BP Systolic</label><input type="number" id="rchBPSys" value="${bp_sys}" placeholder="120" onchange="rchCalculateShock()" oninput="rchCalculateShock()"></div>
+                            <div class="field"><label>BP Diastolic</label><input type="number" id="rchBPDia" value="${bp_dia}" placeholder="80"></div>
+                            <div class="field"><label>Mapigo / min</label><input type="number" id="rchPulse" value="${pulse}" placeholder="80" onchange="rchCalculateShock()" oninput="rchCalculateShock()"></div>
+                            <div class="field"><label>Joto (°C)</label><input type="number" step="0.1" id="rchTemp" value="${temp}" placeholder="36.5"></div>
+                            <div class="field"><label>Hb (g/dL)</label><input type="number" step="0.1" id="rchHb" value="${hb}" placeholder="11.5"></div>
+                            <div class="field"><label>Mkojo</label><select id="rchUrine"><option ${urine==='Positive'?'selected':''}>Positive</option><option ${urine==='Negative'?'selected':''}>Negative</option></select></div>
+                            <div class="field"><label>HIV</label><select id="rchHIV"><option ${hiv==='Positive'?'selected':''}>Positive</option><option ${hiv==='Negative'?'selected':''}>Negative</option></select></div>
+                            <div class="field"><label>VDRL</label><select id="rchVDRL"><option ${vdrl==='Positive'?'selected':''}>Positive</option><option ${vdrl==='Negative'?'selected':''}>Negative</option></select></div>
+                        </div>
+                        <div class="shock-index" id="rchShockIndexBox">🔴 Shock Index: <span id="rchShockIndexValue">${shock_index || '-'}</span> (Kawaida &lt; 0.9)</div>
+                    </div>
+                    <div style="margin-top:16px; border-top:2px dashed #2e7d32; padding-top:12px;">
+                        <h4 style="color:#2e7d32;">📋 Kadi ya RCH - Rekodi za Mahudhurio</h4>
+                        <div class="rch-card-container" style="border:2px solid #2e7d32;">
+                            <div class="rch-card-header">
+                                <div class="not-for-sale">KADI HII HAIUZWI</div>
+                                <h2 style="font-size:1.2rem;">Jamburi ya Muungano wa Tanzania</h2>
+                                <h3 style="font-size:0.9rem;">Wizara ya Afya</h3>
+                                <h3 style="font-size:1.1rem;">KADI YA KLINIKI YA WAJAWAZITO</h3>
+                            </div>
+                            <div class="rch-card-body">
+                                <div class="row"><div class="field-group"><label>Jina</label><input type="text" value="${username}" disabled></div><div class="field-group"><label>Simu</label><input type="text" value="${phone || '-'}" disabled></div></div>
+                                <div class="row"><div class="field-group"><label>Mume</label><input type="text" value="${partner || '-'}" disabled></div><div class="field-group"><label>Kituo</label><input type="text" value="${location || '-'}" disabled></div></div>
+                                <div class="row three"><div class="field-group"><label>Gravida</label><input type="text" value="${gravida || '-'}" disabled></div><div class="field-group"><label>Para</label><input type="text" value="${para || '-'}" disabled></div><div class="field-group"><label>LNMP</label><input type="text" value="${lnmp || '-'}" disabled></div></div>
+                                <div class="row three"><div class="field-group"><label>EDD</label><input type="text" value="${edd || '-'}" disabled></div><div class="field-group"><label>Umri wa Mimba</label><input type="text" value="${gestationalAge || '-'}" disabled></div><div class="field-group"><label>Shock Index</label><input type="text" value="${shock_index || '-'}" disabled></div></div>
+                                <div style="margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
+                                    <h5 style="color:#1b5e20;">📊 Vipimo</h5>
+                                    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:4px; font-size:0.8rem;">
+                                        <div><strong>Uzito:</strong> ${weight || '-'} kg</div>
+                                        <div><strong>Kimo:</strong> ${height || '-'} cm</div>
+                                        <div><strong>BP:</strong> ${bp_sys || '-'}/${bp_dia || '-'} mmHg</div>
+                                        <div><strong>Mapigo:</strong> ${pulse || '-'} /min</div>
+                                        <div><strong>Joto:</strong> ${temp || '-'} °C</div>
+                                        <div><strong>Hb:</strong> ${hb || '-'} g/dL</div>
+                                        <div><strong>Mkojo:</strong> ${urine || '-'}</div>
+                                        <div><strong>HIV:</strong> ${hiv || '-'}</div>
+                                        <div><strong>VDRL:</strong> ${vdrl || '-'}</div>
+                                    </div>
+                                </div>
+                                <div style="margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
+                                    <h5 style="color:#1b5e20;">📋 Rekodi za Mahudhurio</h5>
+                                    <table class="rch-table" id="rchVisitsTable">
+                                        <thead><tr><th>#</th><th>Tarehe</th><th>Uzito</th><th>BP</th><th>Joto</th><th>Ushauri</th></tr></thead>
+                                        <tbody id="rchVisitsBody">${visitsRows}</tbody>
+                                    </table>
+                                    <button type="button" style="margin-top:8px; background:#00838f; width:auto; padding:6px 14px;" onclick="addRCHVisit()">➕ Ongeza</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" style="background:#2e7d32; margin-top:16px; width:100%;">HIFADHI KADI</button>
+                    <button type="button" class="rch-print-btn" onclick="window.print()" style="margin-top:8px; width:100%;">🖨️ PRINT</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid #d32f2f; background:#fff5f5;">
+                <h3 style="color:#d32f2f;">📥 Maombi ya Kuingia (Cross-Region) - RCH</h3>
+                <p style="font-size:0.85rem; color:#555;">Wateja wanaoomba kuhamia Mkoa wako. Onyesha Kituo na Wilaya walipotoka.</p>
+                <table><thead><tr><th>Mteja</th><th>Kutoka Kituo</th><th>Wilaya</th><th>Mkoa</th><th>Kwenda</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${transferRowsRCH}</tbody></table>
+            </div>
+            <div class="card">
+                <h3 style="color:#2e7d32;">🔄 Usimamizi wa Maombi (Kwa Ujumla)</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Wilaya</th><th>Mkoa</th><th>Kwenda</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${transferRowsRCH}</tbody></table>
+            </div>
+            <div class="card" style="border:2px solid #0d47a1; background:#e3f2fd;">
+                <h3 style="color:#0d47a1;">📤 Toa Rufaa (Referral) - RCH</h3>
+                <form onsubmit="rchSubmitReferral(event)">
+                    <div class="form-grid">
+                        <div><label>Chagua Mteja:</label><select id="rchRefClient" required><option value="">-- Chagua --</option>${clientOptionsRCH}</select></div>
+                        <div><label>Hospitali Inayopokea:</label><select id="rchRefHospital" required><option value="">-- Chagua --</option><option value="Kandaa Hospital">Kandaa Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option><option value="Songwe Regional Hospital">Songwe Regional Hospital</option><option value="Muhimbili National Hospital">Muhimbili National Hospital</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Chapwa Health Centre">Chapwa Health Centre</option></select></div>
+                        <div class="form-full"><label>Sababu ya Rufaa:</label><textarea id="rchRefReason" placeholder="Sababu ya kumpeleka mteja..." required></textarea></div>
+                        <div><label>Jina la Daktari:</label><input type="text" id="rchRefDoctor" placeholder="Mf. Dr. Fabiani Mwasabwite" required></div>
+                        <div class="form-full"><label>Ujumbe kwa Mteja:</label><textarea id="rchRefMsg" placeholder="Ujumbe wa kumjulisha mteja..." required></textarea></div>
+                    </div>
+                    <button type="submit" style="background:#0d47a1;">TOA RUFAA</button>
+                </form>
+            </div>
+            <div class="card" style="border:2px solid #0d47a1;">
+                <h3 style="color:#0d47a1;">📋 Rufaa Zote (RCH)</h3>
+                <table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Kwenda</th><th>Sababu</th><th>Daktari</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>${refRowsRCH}</tbody></table>
+            </div>
+            <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
+                <h3 style="color:#1565c0;">➕ Omba Uhamisho kwa Mteja (RCH)</h3>
+                <form onsubmit="rchSubmitTransfer(event)">
+                    <div class="form-grid">
+                        <div><label>Chagua Mteja:</label><select id="rchClientSelect" required><option value="">-- Chagua --</option>${clientOptionsRCH}</select></div>
+                        <div><label>Kituo Anachotaka:</label><select id="rchTargetFacility" required><option value="">-- Chagua --</option><option value="Chapwa Health Centre">Chapwa Health Centre</option><option value="Tunduma Health Centre">Tunduma Health Centre</option><option value="Sogea Dispensary">Sogea Dispensary</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option></select></div>
+                        <div class="form-full"><label>Sababu:</label><textarea id="rchReason" placeholder="Sababu ya uhamisho..." required></textarea></div>
+                    </div>
+                    <button type="submit" style="background:#1565c0;">TUMA OMBI</button>
+                </form>
+            </div>
+        `;
+        // RCH functions
+        window.rchCalculatePregnancy = function() {
+            const lnmp = document.getElementById('rchLnmp').value;
+            if (!lnmp) { document.getElementById('rchEdd').value = ''; document.getElementById('rchGestAge').value = ''; return; }
+            const result = calculatePregnancy(lnmp);
+            document.getElementById('rchEdd').value = result.edd;
+            document.getElementById('rchGestAge').value = result.weeks;
+        };
+        window.rchCalculateShock = function() {
+            const pulse = parseFloat(document.getElementById('rchPulse').value);
+            const sys = parseFloat(document.getElementById('rchBPSys').value);
+            const si = calculateShockIndex(pulse, sys);
+            document.getElementById('rchShockIndexValue').textContent = si;
+        };
+        window.addRCHVisit = function() {
+            const tbody = document.getElementById('rchVisitsBody');
+            if (!tbody) return;
+            const idx = tbody.children.length + 1;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${idx}</td><td><input type="text" class="visit-date" placeholder="dd/mm/yyyy"></td><td><input type="text" class="visit-weight" placeholder="Kg"></td><td><input type="text" class="visit-bp" placeholder="S/D"></td><td><input type="text" class="visit-temp" placeholder="°C"></td><td><input type="text" class="visit-advice" placeholder="Ushauri"></td>`;
+            tbody.appendChild(tr);
+        };
+        window.saveRCHData = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('rchName').value.trim();
+            const phone = document.getElementById('rchPhone').value.trim();
+            const partner = document.getElementById('rchPartner').value.trim();
+            const location = document.getElementById('rchLocation').value.trim();
+            const district = document.getElementById('rchDistrict').value.trim();
+            const region = document.getElementById('rchRegion').value.trim();
+            const gravida = document.getElementById('rchGravida').value.trim();
+            const para = document.getElementById('rchPara').value.trim();
+            const lnmp = document.getElementById('rchLnmp').value;
+            const edd = document.getElementById('rchEdd').value;
+            const gestationalAge = document.getElementById('rchGestAge').value;
+            const weight = document.getElementById('rchWeight').value || '-';
+            const height = document.getElementById('rchHeight').value || '-';
+            const sys = document.getElementById('rchBPSys').value || '-';
+            const dia = document.getElementById('rchBPDia').value || '-';
+            const pulse = document.getElementById('rchPulse').value || '-';
+            const temp = document.getElementById('rchTemp').value || '-';
+            const hb = document.getElementById('rchHb').value || '-';
+            const urine = document.getElementById('rchUrine').value;
+            const hiv = document.getElementById('rchHIV').value;
+            const vdrl = document.getElementById('rchVDRL').value;
+            const shock = document.getElementById('rchShockIndexValue').textContent || '-';
+            const rows = document.querySelectorAll('#rchVisitsBody tr');
+            const visits = [];
+            rows.forEach(row => {
+                const date = row.querySelector('.visit-date')?.value || '';
+                const weight = row.querySelector('.visit-weight')?.value || '';
+                const bp = row.querySelector('.visit-bp')?.value || '';
+                const temp = row.querySelector('.visit-temp')?.value || '';
+                const advice = row.querySelector('.visit-advice')?.value || '';
+                if (date || weight || bp || temp || advice) visits.push({ date, weight, bp, temp, advice });
+            });
+            if (!name || !phone || !lnmp) { alert('Tafadhali jaza Jina, Simu, na LNMP.'); return; }
+            const clientData = { lnmp, edd, gestationalAge, phone, partner, location, district, region, gravida, para,
+                weight, height, bp_sys: sys, bp_dia: dia, pulse, temp, hb, urine, hiv, vdrl,
+                shock_index: shock, visits, status:'pregnant' };
+            await setClientData(name, clientData);
+            alert(`✅ Kadi ya ${name} imehifadhiwa!`);
+        };
+        window.rchApproveTransfer = async function(id) {
+            const reason = prompt('Sababu ya kukubali? (Hiari)');
+            const updated = await updateTransferRequest(id, { status:'approved', reviewNote: reason || 'Imekubaliwa na RCH', reviewedAt: new Date().toISOString() });
+            if (updated) { alert(`✅ Ombi la ${updated.clientName} limekubaliwa!`); buildDashboard('nurse_rch'); }
+        };
+        window.rchRejectTransfer = async function(id) {
+            const reason = prompt('Sababu ya kukataa:');
+            if (reason === null) return;
+            if (!reason.trim()) { alert('Tafadhali ingiza sababu.'); return; }
+            const updated = await updateTransferRequest(id, { status:'rejected', reviewNote: reason.trim(), reviewedAt: new Date().toISOString() });
+            if (updated) { alert(`❌ Ombi la ${updated.clientName} limekataliwa. Sababu: "${reason.trim()}"`); buildDashboard('nurse_rch'); }
+        };
+        window.rchSubmitTransfer = async function(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('rchClientSelect').value;
+            const toFacility = document.getElementById('rchTargetFacility').value;
+            const reason = document.getElementById('rchReason').value.trim();
+            if (!clientName || !toFacility || !reason) { alert('Tafadhali jaza sehemu zote.'); return; }
+            const clientData = await getClientData(clientName);
+            const fromFacility = clientData.location || 'Tunduma Town Council Hospital';
+            const request = { clientName, fromFacility, toFacility, reason, clientPhone: clientData.phone || '-', requestedBy:'RCH', fromDistrict: clientData.district || '-', fromRegion: clientData.region || '-' };
+            await addTransferRequest(request);
+            alert(`✅ Ombi la uhamisho kwa ${clientName} limetumwa!`);
+            document.getElementById('rchClientSelect').value = '';
+            document.getElementById('rchTargetFacility').value = '';
+            document.getElementById('rchReason').value = '';
+            buildDashboard('nurse_rch');
+        };
+        window.rchSubmitReferral = async function(e) {
+            e.preventDefault();
+            const clientName = document.getElementById('rchRefClient').value;
+            const toHospital = document.getElementById('rchRefHospital').value;
+            const reason = document.getElementById('rchRefReason').value.trim();
+            const doctorName = document.getElementById('rchRefDoctor').value.trim();
+            const msg = document.getElementById('rchRefMsg').value.trim();
+            if (!clientName || !toHospital || !reason || !doctorName || !msg) { alert('Jaza sehemu zote.'); return; }
+            const ref = { clientName, fromWard:'RCH Clinic', toHospital, reason, doctorName, messageToClient: msg, fromFacility:'Tunduma Town Council Hospital' };
+            await addReferral(ref);
+            alert(`✅ Rufaa imetolewa kwa ${clientName} kwenda ${toHospital}. Ujumbe: "${msg}"\nInasubiri idhini ya Mratibu wa M-Mama.`);
+            document.getElementById('rchRefClient').value = '';
+            document.getElementById('rchRefHospital').value = '';
+            document.getElementById('rchRefReason').value = '';
+            document.getElementById('rchRefDoctor').value = '';
+            document.getElementById('rchRefMsg').value = '';
+            buildDashboard('nurse_rch');
+        };
+        window.rchApproveReferral = async function(id) {
+            const note = prompt('Maelezo ya kukubali (Hiari):');
+            const updated = await updateReferral(id, { status:'approved', coordinatorNote: note || 'Imekubaliwa na RCH', reviewedAt: new Date().toISOString() });
+            if (updated) { alert(`✅ Rufaa imethibitishwa!`); buildDashboard('nurse_rch'); }
+        };
+        window.rchRejectReferral = async function(id) {
+            const reason = prompt('Sababu ya kukataa:');
+            if (reason === null) return;
+            if (!reason.trim()) { alert('Ingiza sababu.'); return; }
+            const updated = await updateReferral(id, { status:'rejected', coordinatorNote: reason.trim(), reviewedAt: new Date().toISOString() });
+            if (updated) { alert(`❌ Rufaa imekataliwa. Sababu: "${reason.trim()}"`); buildDashboard('nurse_rch'); }
+        };
+        setTimeout(() => {
+            const lnmp = document.getElementById('rchLnmp');
+            if (lnmp && lnmp.value) rchCalculatePregnancy();
+            rchCalculateShock();
+        }, 200);
+    }
+
+    // ==================== MTEJA (CLIENT) ====================
+    else {
+        const username = sessionStorage.getItem('mteja_username') || 'Bina Juma';
+        const clientData = await getClientData(username);
+        const clientStatus = clientData.status || 'pregnant';
+
+        const statusBadge = document.getElementById('clientStatusBadge');
+        if (statusBadge) {
+            if (clientStatus === 'pregnant') {
+                statusBadge.textContent = '🤰 Mjamzito';
+                statusBadge.style.background = '#e8f5e9';
+                statusBadge.style.color = '#1b5e20';
+            } else {
+                statusBadge.textContent = '👶 Postnatal';
+                statusBadge.style.background = '#fff3e0';
+                statusBadge.style.color = '#e65100';
+            }
+        }
+
+        const clientReferrals = await getReferralsForClient(username);
+        let referralHtml = '';
+        if (clientReferrals.length > 0) {
+            const lastRef = clientReferrals[clientReferrals.length - 1];
+            if (lastRef.status === 'approved') {
+                referralHtml = `<div class="info-message success" style="border-left-color:#28a745;">✅ <strong>Rufaa Imethibitishwa!</strong> Umepata rufaa kwenda <b>${lastRef.toHospital}</b>. Tafadhali fika kwa muda. Ujumbe: "${lastRef.messageToClient || 'Hakuna ujumbe'}"</div>`;
+            } else if (lastRef.status === 'rejected') {
+                referralHtml = `<div class="info-message danger">❌ <strong>Rufaa Imekataliwa.</strong> Sababu: ${lastRef.coordinatorNote || 'Hakuna sababu'}</div>`;
+            } else {
+                referralHtml = `<div class="info-message">⏳ <strong>Rufaa Inasubiri Idhini.</strong> Mteja amepelekwa <b>${lastRef.toHospital}</b>. Subiri Mratibu wa M-Mama.</div>`;
+            }
+        }
+
+        const { lnmp = '-', edd = '-', gestationalAge = '-', weight = '-', height = '-',
+            bp_sys = '-', bp_dia = '-', pulse = '-', temp = '-', hb = '-',
+            urine = '-', hiv = '-', vdrl = '-', shock_index = '-', visits = [],
+            importantContacts = [], transportType = 'zarula', driverName = '', driverPhone = '' } = clientData;
+
+        const clientTransfers = await getClientTransferRequests(username);
+        let transferStatusHtml = '';
+        if (clientTransfers.length > 0) {
+            const lastTransfer = clientTransfers[clientTransfers.length - 1];
+            const statusClass = lastTransfer.status === 'pending' ? 'pending' : lastTransfer.status === 'approved' ? 'approved' : 'rejected';
+            const statusLabel = lastTransfer.status === 'pending' ? 'Inasubiri' : lastTransfer.status === 'approved' ? 'Imekubaliwa' : 'Imekataliwa';
+            const note = lastTransfer.reviewNote ? `<br><small>Sababu: ${lastTransfer.reviewNote}</small>` : '';
+            transferStatusHtml = `<div class="info-message ${lastTransfer.status === 'approved' ? 'success' : lastTransfer.status === 'rejected' ? 'danger' : ''}">
+                <strong>📋 Hali ya Ombi lako:</strong>
+                <span class="transfer-status ${statusClass}">${statusLabel}</span>${note}</div>`;
+        }
+
+        let visitsHtml = '';
+        if (visits && visits.length) {
+            visits.forEach((v, i) => {
+                visitsHtml += `<tr><td>${i+1}</td><td>${v.date || ''}</td><td>${v.weight || ''}</td><td>${v.bp || ''}</td><td>${v.temp || ''}</td><td>${v.advice || ''}</td></tr>`;
+            });
+        } else {
+            visitsHtml = `<tr><td colspan="6" style="text-align:center;">Hakuna mahudhurio</td></tr>`;
+        }
+
+        const isPostnatal = clientStatus === 'postnatal';
+
+        let contactsHtml = '';
+        if (importantContacts.length === 0) {
+            contactsHtml = `<p style="color:#888; font-size:0.9rem;">Hujasajili mtu yeyote. Ongeza watu 5 wa dharura.</p>`;
+        } else {
+            importantContacts.forEach((c, idx) => {
+                contactsHtml += `
+                    <div class="contact-item">
+                        <div class="info"><strong>${c.name}</strong> (${c.relationship}) - ${c.phone}</div>
+                        <div class="actions">
+                            <button onclick="editContact(${idx})" style="background:#f57f17; padding:4px 10px; width:auto; font-size:0.7rem;">Hariri</button>
+                            <button onclick="deleteContact(${idx})" style="background:#c62828; padding:4px 10px; width:auto; font-size:0.7rem;">Futa</button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        const contactFormHtml = `
+            <div style="margin-top:12px; background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #e0e0e0;">
+                <h4 style="margin:0 0 8px 0; font-size:0.9rem; color:#1b5e20;">➕ Ongeza Mtu wa Dharura (Max 5)</h4>
+                <form onsubmit="addContact(event)" class="inline-form">
+                    <div class="form-group-inline"><label>Jina</label><input type="text" id="contactName" placeholder="Mf. Hamisi Ally" required></div>
+                    <div class="form-group-inline"><label>Simu</label><input type="text" id="contactPhone" placeholder="0712345678" required></div>
+                    <div class="form-group-inline"><label>Uhusiano</label><input type="text" id="contactRelation" placeholder="Mume, Mama, Mjomba..." required></div>
+                    <button type="submit" style="background:#2e7d32; width:auto; padding:8px 16px;">Ongeza</button>
+                </form>
+            </div>
+        `;
+
+        const transportHtml = `
+            <div style="margin-top:12px; background:#e3f2fd; padding:12px; border-radius:8px; border:1px solid #90caf9;">
+                <h4 style="margin:0 0 8px 0; font-size:0.9rem; color:#0d47a1;">🚗 Mpangilio wa Usafiri wa Dharura</h4>
+                <form onsubmit="saveTransportSettings(event)" class="inline-form">
+                    <div class="form-group-inline">
+                        <label>Aina ya Usafiri</label>
+                        <select id="transportTypeSelect" style="padding:6px 8px;">
+                            <option value="zarula" ${transportType === 'zarula' ? 'selected' : ''}>Zarula (Ambulance)</option>
+                            <option value="binafsi" ${transportType === 'binafsi' ? 'selected' : ''}>Binafsi</option>
+                        </select>
+                    </div>
+                    <div class="form-group-inline" id="driverFields" style="${transportType === 'binafsi' ? 'display:flex;' : 'display:none;'} flex-wrap:wrap; gap:8px; align-items:end;">
+                        <div><label>Jina la Dereva</label><input type="text" id="driverNameInput" value="${driverName}" placeholder="Jina la Dereva"></div>
+                        <div><label>Namba ya Dereva</label><input type="text" id="driverPhoneInput" value="${driverPhone}" placeholder="0712345678"></div>
+                    </div>
+                    <button type="submit" style="background:#1565c0; width:auto; padding:8px 16px;">Hifadhi Mpangilio</button>
+                </form>
+            </div>
+        `;
+
+        html = `
+            ${getLiveSensorBlock('🌡️ Joto Lako (Mteja)', false, 'Mteja anajifuatilia mwenyewe')}
+            <div class="mteja-nav-tabs">
+                <button class="mteja-tab-btn active" onclick="switchMtejaTab('mtejaTab1', this)" ${isPostnatal ? 'disabled' : ''}>
+                    ${isPostnatal ? '📋 Kadi Yangu' : '🤰 Ujauzito & Kadi'}
+                </button>
+                <button class="mteja-tab-btn" onclick="switchMtejaTab('mtejaTab2', this)">👶 Postnatal Care</button>
+                <button class="mteja-tab-btn" onclick="switchMtejaTab('mtejaTab3', this)" ${isPostnatal ? 'disabled' : ''}>
+                    ${isPostnatal ? '🔒 Imefungwa' : '🔄 Omba Kuhama'}
+                </button>
+            </div>
+            ${referralHtml}
+            ${isPostnatal ? `<div class="info-message" style="background:#e3f2fd; border-left-color:#1565c0;">ℹ️ Umekwisha jifungua. Huduma za ujauzito hazipatikani.</div>` : ''}
+            <div id="mtejaTab1" class="mteja-tab-content active">
+                <div class="emergency-room" style="${isPostnatal ? 'display:none;' : ''}">
+                    <h3 style="color:#d32f2f;">🚨 EMERGENCY TRANSPORT</h3>
+                    <p>Bonyeza kitufe kupata msaada na usafiri.</p>
+                    <button class="pulse-btn" onclick="AnzishaDharura()">OMBA USAFIRI</button>
+                    <div id="processBox" class="process-box">
+                        <h4>Mchakato:</h4>
+                        <div id="step1" class="process-step">1. Inapima BP/Hali...</div>
+                        <div id="step2" class="process-step" style="display:none;">2. Inatuma SMS kwa Mume...</div>
+                        <div id="step3" class="process-step" style="display:none;">3. Mume hapatikani! Inahamia Mama Mzazi...</div>
+                        <div id="step4" class="process-step" style="display:none;">4. Inatafuta Madereva karibu...</div>
+                        <div id="step5" class="process-step" style="color:#2e7d32; font-weight:bold; display:none;">5. Dereva Juma amekubali! Anakuja.</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 style="color:#1565c0;">📑 Kadi Yako ya RCH</h3>
+                    <p style="font-size:0.9rem; color:#555;">Huwezi kurekebisha taarifa hapa.</p>
+                    <div class="rch-card-container" style="border:2px solid #1565c0;">
+                        <div class="rch-card-header">
+                            <div class="not-for-sale">KADI HII HAIUZWI</div>
+                            <h2 style="font-size:1.2rem;">Jamburi ya Muungano wa Tanzania</h2>
+                            <h3 style="font-size:0.9rem;">Wizara ya Afya</h3>
+                            <h3 style="font-size:1.1rem;">KADI YA KLINIKI YA WAJAWAZITO</h3>
+                        </div>
+                        <div class="rch-card-body">
+                            <div class="row"><div class="field-group"><label>Jina</label><input type="text" value="${username}" disabled></div><div class="field-group"><label>Simu</label><input type="text" value="${clientData.phone || '-'}" disabled></div></div>
+                            <div class="row"><div class="field-group"><label>Mume</label><input type="text" value="${clientData.partner || '-'}" disabled></div><div class="field-group"><label>Kituo</label><input type="text" value="${clientData.location || '-'}" disabled></div></div>
+                            <div class="row three"><div class="field-group"><label>Gravida</label><input type="text" value="${clientData.gravida || '-'}" disabled></div><div class="field-group"><label>Para</label><input type="text" value="${clientData.para || '-'}" disabled></div><div class="field-group"><label>LNMP</label><input type="text" value="${lnmp}" disabled></div></div>
+                            <div class="row three"><div class="field-group"><label>EDD</label><input type="text" value="${edd}" disabled></div><div class="field-group"><label>Umri wa Mimba</label><input type="text" value="${gestationalAge}" disabled></div><div class="field-group"><label>Shock Index</label><input type="text" value="${shock_index}" disabled></div></div>
+                            <div style="margin-top:10px; border-top:2px solid #1565c0; padding-top:10px;">
+                                <h4 style="color:#1565c0;">📊 Vipimo</h4>
+                                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:4px; font-size:0.85rem;">
+                                    <div><strong>Uzito:</strong> ${weight} kg</div>
+                                    <div><strong>Kimo:</strong> ${height} cm</div>
+                                    <div><strong>BP:</strong> ${bp_sys}/${bp_dia} mmHg</div>
+                                    <div><strong>Mapigo:</strong> ${pulse} /min</div>
+                                    <div><strong>Joto:</strong> ${temp} °C</div>
+                                    <div><strong>Hb:</strong> ${hb} g/dL</div>
+                                    <div><strong>Mkojo:</strong> ${urine}</div>
+                                    <div><strong>HIV:</strong> ${hiv}</div>
+                                    <div><strong>VDRL:</strong> ${vdrl}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top:10px; border-top:2px solid #1565c0; padding-top:10px;">
+                                <h4 style="color:#1565c0;">📋 Rekodi za Mahudhurio</h4>
+                                <table class="rch-table"><thead><tr><th>#</th><th>Tarehe</th><th>Uzito</th><th>BP</th><th>Joto</th><th>Ushauri</th></tr></thead><tbody>${visitsHtml}</tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;"><button class="btn-print" onclick="window.print()">🖨️ PRINT KADI</button></div>
+                </div>
+                <div class="card" style="border:2px solid #ff9800;">
+                    <h3 style="color:#e65100;">👨‍👩‍👧‍👦 Watu 5 wa Dharura</h3>
+                    <p style="font-size:0.85rem; color:#555;">Watu wa kuwasaidia wakati wa dharura. Unaweza kuongeza, kuhariri au kufuta.</p>
+                    <div class="contact-list">${contactsHtml}</div>
+                    ${importantContacts.length < 5 ? contactFormHtml : `<p style="color:#c62828; font-weight:bold;">Umefikia kikomo cha watu 5.</p>`}
+                </div>
+                <div class="card" style="border:2px solid #1565c0;">
+                    <h3 style="color:#1565c0;">🚗 Mpangilio wa Usafiri wa Dharura</h3>
+                    <p style="font-size:0.85rem; color:#555;">Chagua aina ya usafiri utakayotumia wakati wa dharura.</p>
+                    ${transportHtml}
+                </div>
+            </div>
+            <div id="mtejaTab2" class="mteja-tab-content">
+                <div class="card">
+                    <h3>🍼 Postnatal Care</h3>
+                    <div style="background:#e8f5e9; padding:14px; border-radius:8px; border-left:6px solid #2e7d32;">
+                        <h4>📡 Hali ya Sasa (Live Device)</h4>
+                        <p>Presha: <b>120/80 mmHg</b> | Joto: <b>36.6 °C</b> | Pulse: <b>78 bpm</b></p>
+                    </div>
+                    ${clientData.deliveryDate ? `<div style="margin-top:10px; background:#e3f2fd; padding:10px; border-radius:8px;"><p><strong>📅 Tarehe ya Kujifungua:</strong> ${clientData.deliveryDate}</p><p><strong>👶 Njia:</strong> ${clientData.deliveryMode || '-'}</p></div>` : ''}
+                </div>
+                <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
+                    <h3 style="color:#1565c0;">🔄 Omba Kuhama Kituo (Postnatal)</h3>
+                    <form onsubmit="submitPostnatalTransfer(event)">
+                        <div class="form-grid">
+                            <div><label>Kituo cha Sasa:</label><input type="text" value="${clientData.location || 'Tunduma Town Council Hospital'}" disabled></div>
+                            <div><label>Chagua Kituo Kipya:</label><select id="postnatalTransferTo" required><option value="Chapwa Health Centre">Chapwa Health Centre</option><option value="Tunduma Health Centre">Tunduma Health Centre</option><option value="Sogea Dispensary">Sogea Dispensary</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option><option value="Mbeya Zonal Hospital">Mbeya Zonal Hospital</option></select></div>
+                            <div class="form-full"><label>Sababu:</label><textarea id="postnatalTransferReason" placeholder="Sababu ya kuhama..." required></textarea></div>
+                        </div>
+                        <button type="submit" style="background:#1565c0;">TUMA OMBI</button>
+                    </form>
+                </div>
+            </div>
+            <div id="mtejaTab3" class="mteja-tab-content">
+                ${isPostnatal ? 
+                    `<div class="card"><h3>🔒 Huduma Imefungwa</h3><div class="info-message danger">❌ Umekwisha jifungua. Huwezi kuomba uhamisho wa ujauzito. Wasiliana na CHW/RCH.</div></div>` :
+                    `<div class="card">
+                        <h3>🔄 Omba Kuhama Kituo</h3>
+                        ${transferStatusHtml}
+                        <form onsubmit="submitTransferRequest(event)">
+                            <label><b>Kituo cha Sasa:</b> ${clientData.location || 'Tunduma Town Council Hospital'}</label><br><br>
+                            <label><b>Chagua Kituo:</b></label>
+                            <select id="transferToFacility" required><option value="Chapwa HC">Chapwa Health Centre</option><option value="Tunduma HC">Tunduma Health Centre</option><option value="Sogea Dispensary">Sogea Dispensary</option><option value="Tunduma Town Council Hospital">Tunduma Town Council Hospital</option></select><br><br>
+                            <label><b>Sababu:</b></label>
+                            <textarea id="transferReason" placeholder="Sababu ya kuhama..." required></textarea><br>
+                            <button type="submit" style="background:#1565c0;">TUMA OMBI</button>
+                        </form>
+                    </div>`
+                }
+            </div>
+        `;
+        // Mteja functions
+        window.switchMtejaTab = function(tabId, btn) {
+            document.querySelectorAll('.mteja-tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.mteja-tab-btn').forEach(b => b.classList.remove('active'));
+            const target = document.getElementById(tabId);
+            if (target) target.classList.add('active');
+            if (btn) btn.classList.add('active');
+        };
+        window.AnzishaDharura = function() {
+            const box = document.getElementById("processBox");
+            if (!box) return;
+            box.style.display = "block";
+            document.getElementById("step2").style.display = "none";
+            document.getElementById("step3").style.display = "none";
+            document.getElementById("step4").style.display = "none";
+            document.getElementById("step5").style.display = "none";
+            document.getElementById("step1").style.display = "flex";
+            setTimeout(() => { document.getElementById("step2").style.display = "flex"; }, 1200);
+            setTimeout(() => { document.getElementById("step3").style.display = "flex"; }, 2400);
+            setTimeout(() => { document.getElementById("step4").style.display = "flex"; }, 3600);
+            setTimeout(() => { document.getElementById("step5").style.display = "flex"; }, 5000);
+        };
+        window.addContact = async function(e) {
+            e.preventDefault();
+            const data = await getClientData(username);
+            const contacts = data.importantContacts || [];
+            if (contacts.length >= 5) { alert('Umeshafikia watu 5.'); return; }
+            const name = document.getElementById('contactName').value.trim();
+            const phone = document.getElementById('contactPhone').value.trim();
+            const relation = document.getElementById('contactRelation').value.trim();
+            if (!name || !phone || !relation) { alert('Jaza sehemu zote.'); return; }
+            contacts.push({ name, phone, relationship: relation });
+            data.importantContacts = contacts;
+            await setClientData(username, data);
+            document.getElementById('contactName').value = '';
+            document.getElementById('contactPhone').value = '';
+            document.getElementById('contactRelation').value = '';
+            buildDashboard('mteja');
+        };
+        window.editContact = async function(index) {
+            const data = await getClientData(username);
+            const contacts = data.importantContacts || [];
+            if (index < 0 || index >= contacts.length) return;
+            const c = contacts[index];
+            const newName = prompt('Jina:', c.name);
+            if (newName === null) return;
+            const newPhone = prompt('Simu:', c.phone);
+            if (newPhone === null) return;
+            const newRelation = prompt('Uhusiano:', c.relationship);
+            if (newRelation === null) return;
+            contacts[index] = { name: newName.trim(), phone: newPhone.trim(), relationship: newRelation.trim() };
+            data.importantContacts = contacts;
+            await setClientData(username, data);
+            buildDashboard('mteja');
+        };
+        window.deleteContact = async function(index) {
+            if (!confirm('Je, una uhakika unataka kumfuta mtu huyu?')) return;
+            const data = await getClientData(username);
+            const contacts = data.importantContacts || [];
+            if (index < 0 || index >= contacts.length) return;
+            contacts.splice(index, 1);
+            data.importantContacts = contacts;
+            await setClientData(username, data);
+            buildDashboard('mteja');
+        };
+        window.saveTransportSettings = async function(e) {
+            e.preventDefault();
+            const transportType = document.getElementById('transportTypeSelect').value;
+            const driverName = document.getElementById('driverNameInput').value.trim();
+            const driverPhone = document.getElementById('driverPhoneInput').value.trim();
+            const data = await getClientData(username);
+            data.transportType = transportType;
+            data.driverName = driverName;
+            data.driverPhone = driverPhone;
+            await setClientData(username, data);
+            alert('✅ Mpangilio wa usafiri umehifadhiwa!');
+            buildDashboard('mteja');
+        };
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'transportTypeSelect') {
+                const val = e.target.value;
+                const field = document.getElementById('driverFields');
+                if (field) {
+                    field.style.display = val === 'binafsi' ? 'flex' : 'none';
+                }
+            }
+        });
+        window.submitTransferRequest = async function(e) {
+            e.preventDefault();
+            if (isPostnatal) { alert('Huwezi kuomba uhamisho baada ya kujifungua.'); return; }
+            const toFacility = document.getElementById('transferToFacility').value;
+            const reason = document.getElementById('transferReason').value.trim();
+            if (!reason) { alert('Tafadhali ingiza sababu.'); return; }
+            const fromFacility = clientData.location || 'Tunduma Town Council Hospital';
+            const request = { clientName: username, fromFacility, toFacility, reason, clientPhone: clientData.phone || '-', fromDistrict: clientData.district || '-', fromRegion: clientData.region || '-' };
+            await addTransferRequest(request);
+            alert(`✅ Ombi lako limetumwa!\nKituo Lengwa: ${toFacility}\nSababu: "${reason}"\n\nInasubiri idhini kutoka CHW na RCH.`);
+            document.getElementById('transferReason').value = '';
+            buildDashboard('mteja');
+        };
+        window.submitPostnatalTransfer = async function(e) {
+            e.preventDefault();
+            const toFacility = document.getElementById('postnatalTransferTo').value;
+            const reason = document.getElementById('postnatalTransferReason').value.trim();
+            if (!reason) { alert('Tafadhali ingiza sababu.'); return; }
+            const fromFacility = clientData.location || 'Tunduma Town Council Hospital';
+            const request = { clientName: username, fromFacility, toFacility, reason, clientPhone: clientData.phone || '-', fromDistrict: clientData.district || '-', fromRegion: clientData.region || '-', requestedBy:'Mteja (Postnatal)' };
+            await addTransferRequest(request);
+            alert(`✅ Ombi lako la kuhama kwa ajili ya Postnatal limetumwa!\nKituo Lengwa: ${toFacility}`);
+            document.getElementById('postnatalTransferReason').value = '';
+            buildDashboard('mteja');
+        };
+    }
+
+    container.innerHTML = html;
+    // Update live vitals UI immediately
+    updateLiveUI();
+    // Update history UI if exists
+    updateHistoryUI();
+}
+
+// =================================================================
+//  SENSOR HISTORY (kwa ajili ya historia ya joto, BP, pulse)
+// =================================================================
+let sensorHistory = [];
+
+function updateHistoryUI() {
+    const tbody = document.getElementById('sensorHistoryBody');
+    if (!tbody) return;
+    if (sensorHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">Hakuna data bado. Subiri ESP32 itume...</td></tr>';
+        return;
+    }
+    let html = '';
+    const sorted = sensorHistory.slice().reverse().slice(0, 50);
+    sorted.forEach((item, idx) => {
+        const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '--';
+        html += `<tr>
+                    <td>${idx+1}</td>
+                    <td>${item.temperature.toFixed(1)}</td>
+                    <td>${Math.round(item.systolic)}/${Math.round(item.diastolic)}</td>
+                    <td>${Math.round(item.pulse)}</td>
+                    <td>${timeStr}</td>
+                </tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+// Override loadLiveVitals to also push to history
+const originalLoadLiveVitals = loadLiveVitals;
+loadLiveVitals = async function() {
+    await originalLoadLiveVitals();
+    // Add to history if new data
+    if (liveVitals.temperature > 0) {
+        const last = sensorHistory.length > 0 ? sensorHistory[sensorHistory.length - 1] : null;
+        if (!last || Math.abs(liveVitals.temperature - last.temperature) > 0.1 || Math.abs(liveVitals.systolic - last.systolic) > 2) {
+            sensorHistory.push({
+                temperature: liveVitals.temperature,
+                systolic: liveVitals.systolic,
+                diastolic: liveVitals.diastolic,
+                pulse: liveVitals.pulse,
+                timestamp: liveVitals.timestamp || Date.now()
+            });
+            if (sensorHistory.length > 200) sensorHistory.splice(0, sensorHistory.length - 200);
+            updateHistoryUI();
+        }
+    }
+};
+
+// =================================================================
+//  CHECK LOGIN STATUS
+// =================================================================
+(async function() {
+    const isLoggedIn = sessionStorage.getItem('mteja_logged_in') === 'true';
+    const username = sessionStorage.getItem('mteja_username') || 'Mteja';
+    const role = sessionStorage.getItem('mteja_role') || '';
+
+    if (isLoggedIn && role) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('dashboardPage').style.display = 'flex';
+        document.getElementById('displayName').textContent = username;
+        const roleLabels = {
+            admin: 'Administrator',
+            chw: 'CHW',
+            driver: 'Dereva',
+            nurse_labour: 'Labour Ward',
+            nurse_postnatal: 'Postnatal Ward',
+            nurse_rch: 'RCH Clinic',
+            mteja: 'Mteja',
+            coordinator: 'Mratibu wa M-Mama'
+        };
+        const userRole = role;
+        document.getElementById('displayRole').textContent = roleLabels[userRole] || userRole;
+        document.getElementById('displayIcon').textContent = userRole === 'mteja' ? '👩‍🍼' : userRole === 'chw' ? '🩺' : userRole === 'driver' ? '🚑' : userRole === 'admin' ? '⚙️' : userRole === 'coordinator' ? '📋' : '🏥';
+
+        if (userRole === 'coordinator') await seedSampleReferrals();
+
+        // Ikiwa ni lazima abadili password
+        const mustChange = sessionStorage.getItem('mteja_must_change') === 'true';
+        if (mustChange) {
+            setTimeout(() => {
+                alert('⚠️ Tafadhali badili nenosiri lako la kwanza kabla ya kuendelea.');
+                changePassword();
+            }, 500);
+        }
+
+        await buildDashboard(userRole);
+        // Load live vitals immediately
+        await loadLiveVitals();
+        // Refresh every 3 seconds
+        setInterval(loadLiveVitals, 3000);
+    } else {
+        document.getElementById('loginPage').style.display = 'flex';
+        document.getElementById('dashboardPage').style.display = 'none';
+    }
+})();
+
+// =================================================================
+//  GLOBAL FUNCTIONS FOR REFERRAL MODAL
+// =================================================================
+function openReferralModal(refId, clientName) {
+    document.getElementById('referralIdToApprove').value = refId;
+    document.getElementById('approveClientName').textContent = clientName;
+    document.getElementById('referralHospitalModal').classList.add('active');
+}
+function closeReferralModal() {
+    document.getElementById('referralHospitalModal').classList.remove('active');
+}
+async function confirmApproveReferral() {
+    const id = parseFloat(document.getElementById('referralIdToApprove').value);
+    const hospital = document.getElementById('approveHospitalSelect').value;
+    const note = document.getElementById('approveNote').value.trim();
+    if (!id) { alert('Hitilafu: hakuna rufaa iliyochaguliwa.'); return; }
+    const updated = await updateReferral(id, {
+        status: 'approved',
+        toHospital: hospital,
+        coordinatorNote: note || 'Imethibitishwa na Mratibu',
+        reviewedAt: new Date().toISOString()
+    });
+    if (updated) {
+        alert(`✅ Rufaa ya ${updated.clientName} imethibitishwa kwenda ${hospital}.`);
+        closeReferralModal();
+        const role = sessionStorage.getItem('mteja_role');
+        if (role === 'coordinator') buildDashboard('coordinator');
+    } else {
+        alert('❌ Hitilafu: rufaa haikupatikana.');
+    }
+}
+async function rejectReferral(id) {
+    const reason = prompt('Sababu ya kukataa rufaa hii:');
+    if (reason === null) return;
+    if (!reason.trim()) { alert('Tafadhali ingiza sababu.'); return; }
+    const updated = await updateReferral(id, {
+        status: 'rejected',
+        coordinatorNote: reason.trim(),
+        reviewedAt: new Date().toISOString()
+    });
+    if (updated) {
+        alert(`❌ Rufaa ya ${updated.clientName} imekataliwa. Sababu: "${reason.trim()}"`);
+        const role = sessionStorage.getItem('mteja_role');
+        if (role === 'coordinator') buildDashboard('coordinator');
+    }
+}
+
+// =================================================================
+//  WINDOW EVENTS
+// =================================================================
+window.addEventListener('popstate', function() {
+    const isLoggedIn = sessionStorage.getItem('mteja_logged_in') === 'true';
+    if (!isLoggedIn) {
+        document.getElementById('dashboardPage').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'flex';
+    }
+});
+
+console.log('🌸 MAMA SAFE LIFE – Portal Kamili imeanza!');
+</script>
 </body>
 </html>
