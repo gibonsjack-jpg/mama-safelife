@@ -10,6 +10,7 @@
     <!-- MD5 library for password hashing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <style>
+        /* ===== RESET & BASE ===== */
         * {
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -1511,6 +1512,41 @@ function forgotPassword() {
 }
 
 // =================================================================
+//  REGISTER CLIENT FUNCTION (Admin & RCH Nurse)
+// =================================================================
+async function registerClient(phone, password, name, role = 'mteja', extraData = {}) {
+    // Check if phone already exists as user
+    const users = await DB.get('users', {});
+    if (users[phone]) {
+        alert('Namba hii ya simu tayari imesajiliwa kama mtumiaji.');
+        return false;
+    }
+
+    // Create user
+    users[phone] = {
+        password: md5(password),
+        role: role,
+        name: name || 'Mteja',
+        mustChangePassword: false
+    };
+    await DB.set('users', users);
+
+    // Create client data (if not exists)
+    const clientData = await getClientData(phone);
+    clientData.phone = phone;
+    clientData.name = name || 'Mteja';
+    clientData.status = 'pregnant'; // default
+    clientData.createdAt = new Date().toISOString();
+    // Merge extra data (like location, gravida etc.)
+    for (const [key, val] of Object.entries(extraData)) {
+        if (val) clientData[key] = val;
+    }
+    await setClientData(phone, clientData);
+
+    return true;
+}
+
+// =================================================================
 //  BUILD DASHBOARD – KAMILI
 // =================================================================
 async function buildDashboard(role) {
@@ -1574,6 +1610,20 @@ async function buildDashboard(role) {
     if (role === 'admin') {
         html = `
             ${getLiveSensorBlock('🖥️ Msimamizi – Data ya Kifaa', false, 'Kifaa: Dr. SSH D001')}
+            <div class="card admin-card" style="border:2px solid #1565c0; background:#f0f8ff;">
+                <h3 style="color:#1565c0;">➕ Sajili Mteja Mpya</h3>
+                <form onsubmit="adminRegisterClient(event)">
+                    <div class="form-grid">
+                        <div><label>Jina Kamili:</label><input type="text" id="adminRegName" placeholder="Mf. Aisha Juma" required></div>
+                        <div><label>Simu (Username):</label><input type="text" id="adminRegPhone" placeholder="0712345678" required></div>
+                        <div><label>Neno la Siri:</label><input type="password" id="adminRegPassword" placeholder="******" required></div>
+                        <div><label>Kituo / Mtaa:</label><input type="text" id="adminRegLocation" placeholder="Tunduma / Sogea"></div>
+                        <div><label>Wilaya:</label><input type="text" id="adminRegDistrict" placeholder="Momba"></div>
+                        <div><label>Mkoa:</label><input type="text" id="adminRegRegion" placeholder="Songwe"></div>
+                    </div>
+                    <button type="submit" style="background:#1565c0;">SAJILI MTEJA</button>
+                </form>
+            </div>
             <div class="card admin-card">
                 <h3 style="color:#d32f2f;">🏥 1. Sajili Wafanyakazi wa Hospitali</h3>
                 <form onsubmit="alert('Mfanyakazi wa afya amesajiliwa!'); return false;">
@@ -1651,6 +1701,37 @@ async function buildDashboard(role) {
                 </div>
             </div>
         `;
+        // Admin register client function
+        window.adminRegisterClient = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('adminRegName').value.trim();
+            const phone = document.getElementById('adminRegPhone').value.trim();
+            const password = document.getElementById('adminRegPassword').value.trim();
+            const location = document.getElementById('adminRegLocation').value.trim();
+            const district = document.getElementById('adminRegDistrict').value.trim();
+            const region = document.getElementById('adminRegRegion').value.trim();
+
+            if (!name || !phone || !password) {
+                alert('Tafadhali jaza Jina, Simu na Neno la Siri.');
+                return;
+            }
+            if (password.length < 4) {
+                alert('Neno la siri lazima liwe na herufi 4 au zaidi.');
+                return;
+            }
+
+            const extra = { location, district, region, name };
+            const success = await registerClient(phone, password, name, 'mteja', extra);
+            if (success) {
+                alert(`✅ Mteja ${name} amesajiliwa kikamilifu!\nSimu: ${phone}\nNeno la Siri: ${password}`);
+                document.getElementById('adminRegName').value = '';
+                document.getElementById('adminRegPhone').value = '';
+                document.getElementById('adminRegPassword').value = '';
+                document.getElementById('adminRegLocation').value = '';
+                document.getElementById('adminRegDistrict').value = '';
+                document.getElementById('adminRegRegion').value = '';
+            }
+        };
     }
 
     // ==================== COORDINATOR ====================
@@ -2390,6 +2471,24 @@ async function buildDashboard(role) {
 
     // ==================== RCH ====================
     else if (role === 'nurse_rch') {
+        // RCH can also register new clients
+        html = `
+            <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
+                <h3 style="color:#1565c0;">➕ Sajili Mteja Mpya</h3>
+                <form onsubmit="rchRegisterClient(event)">
+                    <div class="form-grid">
+                        <div><label>Jina Kamili:</label><input type="text" id="rchRegName" placeholder="Mf. Aisha Juma" required></div>
+                        <div><label>Simu (Username):</label><input type="text" id="rchRegPhone" placeholder="0712345678" required></div>
+                        <div><label>Neno la Siri:</label><input type="password" id="rchRegPassword" placeholder="******" required></div>
+                        <div><label>Kituo / Mtaa:</label><input type="text" id="rchRegLocation" placeholder="Tunduma / Sogea"></div>
+                        <div><label>Wilaya:</label><input type="text" id="rchRegDistrict" placeholder="Momba"></div>
+                        <div><label>Mkoa:</label><input type="text" id="rchRegRegion" placeholder="Songwe"></div>
+                    </div>
+                    <button type="submit" style="background:#1565c0;">SAJILI MTEJA</button>
+                </form>
+            </div>
+        `;
+        // Then the rest of RCH dashboard (existing)
         const username = sessionStorage.getItem('mteja_username') || 'Bina Juma';
         const clientData = await getClientData(username);
         const { lnmp = '', edd = '', gestationalAge = '', phone = '', partner = '', location = '',
@@ -2477,7 +2576,7 @@ async function buildDashboard(role) {
         let clientOptionsRCH = '';
         allClients.forEach(c => { clientOptionsRCH += `<option value="${c}">${c}</option>`; });
 
-        html = `
+        html += `
             ${getLiveSensorBlock('👩‍⚕️ Joto la Mgonjwa (RCH)', true, 'Mgonjwa anafuatiliwa katika Kliniki ya RCH')}
             <div class="card" style="border-top:4px solid #2e7d32;">
                 <h3 style="color:#2e7d32;">📝 Sajili Mteja Mpya</h3>
@@ -2598,6 +2697,36 @@ async function buildDashboard(role) {
             </div>
         `;
         // RCH functions
+        window.rchRegisterClient = async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('rchRegName').value.trim();
+            const phone = document.getElementById('rchRegPhone').value.trim();
+            const password = document.getElementById('rchRegPassword').value.trim();
+            const location = document.getElementById('rchRegLocation').value.trim();
+            const district = document.getElementById('rchRegDistrict').value.trim();
+            const region = document.getElementById('rchRegRegion').value.trim();
+
+            if (!name || !phone || !password) {
+                alert('Tafadhali jaza Jina, Simu na Neno la Siri.');
+                return;
+            }
+            if (password.length < 4) {
+                alert('Neno la siri lazima liwe na herufi 4 au zaidi.');
+                return;
+            }
+
+            const extra = { location, district, region, name };
+            const success = await registerClient(phone, password, name, 'mteja', extra);
+            if (success) {
+                alert(`✅ Mteja ${name} amesajiliwa kikamilifu!\nSimu: ${phone}\nNeno la Siri: ${password}`);
+                document.getElementById('rchRegName').value = '';
+                document.getElementById('rchRegPhone').value = '';
+                document.getElementById('rchRegPassword').value = '';
+                document.getElementById('rchRegLocation').value = '';
+                document.getElementById('rchRegDistrict').value = '';
+                document.getElementById('rchRegRegion').value = '';
+            }
+        };
         window.rchCalculatePregnancy = function() {
             const lnmp = document.getElementById('rchLnmp').value;
             if (!lnmp) { document.getElementById('rchEdd').value = ''; document.getElementById('rchGestAge').value = ''; return; }
