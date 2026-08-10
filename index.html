@@ -1040,7 +1040,7 @@
 </div>
 
 <!-- ============================================================ -->
-<!-- JAVASCRIPT - YOTE IMO HAPA -->
+<!-- JAVASCRIPT - YOTE IMO HAPA (IMEBORESHA TIMESTAMP) -->
 <!-- ============================================================ -->
 <script>
 // =================================================================
@@ -1281,6 +1281,17 @@ function calculateShockIndex(pulse, systolic) {
 }
 
 // =================================================================
+//  REKEBISHA TIMESTAMP: Ikiwa ni sekunde (< 10^10), zidisha kwa 1000
+// =================================================================
+function fixTimestamp(ts) {
+    if (!ts) return Date.now();
+    if (ts < 10000000000) {
+        return ts * 1000;
+    }
+    return ts;
+}
+
+// =================================================================
 //  LIVE VITALS FROM ESP32 - DEVICE M001
 // =================================================================
 const DEVICE_ID = 'M001';
@@ -1325,18 +1336,21 @@ async function loadLiveVitals() {
         const snapshot = await database.ref(`vitals/${DEVICE_ID}`).once('value');
         const data = snapshot.val();
         if (data) {
-            const now = new Date();
-            const timestamp = data.timestamp || now.getTime();
-            const dateStr = data.date || now.toISOString();
+            const now = Date.now();
+            let timestamp = data.timestamp || now;
+            // Rekebisha timestamp ikiwa ni sekunde
+            timestamp = fixTimestamp(timestamp);
+            
             liveVitals = {
                 temperature: data.temperature || 0,
                 systolic: data.systolic || 0,
                 diastolic: data.diastolic || 0,
                 pulse: data.pulse || 0,
                 timestamp: timestamp,
-                date: dateStr
+                date: data.date || new Date(timestamp).toISOString()
             };
             updateLiveUI();
+            
             // Add to history if changed significantly
             const last = sensorHistory.length > 0 ? sensorHistory[0] : null;
             if (!last || Math.abs(liveVitals.temperature - last.temperature) > 0.1 || 
@@ -1349,7 +1363,7 @@ async function loadLiveVitals() {
                     diastolic: liveVitals.diastolic,
                     pulse: liveVitals.pulse,
                     timestamp: timestamp,
-                    date: dateStr
+                    date: liveVitals.date
                 });
                 // Keep only last 5
                 if (sensorHistory.length > 5) {
@@ -1364,6 +1378,9 @@ async function loadLiveVitals() {
     }
 }
 
+// =================================================================
+//  UPDATE UI (IMEBORESHA TAREEHE, MUDA NA HALI YA JOTO)
+// =================================================================
 function updateLiveUI() {
     document.querySelectorAll('.live-temp').forEach(el => {
         el.textContent = liveVitals.temperature.toFixed(1);
@@ -1374,7 +1391,8 @@ function updateLiveUI() {
     document.querySelectorAll('.live-pulse').forEach(el => {
         el.textContent = Math.round(liveVitals.pulse);
     });
-    // Update date/time
+    
+    // Update date/time with fixed timestamp
     if (liveVitals.timestamp) {
         const d = new Date(liveVitals.timestamp);
         const dateStr = d.toLocaleDateString('sw-TZ', { day:'2-digit', month:'2-digit', year:'numeric' });
@@ -1386,15 +1404,17 @@ function updateLiveUI() {
             el.textContent = timeStr;
         });
     }
+    
     const statusEl = document.querySelector('.live-status-badge');
     if (statusEl) {
         const temp = liveVitals.temperature;
         let status = 'KAWAIDA';
         let cls = 'normal';
         if (temp < 35.0) { status = 'CHINI SANA'; cls = 'cold'; }
-        else if (temp < 35.5) { status = 'CHINI'; cls = 'cold'; }
-        else if (temp > 37.5 && temp <= 38.5) { status = 'JUU'; cls = 'fever'; }
-        else if (temp > 38.5) { status = 'JUU SANA'; cls = 'fever'; }
+        else if (temp < 36.0) { status = 'CHINI'; cls = 'cold'; }
+        else if (temp <= 37.5) { status = 'KAWAIDA'; cls = 'normal'; }
+        else if (temp <= 38.5) { status = 'JUU'; cls = 'fever'; }
+        else { status = 'JUU SANA'; cls = 'fever'; }
         statusEl.textContent = status;
         statusEl.className = 'status-badge-live ' + cls;
     }
@@ -1409,7 +1429,8 @@ function updateHistoryUI() {
     }
     let html = '';
     sensorHistory.forEach((item, idx) => {
-        const d = new Date(item.timestamp || Date.now());
+        let ts = fixTimestamp(item.timestamp || Date.now());
+        const d = new Date(ts);
         const dateStr = d.toLocaleDateString('sw-TZ', { day:'2-digit', month:'2-digit', year:'numeric' });
         const timeStr = d.toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
         html += `
@@ -1473,6 +1494,8 @@ async function editHistoryItem(index) {
     const bpParts = bp.split('/');
     const sysVal = bpParts[0] || '';
     const diaVal = bpParts[1] || '';
+    let ts = fixTimestamp(item.timestamp || Date.now());
+    const dateStr = new Date(ts).toLocaleString('sw-TZ');
     row.innerHTML = `
         <td>${index+1}</td>
         <td><input type="number" step="0.1" class="edit-temp-input" value="${temp}" style="width:70px;"></td>
@@ -1481,7 +1504,7 @@ async function editHistoryItem(index) {
             <input type="number" class="edit-dia-input" value="${diaVal}" style="width:50px;">
         </td>
         <td><input type="number" class="edit-pulse-input" value="${pulse}" style="width:60px;"></td>
-        <td>${new Date(item.timestamp).toLocaleString('sw-TZ')}</td>
+        <td>${dateStr}</td>
         <td>
             <div class="history-actions">
                 <button class="btn-small btn-save-edit" onclick="editHistoryItem(${index})">💾 Hifadhi</button>
@@ -1699,7 +1722,7 @@ async function seedSampleReferrals() {
 }
 
 // =================================================================
-//  BUILD DASHBOARD – KAMILI (with improved sensor block)
+//  BUILD DASHBOARD – KAMILI
 // =================================================================
 async function buildDashboard(role) {
     const container = document.getElementById('dashboardContent');
