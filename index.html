@@ -902,6 +902,38 @@
         .badge.fever { background:#ffebee; color:#c62828; }
         .badge.normal { background:#e8f5e9; color:#1b5e20; }
         .empty-msg { text-align:center; color:#999; padding:12px; }
+        /* Styles for edit mode */
+        .edit-mode td input {
+            padding: 4px 6px;
+            border: 1px solid #1b5e20;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            width: 100%;
+            background: #fff;
+        }
+        .edit-mode td input:focus {
+            outline: none;
+            border-color: #0d47a1;
+        }
+        .btn-small {
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            width: auto;
+            margin: 2px;
+        }
+        .btn-edit { background: #f57f17; }
+        .btn-edit:hover { background: #e65100; }
+        .btn-delete { background: #c62828; }
+        .btn-delete:hover { background: #b71c1c; }
+        .btn-save-edit { background: #2e7d32; }
+        .btn-save-edit:hover { background: #1b5e20; }
+        .btn-cancel-edit { background: #757575; }
+        .btn-cancel-edit:hover { background: #555; }
+        .history-actions {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
@@ -1074,12 +1106,11 @@ async function ensureDefaultAdmin() {
                 password: md5('1234'),
                 role: 'admin',
                 name: 'Msimamizi Mkuu',
-                mustChangePassword: false   // <-- HAPA HAITAKI KUBADILI
+                mustChangePassword: false
             };
             await DB.set('users', users);
             console.log('✅ Default admin created: 0752578172 / 1234');
         } else {
-            // Ensure mustChangePassword is false for existing admin
             if (users['0752578172'].mustChangePassword !== false) {
                 users['0752578172'].mustChangePassword = false;
                 await DB.set('users', users);
@@ -1249,29 +1280,81 @@ function calculateShockIndex(pulse, systolic) {
 }
 
 // =================================================================
-//  LIVE VITALS FROM ESP32
+//  LIVE VITALS FROM ESP32 - DEVICE M001
 // =================================================================
+const DEVICE_ID = 'M001';
 let liveVitals = {
     temperature: 0,
     systolic: 0,
     diastolic: 0,
     pulse: 0,
-    timestamp: null
+    timestamp: null,
+    date: null
 };
+
+// History stored in Firebase under sensorHistory/M001
+let sensorHistory = [];
+
+async function loadHistoryFromFirebase() {
+    const data = await DB.get(`sensorHistory/${DEVICE_ID}`, []);
+    if (Array.isArray(data)) {
+        sensorHistory = data;
+    } else {
+        sensorHistory = [];
+    }
+    // Sort by timestamp descending (newest first)
+    sensorHistory.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    // Keep only last 5
+    if (sensorHistory.length > 5) {
+        sensorHistory = sensorHistory.slice(0, 5);
+    }
+    updateHistoryUI();
+}
+
+async function saveHistoryToFirebase() {
+    // Keep only last 5
+    if (sensorHistory.length > 5) {
+        sensorHistory = sensorHistory.slice(0, 5);
+    }
+    await DB.set(`sensorHistory/${DEVICE_ID}`, sensorHistory);
+}
 
 async function loadLiveVitals() {
     try {
-        const snapshot = await database.ref('vitals/Dr_SSH_D001').once('value');
+        const snapshot = await database.ref(`vitals/${DEVICE_ID}`).once('value');
         const data = snapshot.val();
         if (data) {
+            const now = new Date();
             liveVitals = {
                 temperature: data.temperature || 0,
                 systolic: data.systolic || 0,
                 diastolic: data.diastolic || 0,
                 pulse: data.pulse || 0,
-                timestamp: data.timestamp || Date.now()
+                timestamp: data.timestamp || now.getTime(),
+                date: data.date || now.toISOString()
             };
             updateLiveUI();
+            // Add to history if changed significantly
+            const last = sensorHistory.length > 0 ? sensorHistory[0] : null;
+            if (!last || Math.abs(liveVitals.temperature - last.temperature) > 0.1 || 
+                Math.abs(liveVitals.systolic - last.systolic) > 2 ||
+                Math.abs(liveVitals.pulse - last.pulse) > 2) {
+                // Add new entry
+                sensorHistory.unshift({
+                    temperature: liveVitals.temperature,
+                    systolic: liveVitals.systolic,
+                    diastolic: liveVitals.diastolic,
+                    pulse: liveVitals.pulse,
+                    timestamp: liveVitals.timestamp || now.getTime(),
+                    date: liveVitals.date || now.toISOString()
+                });
+                // Keep only last 5
+                if (sensorHistory.length > 5) {
+                    sensorHistory = sensorHistory.slice(0, 5);
+                }
+                await saveHistoryToFirebase();
+                updateHistoryUI();
+            }
         }
     } catch (e) {
         console.warn('Live vitals read error:', e);
@@ -1288,9 +1371,14 @@ function updateLiveUI() {
     document.querySelectorAll('.live-pulse').forEach(el => {
         el.textContent = Math.round(liveVitals.pulse);
     });
+    // Update date/time
     if (liveVitals.timestamp) {
         const d = new Date(liveVitals.timestamp);
+        const dateStr = d.toLocaleDateString('sw-TZ', { day:'2-digit', month:'2-digit', year:'numeric' });
         const timeStr = d.toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        document.querySelectorAll('.live-date').forEach(el => {
+            el.textContent = dateStr;
+        });
         document.querySelectorAll('.live-time').forEach(el => {
             el.textContent = timeStr;
         });
@@ -1309,9 +1397,103 @@ function updateLiveUI() {
     }
 }
 
-// Start live vitals refresh every 3 seconds
-setInterval(loadLiveVitals, 3000);
-loadLiveVitals();
+function updateHistoryUI() {
+    const tbody = document.getElementById('sensorHistoryBody');
+    if (!tbody) return;
+    if (sensorHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Hakuna vipimo vilivyohifadhiwa. Subiri kifaa kitume data...</td></tr>';
+        return;
+    }
+    let html = '';
+    sensorHistory.forEach((item, idx) => {
+        const d = new Date(item.timestamp || Date.now());
+        const dateStr = d.toLocaleDateString('sw-TZ', { day:'2-digit', month:'2-digit', year:'numeric' });
+        const timeStr = d.toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+        html += `
+            <tr id="history-row-${idx}">
+                <td>${idx+1}</td>
+                <td class="edit-temp">${item.temperature.toFixed(1)}</td>
+                <td class="edit-bp">${Math.round(item.systolic)}/${Math.round(item.diastolic)}</td>
+                <td class="edit-pulse">${Math.round(item.pulse)}</td>
+                <td>${dateStr} ${timeStr}</td>
+                <td>
+                    <div class="history-actions">
+                        <button class="btn-small btn-edit" onclick="editHistoryItem(${idx})">✏️ Hariri</button>
+                        <button class="btn-small btn-delete" onclick="deleteHistoryItem(${idx})">🗑️ Futa</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    });
+    tbody.innerHTML = html;
+}
+
+// =================================================================
+//  HISTORY EDIT / DELETE FUNCTIONS
+// =================================================================
+async function editHistoryItem(index) {
+    const row = document.getElementById(`history-row-${index}`);
+    if (!row) return;
+    const item = sensorHistory[index];
+    if (!item) return;
+
+    // Check if already in edit mode
+    if (row.classList.contains('edit-mode')) {
+        // Save changes
+        const tempInput = row.querySelector('.edit-temp-input');
+        const sysInput = row.querySelector('.edit-sys-input');
+        const diaInput = row.querySelector('.edit-dia-input');
+        const pulseInput = row.querySelector('.edit-pulse-input');
+        const newTemp = parseFloat(tempInput.value);
+        const newSys = parseInt(sysInput.value);
+        const newDia = parseInt(diaInput.value);
+        const newPulse = parseInt(pulseInput.value);
+        if (isNaN(newTemp) || isNaN(newSys) || isNaN(newDia) || isNaN(newPulse)) {
+            alert('Tafadhali ingiza namba sahihi.');
+            return;
+        }
+        item.temperature = newTemp;
+        item.systolic = newSys;
+        item.diastolic = newDia;
+        item.pulse = newPulse;
+        sensorHistory[index] = item;
+        await saveHistoryToFirebase();
+        updateHistoryUI();
+        return;
+    }
+
+    // Enter edit mode
+    row.classList.add('edit-mode');
+    const temp = item.temperature.toFixed(1);
+    const bp = `${Math.round(item.systolic)}/${Math.round(item.diastolic)}`;
+    const pulse = Math.round(item.pulse);
+    const bpParts = bp.split('/');
+    const sysVal = bpParts[0] || '';
+    const diaVal = bpParts[1] || '';
+    row.innerHTML = `
+        <td>${index+1}</td>
+        <td><input type="number" step="0.1" class="edit-temp-input" value="${temp}" style="width:70px;"></td>
+        <td>
+            <input type="number" class="edit-sys-input" value="${sysVal}" style="width:50px;"> /
+            <input type="number" class="edit-dia-input" value="${diaVal}" style="width:50px;">
+        </td>
+        <td><input type="number" class="edit-pulse-input" value="${pulse}" style="width:60px;"></td>
+        <td>${new Date(item.timestamp).toLocaleString('sw-TZ')}</td>
+        <td>
+            <div class="history-actions">
+                <button class="btn-small btn-save-edit" onclick="editHistoryItem(${index})">💾 Hifadhi</button>
+                <button class="btn-small btn-cancel-edit" onclick="updateHistoryUI()">❌ Ghairi</button>
+            </div>
+        </td>
+    `;
+}
+
+async function deleteHistoryItem(index) {
+    if (!confirm('Je, una uhakika unataka kufuta kipimo hiki?')) return;
+    sensorHistory.splice(index, 1);
+    await saveHistoryToFirebase();
+    updateHistoryUI();
+}
 
 // =================================================================
 //  LOGIN / LOGOUT / PASSWORD CHANGE
@@ -1330,7 +1512,6 @@ async function handleLogin(e) {
         const users = await DB.get('users', {});
         let user = users[username];
 
-        // Auto-create user if not exists (with role from dropdown, password 1234)
         if (!user) {
             users[username] = {
                 password: md5('1234'),
@@ -1340,7 +1521,6 @@ async function handleLogin(e) {
             };
             await DB.set('users', users);
             user = users[username];
-            // Also create client data if not exists
             const clientData = await getClientData(username);
             if (!clientData.name) {
                 clientData.name = username;
@@ -1350,9 +1530,7 @@ async function handleLogin(e) {
             }
         }
 
-        // Allow ANY password if it's 1234 or check hashed
         if (password === '1234') {
-            // Always accepted, but also update user's password to 1234 if not already
             if (user.password !== md5('1234')) {
                 user.password = md5('1234');
                 await DB.set('users', users);
@@ -1362,11 +1540,10 @@ async function handleLogin(e) {
             return;
         }
 
-        // Session
         sessionStorage.setItem('mteja_logged_in', 'true');
         sessionStorage.setItem('mteja_username', username);
         sessionStorage.setItem('mteja_role', user.role || role);
-        sessionStorage.setItem('mteja_must_change', 'false'); // force false
+        sessionStorage.setItem('mteja_must_change', 'false');
 
         document.getElementById('loginPage').style.display = 'none';
         document.getElementById('dashboardPage').style.display = 'flex';
@@ -1389,7 +1566,6 @@ async function handleLogin(e) {
             await seedSampleReferrals();
         }
 
-        // No mustChangePassword check
         buildDashboard(user.role);
         document.getElementById('loginForm').reset();
     } catch (error) {
@@ -1520,7 +1696,7 @@ async function seedSampleReferrals() {
 }
 
 // =================================================================
-//  BUILD DASHBOARD – KAMILI
+//  BUILD DASHBOARD – KAMILI (with improved sensor block)
 // =================================================================
 async function buildDashboard(role) {
     const container = document.getElementById('dashboardContent');
@@ -1539,7 +1715,7 @@ async function buildDashboard(role) {
                     <div style="display:flex; align-items:center; gap:12px;">
                         <span style="font-size:1.8rem;">🌡️</span>
                         <div>
-                            <div style="font-size:0.8rem; font-weight:600; color:#555;">${title}</div>
+                            <div style="font-size:0.8rem; font-weight:600; color:#555;">${title} - Kifaa: ${DEVICE_ID}</div>
                             <div class="vital-group" style="display:flex; gap:30px; flex-wrap:wrap; margin-top:4px;">
                                 <div class="vital-item">
                                     <span class="label">Joto</span>
@@ -1557,24 +1733,26 @@ async function buildDashboard(role) {
                             <div class="live-status-badge status-badge-live normal" style="margin-top:4px;">--</div>
                         </div>
                     </div>
-                    <div class="meta-live">
-                        <span>🕒 <span class="live-time">--</span></span>
-                        ${context ? `<span style="margin-left:12px;">📌 ${context}</span>` : ''}
+                    <div class="meta-live" style="text-align:right; font-size:0.85rem; color:#555;">
+                        <div><span style="font-weight:700;">📅 Tarehe:</span> <span class="live-date">--</span></div>
+                        <div><span style="font-weight:700;">🕒 Muda:</span> <span class="live-time">--</span></div>
+                        ${context ? `<div>📌 ${context}</div>` : ''}
                     </div>
                 </div>
             </div>
             ${dangerHtml}
             <div class="card" style="border:2px solid #1b5e20;">
-                <h3 style="color:#1b5e20;">📋 Historia ya Vipimo</h3>
-                <div class="table-wrap" style="max-height:200px; overflow-y:auto;">
+                <h3 style="color:#1b5e20;">📋 Historia ya Vipimo (5 vya mwisho)</h3>
+                <div class="table-wrap" style="max-height:250px; overflow-y:auto;">
                     <table>
-                        <thead><tr><th>#</th><th>Joto (°C)</th><th>BP (mmHg)</th><th>Pulse (bpm)</th><th>Muda</th></tr></thead>
+                        <thead><tr><th>#</th><th>Joto (°C)</th><th>BP (mmHg)</th><th>Pulse (bpm)</th><th>Tarehe & Muda</th><th>Vitendo</th></tr></thead>
                         <tbody id="sensorHistoryBody">
-                            <tr><td colspan="5" class="empty-msg">Hakuna data bado. Subiri ESP32 itume...</td></tr>
+                            <tr><td colspan="6" class="empty-msg">Hakuna vipimo vilivyohifadhiwa. Subiri kifaa kitume data...</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <button onclick="loadLiveVitals()" style="background:#0277bd; width:auto; padding:6px 14px; margin-top:6px;">🔄 Sasisha Sasa</button>
+                <button onclick="loadHistoryFromFirebase()" style="background:#1565c0; width:auto; padding:6px 14px; margin-top:6px; margin-left:8px;">📥 Pakia Historia</button>
             </div>
         `;
     }
@@ -1582,7 +1760,7 @@ async function buildDashboard(role) {
     // ==================== ADMIN ====================
     if (role === 'admin') {
         html = `
-            ${getLiveSensorBlock('🖥️ Msimamizi – Data ya Kifaa', false, 'Kifaa: Dr. SSH D001')}
+            ${getLiveSensorBlock('🖥️ Msimamizi – Data ya Kifaa', false, 'Kifaa: M001')}
             <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
                 <h3 style="color:#1565c0;">➕ Sajili Mteja Mpya</h3>
                 <form onsubmit="adminRegisterClient(event)">
@@ -1626,7 +1804,6 @@ async function buildDashboard(role) {
                 </div>
             </div>
         `;
-        // Admin register client
         window.adminRegisterClient = async function(e) {
             e.preventDefault();
             const name = document.getElementById('adminRegName').value.trim();
@@ -3040,54 +3217,20 @@ async function buildDashboard(role) {
 
     container.innerHTML = html;
     updateLiveUI();
-    updateHistoryUI();
+    // Load history after rendering
+    await loadHistoryFromFirebase();
+    // Also load live vitals
+    await loadLiveVitals();
 }
 
 // =================================================================
-//  SENSOR HISTORY
+//  STARTUP – Load history and vitals
 // =================================================================
-let sensorHistory = [];
-
-function updateHistoryUI() {
-    const tbody = document.getElementById('sensorHistoryBody');
-    if (!tbody) return;
-    if (sensorHistory.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">Hakuna data bado. Subiri ESP32 itume...</td></tr>';
-        return;
-    }
-    let html = '';
-    const sorted = sensorHistory.slice().reverse().slice(0, 50);
-    sorted.forEach((item, idx) => {
-        const timeStr = item.timestamp ? new Date(item.timestamp).toLocaleTimeString('sw-TZ', { hour:'2-digit', minute:'2-digit', second:'2-digit' }) : '--';
-        html += `<tr>
-                    <td>${idx+1}</td>
-                    <td>${item.temperature.toFixed(1)}</td>
-                    <td>${Math.round(item.systolic)}/${Math.round(item.diastolic)}</td>
-                    <td>${Math.round(item.pulse)}</td>
-                    <td>${timeStr}</td>
-                </tr>`;
-    });
-    tbody.innerHTML = html;
-}
-
-const originalLoadLiveVitals = loadLiveVitals;
-loadLiveVitals = async function() {
-    await originalLoadLiveVitals();
-    if (liveVitals.temperature > 0) {
-        const last = sensorHistory.length > 0 ? sensorHistory[sensorHistory.length - 1] : null;
-        if (!last || Math.abs(liveVitals.temperature - last.temperature) > 0.1 || Math.abs(liveVitals.systolic - last.systolic) > 2) {
-            sensorHistory.push({
-                temperature: liveVitals.temperature,
-                systolic: liveVitals.systolic,
-                diastolic: liveVitals.diastolic,
-                pulse: liveVitals.pulse,
-                timestamp: liveVitals.timestamp || Date.now()
-            });
-            if (sensorHistory.length > 200) sensorHistory.splice(0, sensorHistory.length - 200);
-            updateHistoryUI();
-        }
-    }
-};
+(async function() {
+    await loadHistoryFromFirebase();
+    await loadLiveVitals();
+    setInterval(loadLiveVitals, 3000);
+})();
 
 // =================================================================
 //  CHECK LOGIN STATUS
@@ -3117,7 +3260,6 @@ loadLiveVitals = async function() {
 
         if (userRole === 'coordinator') await seedSampleReferrals();
 
-        // Force mustChange false
         sessionStorage.setItem('mteja_must_change', 'false');
 
         await buildDashboard(userRole);
