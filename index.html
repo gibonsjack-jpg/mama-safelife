@@ -1979,6 +1979,35 @@ async function buildDashboard(role) {
                 </form>
             </div>
             
+            <div class="card admin-card">
+                <h3 style="color:#d32f2f;">🏥 Sajili Wafanyakazi wa Hospitali</h3>
+                <form onsubmit="adminRegisterStaff(event)">
+                    <div class="form-grid">
+                        <div><label>Idara:</label><select id="staffDept" required>
+                            <option value="" disabled selected>Chagua</option>
+                            <option value="RCH Clinic">RCH Clinic</option>
+                            <option value="Labour Ward">Labour Ward</option>
+                            <option value="Postnatal Ward">Postnatal Ward</option>
+                            <option value="Theater">Theater</option>
+                            <option value="Maabara">Maabara</option>
+                        </select></div>
+                        <div><label>Kada:</label><select id="staffCadre" required>
+                            <option value="" disabled selected>Chagua</option>
+                            <option value="Doctor">Doctor</option>
+                            <option value="Nurse">Nurse</option>
+                            <option value="Lab Tech">Lab Tech</option>
+                            <option value="Anesthetist">Anesthetist</option>
+                            <option value="Scrub Nurse">Scrub Nurse</option>
+                            <option value="Assistant Surgeon">Assistant Surgeon</option>
+                        </select></div>
+                        <div><label>Jina Kamili:</label><input type="text" id="staffName" placeholder="Mf. Dr. Erasto Mwakyusa" required></div>
+                        <div><label>Simu / Username:</label><input type="text" id="staffPhone" placeholder="07XXXXXXXX" required></div>
+                        <div class="form-full"><label>Neno la Siri:</label><input type="password" id="staffPassword" placeholder="******" required></div>
+                    </div>
+                    <button type="submit" style="background:#2e7d32;">SAJILI</button>
+                </form>
+            </div>
+
             <div class="card admin-card" style="border-top:5px solid #d32f2f;">
                 <h3 style="color:#d32f2f;">🛠️ Chumba cha Usimamizi</h3>
                 <div style="background:#f9f9f9; padding:12px; border-radius:8px; border:1px solid #ddd;">
@@ -2021,6 +2050,47 @@ async function buildDashboard(role) {
                 await setLabRoster({ director, seniorTech, technicians });
                 alert('✅ Timu ya Maabara imehifadhiwa!');
                 buildDashboard('admin');
+            }
+        };
+        
+        // New function for registering hospital staff accounts
+        window.adminRegisterStaff = async function(e) {
+            e.preventDefault();
+            const department = document.getElementById('staffDept').value;
+            const cadre = document.getElementById('staffCadre').value;
+            const name = document.getElementById('staffName').value.trim();
+            const phone = document.getElementById('staffPhone').value.trim();
+            const password = document.getElementById('staffPassword').value.trim() || '1234';
+
+            if (!department || !name || !phone) { alert('Tafadhali jaza sehemu zote muhimu.'); return; }
+
+            let role = 'mteja';
+            if (department === 'RCH Clinic') role = 'nurse_rch';
+            else if (department === 'Labour Ward') role = 'nurse_labour';
+            else if (department === 'Postnatal Ward') role = 'nurse_postnatal';
+            else if (department === 'Theater') role = 'nurse_theater';
+            else if (department === 'Maabara') role = 'lab_tech';
+
+            try {
+                const users = await DB.get('users', {});
+                if (users[phone]) { alert('Namba hii ya simu tayari imesajiliwa kama mtumiaji.'); return; }
+                users[phone] = {
+                    password: md5(password),
+                    role: role,
+                    name: name,
+                    kada: cadre,
+                    mustChangePassword: false
+                };
+                await DB.set('users', users);
+                alert(`✅ Mfanyakazi ${name} amesajiliwa!\nSimu: ${phone}\nIdara: ${department}\nWadhifa: ${role}`);
+                document.getElementById('staffName').value = '';
+                document.getElementById('staffPhone').value = '';
+                document.getElementById('staffPassword').value = '';
+                document.getElementById('staffDept').value = '';
+                document.getElementById('staffCadre').value = '';
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('Hitilafu wakati wa kusajili. Tafadhali jaribu tena.');
             }
         };
     }
@@ -2077,6 +2147,8 @@ async function buildDashboard(role) {
                 bloodExtRows += `<tr><td>${b.fromFacility}</td><td>${b.clientName}</td><td>${b.bloodGroup}</td><td><span class="${sts}">${b.status}</span></td><td><button onclick="updateBloodOrderStatus('${b.id}', 'approved')" style="background:#2e7d32; width:auto; padding:4px 8px; font-size:0.7rem;">Thibitisha</button></td></tr>`;
             });
         }
+        
+        const labRoster = await getLabRoster();
 
         html = `
             ${getLiveSensorBlock('🧪 Joto la Mgonjwa (Maabara)', true, 'Maabara ya Dharura')}
@@ -2132,6 +2204,18 @@ async function buildDashboard(role) {
             <div class="card" style="border:2px solid #ef6c00;">
                 <h3 style="color:#ef6c00;">📦 Maombi ya Sampuli kutoka Vituo Vingine (3 vituo)</h3>
                 <table><thead><tr><th>Kituo</th><th>Mteja</th><th>Vipimo</th><th>Tarehe / Muda</th><th>Kitendo cha Dharura</th></tr></thead><tbody>${extRows}</tbody></table>
+            </div>
+            
+            <div class="card" style="border:2px solid #c62828;">
+                <h3 style="color:#c62828;">📋 ROSTER YA MAABARA (Wafanyakazi wa Zamu)</h3>
+                <table class="roster-table">
+                    <tbody>
+                        <tr><td><strong>Mkuu wa Maabara</strong></td><td>${labRoster.director}</td></tr>
+                        <tr><td><strong>Mtaalamu Mwandamizi</strong></td><td>${labRoster.seniorTech}</td></tr>
+                        <tr><td colspan="2"><strong>👩‍🔬 Wataalamu Wengine</strong></td></tr>
+                        ${labRoster.technicians.map(n => `<tr><td>${n.name}</td><td><span class="staff-title">${n.specialty}</span></td></tr>`).join('')}
+                    </tbody>
+                </table>
             </div>
         `;
 
