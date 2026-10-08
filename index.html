@@ -24,7 +24,6 @@ input:focus,select:focus,textarea:focus{border-color:#1eb954;outline:none;backgr
 .btn:hover{transform:translateY(-1px)}
 .foot{margin-top:14px;padding-top:12px;border-top:1px solid #eee;font-size:.7rem;color:#333;font-weight:600}
 .foot b{color:#c62828;display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
-
 #dash{display:none;flex-direction:column;min-height:100vh}
 .nav{background:#1b5e20;color:#fff;padding:11px 15px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;border-bottom:4px solid #fcd116}
 .nav h2{font-size:1rem;font-weight:700;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
@@ -46,7 +45,6 @@ th{background:#f8f9fa}
 .sc{background:#fff;padding:14px;border-radius:11px;border-left:5px solid #1b5e20;box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .sc h3{margin:0;font-size:1.5rem;color:#1b5e20;border:none;padding:0}
 .sc p{margin:4px 0 0;font-size:.78rem;color:#666;font-weight:bold}
-
 .live{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:14px;border-radius:13px;display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;border:2px solid #1b5e20}
 .live .vg{display:flex;gap:12px;flex-wrap:wrap;flex:1}
 .vi{background:#fff;padding:9px 14px;border-radius:9px;min-width:85px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -59,22 +57,18 @@ th{background:#f8f9fa}
 .sb.cold{color:#0d47a1;background:#e3f2fd}
 .lm{font-size:.78rem;color:#444;text-align:right}
 .lm strong{color:#1b5e20}
-
 .em{background:#fff5f5;border:2px solid #d32f2f;border-radius:13px;padding:18px;text-align:center;margin-bottom:14px}
 .pulse{width:120px;height:120px;background:#d32f2f;color:#fff;border:none;border-radius:50%;font-size:.95rem;font-weight:800;cursor:pointer;margin:14px auto;animation:p 2s infinite;display:flex;align-items:center;justify-content:center}
 @keyframes p{0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(211,47,47,.7)}70%{transform:scale(1);box-shadow:0 0 0 20px rgba(211,47,47,0)}100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(211,47,47,0)}}
-
 .msg{background:#fff3cd;border-left:4px solid #ff9800;padding:9px 13px;border-radius:6px;margin:9px 0;font-size:.88rem;color:#856404}
 .msg.s{background:#d4edda;border-left-color:#28a745;color:#155724}
 .msg.d{background:#f8d7da;border-left-color:#dc3545;color:#721c24}
 .msg.i{background:#e3f2fd;border-left-color:#1565c0;color:#0d47a1}
-
 .tabs{display:flex;gap:5px;margin-bottom:13px;flex-wrap:wrap}
 .tab{padding:9px 14px;border:none;background:#e0e0e0;font-weight:bold;border-radius:7px;cursor:pointer;font-size:.82rem;flex:1 0 auto;color:#333}
 .tab.on{background:#1565c0;color:#fff}
 .tab:disabled{opacity:.5}
 .tc{display:none}.tc.on{display:block}
-
 .mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;justify-content:center;align-items:center;padding:20px}
 .mod.on{display:flex}
 .mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:480px;max-height:90vh;overflow:auto}
@@ -85,24 +79,24 @@ th{background:#f8f9fa}
 .o2{background:#e3f2fd;color:#0d47a1;border:2px solid #0d47a1}
 .o3{background:#fff3e0;color:#e65100;border:2px solid #e65100}
 .o4{background:#e0e0e0;color:#333;border:2px solid #888}
-
 .stitle{background:#e8f5e9;color:#1b5e20;padding:8px 12px;border-radius:6px;margin:12px 0 8px;font-size:.85rem;font-weight:bold}
 .process{background:#fffde7;border:1px dashed #fbc02d;padding:12px;border-radius:8px;text-align:left;margin-top:12px;display:none}
 .pstep{margin:6px 0;font-size:.9rem;color:#444}
 
+/* ALERT RING — SASA HAIFUNIKI KILA KITU */
 .alert-ring{
-  display:none;position:fixed;inset:0;background:rgba(200,0,0,0.92);z-index:9999;
-  justify-content:center;align-items:center;padding:20px;animation:flashbg 1.2s infinite;
-  overflow-y:auto;
+  display:none;position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(200,0,0,0.45);z-index:9998; /* Nyuma ya modal */
+  pointer-events:none;
 }
-.alert-ring.on{display:flex}
-@keyframes flashbg{0%,100%{background:rgba(200,0,0,0.92)}50%{background:rgba(255,60,60,0.98)}}
+.alert-ring.on{display:block}
 .alert-box{
-  background:#fff;border-radius:20px;padding:22px 20px;max-width:520px;width:100%;
-  text-align:center;box-shadow:0 0 60px rgba(0,0,0,0.7);animation:shakebox 0.7s infinite;
-  max-height:95vh;overflow-y:auto;
+  position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:#fff;border-radius:20px;padding:22px 20px;max-width:520px;width:calc(100% - 40px);
+  text-align:center;box-shadow:0 0 60px rgba(0,0,0,0.7);z-index:9999;
+  max-height:90vh;overflow-y:auto;
+  pointer-events:auto;
 }
-@keyframes shakebox{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
 .alert-box .icon{font-size:60px;animation:pulseicon 0.8s infinite;display:block;margin-bottom:4px}
 @keyframes pulseicon{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 .alert-box h2{color:#c62828;font-size:1.4rem;margin:8px 0;font-weight:800;animation:pulseicon 1s infinite}
@@ -113,6 +107,7 @@ th{background:#f8f9fa}
 .alert-box .actions button{padding:14px;border-radius:10px;font-weight:800;font-size:0.95rem;border:none;cursor:pointer}
 .alert-box .btn-yes{background:#2e7d32;color:#fff}
 .alert-box .btn-busy{background:#e65100;color:#fff}
+.alert-box .btn-min{background:#546e7a;color:#fff;grid-column:1/-1;font-size:0.85rem;padding:11px}
 .alert-client-details{background:#e8f5e9;border:2px solid #1b5e20;padding:12px;border-radius:10px;text-align:left;margin:12px 0;font-size:0.85rem;line-height:1.6}
 .alert-client-details .hdr{font-weight:bold;color:#1b5e20;margin-bottom:6px;font-size:0.9rem;border-bottom:1px dashed #1b5e20;padding-bottom:4px}
 .alert-client-details b{color:#1b5e20}
@@ -121,7 +116,17 @@ th{background:#f8f9fa}
 .alert-comment-box textarea{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit;resize:vertical;min-height:60px;margin-bottom:0}
 .alert-comment-box textarea:focus{border-color:#c62828;outline:none}
 
-.alarm-queue-info{background:#fff3cd;border-left:5px solid #ff9800;padding:8px 12px;border-radius:6px;margin-top:10px;font-size:0.85rem;color:#856404;font-weight:600}
+/* MINIMIZED MODE — alarm inaendelea lakini page inatumika */
+.alarm-mini{
+  display:none;position:fixed;bottom:20px;right:20px;z-index:9999;
+  background:#c62828;color:#fff;padding:14px 18px;border-radius:50px;
+  box-shadow:0 8px 30px rgba(200,0,0,0.6);cursor:pointer;
+  font-weight:bold;font-size:0.9rem;animation:shakeMini 0.8s infinite;
+  border:3px solid #fff;align-items:center;gap:8px;
+}
+.alarm-mini.on{display:flex}
+@keyframes shakeMini{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.alarm-mini .mcount{background:#fff;color:#c62828;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:bold}
 
 .sound-wave{display:inline-flex;gap:3px;align-items:flex-end;height:24px;margin-left:8px;vertical-align:middle}
 .sound-wave span{width:3px;background:#c62828;animation:wave 0.6s infinite ease-in-out}
@@ -146,20 +151,17 @@ th{background:#f8f9fa}
 .wodi-emg p{font-size:.85rem;opacity:.9;margin-bottom:12px}
 .wodi-emg button{background:#fff;color:#c62828;font-weight:800;padding:16px 24px;border-radius:12px;border:none;font-size:1.05rem;cursor:pointer;width:auto;min-width:220px;box-shadow:0 4px 12px rgba(0,0,0,0.2);}
 .wodi-emg button:hover{transform:scale(1.03)}
-
 .processed-alarms{background:#f0f8f0;border:2px solid #2e7d32;border-radius:12px;padding:14px;margin-bottom:14px}
 .processed-alarms h3{color:#2e7d32;border-bottom:2px solid #2e7d32;padding-bottom:6px;margin:0 0 10px;font-size:1rem;display:flex;align-items:center;gap:6px}
 .processed-alarms table{width:100%;font-size:0.78rem}
 .processed-alarms th{background:#c8e6c9;color:#1b5e20}
 .processed-alarms .no-alarms{text-align:center;color:#888;padding:14px;font-style:italic}
-
-@media(max-width:650px){.wrap{padding:10px}.grid{grid-template-columns:1fr}.live{flex-direction:column}.lm{text-align:center}.opts{grid-template-columns:1fr}table{font-size:.72rem}.alert-box .actions{grid-template-columns:1fr}}
+@media(max-width:650px){.wrap{padding:10px}.grid{grid-template-columns:1fr}.live{flex-direction:column}.lm{text-align:center}.opts{grid-template-columns:1fr}table{font-size:.72rem}.alert-box .actions{grid-template-columns:1fr}.alarm-mini{right:10px;bottom:10px;padding:11px 14px;font-size:.8rem}}
 .empty{text-align:center;color:#999;padding:10px}
 </style>
 </head>
 <body>
 
-<!-- ============ LOGIN ============ -->
 <div id="login">
   <div class="lc">
     <div class="gov">Jamhuri ya Muungano wa Tanzania</div>
@@ -190,7 +192,6 @@ th{background:#f8f9fa}
   </div>
 </div>
 
-<!-- ============ DASHBOARD ============ -->
 <div id="dash">
   <div class="nav">
     <h2><span id="dn">Mtumiaji</span> · <span id="dr">Portal</span><span id="cb" class="badge" style="display:none"></span></h2>
@@ -199,7 +200,6 @@ th{background:#f8f9fa}
   <div class="wrap" id="content"></div>
 </div>
 
-<!-- ============ EMERGENCY MODAL ============ -->
 <div id="em" class="mod">
   <div class="mc">
     <h2>🚨 DHARURA</h2>
@@ -214,7 +214,6 @@ th{background:#f8f9fa}
   </div>
 </div>
 
-<!-- ============ HOSPITAL MODAL ============ -->
 <div id="hm" class="mod">
   <div class="mc">
     <h2>🏥 Chagua Hospitali</h2>
@@ -232,30 +231,36 @@ th{background:#f8f9fa}
 </div>
 
 <!-- ============ LIVE EMERGENCY ALERT ============ -->
-<div id="alertRing" class="alert-ring">
-  <div class="alert-box">
-    <span class="icon">🚨</span>
-    <h2>DHARURA IMETUMWA! <span class="sound-wave"><span></span><span></span><span></span><span></span><span></span></span></h2>
-    <div class="src" id="alertSource">Kutoka: --</div>
-    <div class="amsg" id="alertMessage">--</div>
-    <div id="alertClientDetails" class="alert-client-details" style="display:none;"></div>
-    <div class="atime" id="alertTime">--</div>
+<div id="alertRing" class="alert-ring"></div>
+<div id="alertBox" class="alert-box" style="display:none;">
+  <span class="icon">🚨</span>
+  <h2>DHARURA IMETUMWA! <span class="sound-wave"><span></span><span></span><span></span><span></span><span></span></span></h2>
+  <div class="src" id="alertSource">Kutoka: --</div>
+  <div class="amsg" id="alertMessage">--</div>
+  <div id="alertClientDetails" class="alert-client-details" style="display:none;"></div>
+  <div class="atime" id="alertTime">--</div>
 
-    <div class="alert-comment-box">
-      <label>📝 Andika Maoni/Comment yako:</label>
-      <textarea id="alertComment" rows="3" placeholder="Mf. Nakuja na vitendea kazi, nipe dakika 5..."></textarea>
-    </div>
-
-    <div class="actions">
-      <button class="btn-yes" onclick="respondEmergency('coming')">✅ NAJA (KUBALI)</button>
-      <button class="btn-busy" onclick="respondEmergency('busy')">⏸️ NIKO BUSY</button>
-    </div>
-
-    <div id="alarmQueueInfo" class="alarm-queue-info" style="display:none;"></div>
+  <div class="alert-comment-box">
+    <label>📝 Andika Maoni/Comment yako:</label>
+    <textarea id="alertComment" rows="3" placeholder="Mf. Nakuja na vitendea kazi, nipe dakika 5..."></textarea>
   </div>
+
+  <div class="actions">
+    <button class="btn-yes" onclick="respondEmergency('coming')">✅ NAJA (KUBALI)</button>
+    <button class="btn-busy" onclick="respondEmergency('busy')">⏸️ NIKO BUSY</button>
+    <button class="btn-min" onclick="minimizeAlarm()">⬇️ PUNGUZA (Endelea Kutumia Mfumo)</button>
+  </div>
+
+  <div id="alarmQueueInfo" style="background:#fff3cd;border-left:5px solid #ff9800;padding:8px 12px;border-radius:6px;margin-top:10px;font-size:0.85rem;color:#856404;font-weight:600;display:none;"></div>
 </div>
 
-<!-- ============ REDIRECT MODAL ============ -->
+<!-- MINI ALARM (baada ya kupunguza) -->
+<div id="alarmMini" class="alarm-mini" onclick="reopenAlarm()">
+  <span>🚨</span>
+  <span>DHARURA INASUBIRI</span>
+  <span class="mcount" id="alarmMiniCount">1</span>
+</div>
+
 <div id="redirectModal" class="redirect-modal">
   <div class="redirect-box">
     <h3>🔄 Elekeza Dharura kwa Mtu Mwingine</h3>
@@ -285,7 +290,6 @@ th{background:#f8f9fa}
 </div>
 
 <script>
-// ============ FIREBASE ============
 firebase.initializeApp({
   apiKey:"AIzaSyAC2cXvXcYqr_gzDkD18jYmdeUQskI4k",
   databaseURL:"https://mama-safelife-216a3-default-rtdb.firebaseio.com",
@@ -297,13 +301,13 @@ firebase.initializeApp({
 const db = firebase.database();
 const DEV = 'M0005';
 const USER = '0674377704', PASS = '1234';
+const MAX_ALARM_AGE_MS = 5 * 60 * 1000; // Dharura zaidi ya dakika 5 - hazilili
 
 if(!sessionStorage.getItem('msl_session_id')){
   sessionStorage.setItem('msl_session_id','sess_'+Date.now()+'_'+Math.random().toString(36).slice(2,8));
 }
 const MY_SESSION = sessionStorage.getItem('msl_session_id');
 
-// ============ HELPERS ============
 const $ = id => document.getElementById(id);
 const fmt = (n,d=0) => (n==null||isNaN(n))?'--':Number(n).toFixed(d);
 async function get(path,fb){try{const s=await db.ref(path).once('value');const v=s.val();return v??fb}catch(e){return fb}}
@@ -320,31 +324,14 @@ async function updTransfer(id,u){const a=await getTransfers();const i=a.findInde
 async function getUsers(){return await get('users',{})}
 async function saveUser(phone,data){const u=await getUsers();u[phone]=data;await set('users',u)}
 
-function fullTime(ts){
-  if(!ts)return '-';
-  const d=new Date(ts);
-  const date=d.toLocaleDateString('sw-TZ',{day:'2-digit',month:'2-digit',year:'numeric'});
-  const time=d.toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  return `${date} — ${time}`;
-}
-function shortTime(ts){
-  if(!ts)return '-';
-  return new Date(ts).toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit'});
-}
-function duration(ts1,ts2){
-  if(!ts1||!ts2)return '-';
-  const secs=Math.floor((ts2-ts1)/1000);
-  if(secs<60)return `${secs} sekunde`;
-  const mins=Math.floor(secs/60);
-  if(mins<60)return `${mins} dakika`;
-  const hrs=Math.floor(mins/60);
-  return `${hrs} saa ${mins%60} dakika`;
-}
+function fullTime(ts){if(!ts)return '-';const d=new Date(ts);const date=d.toLocaleDateString('sw-TZ',{day:'2-digit',month:'2-digit',year:'numeric'});const time=d.toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit',second:'2-digit'});return `${date} — ${time}`;}
+function shortTime(ts){if(!ts)return '-';return new Date(ts).toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit'});}
+function duration(ts1,ts2){if(!ts1||!ts2)return '-';const secs=Math.floor((ts2-ts1)/1000);if(secs<60)return `${secs} sek`;const mins=Math.floor(secs/60);if(mins<60)return `${mins} dak`;const hrs=Math.floor(mins/60);return `${hrs}s ${mins%60}d`;}
+function isAlarmFresh(ts){ return (Date.now() - ts) < MAX_ALARM_AGE_MS; }
 
-// ============ LOGIN ============
 function login(e){
   e.preventDefault();
-  const u=$('u').value.trim(), p=$('p').value.trim(), r=$('r').value;
+  const u=$('u').value.trim(),p=$('p').value.trim(),r=$('r').value;
   if(u!==USER){alert('Namba si sahihi. Tumia: '+USER);return}
   if(p!==PASS){alert('Nenosiri si sahihi. Tumia: '+PASS);return}
   sessionStorage.setItem('li','1');sessionStorage.setItem('un',u);sessionStorage.setItem('ro',r);
@@ -360,10 +347,9 @@ async function showDash(role){
   myRole=role;
   await render(role);
   startEmergencyListener();
-  console.log('🔔 Listener started:', role, 'Session:', MY_SESSION);
+  console.log('🔔 Listener:', role, '| Session:', MY_SESSION);
 }
 
-// ============ LIVE VITALS ============
 let LV={temperature:0,systolic:0,diastolic:0,pulse:0,fhr:0,timestamp:null};
 let hist=[];
 
@@ -371,59 +357,27 @@ async function loadLive(){
   try{
     const s=await db.ref('vitals/'+DEV).once('value');const d=s.val();
     if(!d)return;
-    LV={
-      temperature:parseFloat(d.temperature)||0,
-      systolic:parseInt(d.systolic)||0,
-      diastolic:parseInt(d.diastolic)||0,
-      pulse:parseInt(d.pulse)||0,
-      fhr:parseInt(d.fhr||d.heartRate||0)||0,
-      timestamp:d.timestamp?(d.timestamp>1e12?d.timestamp:d.timestamp*1000):Date.now()
-    };
+    LV={temperature:parseFloat(d.temperature)||0,systolic:parseInt(d.systolic)||0,diastolic:parseInt(d.diastolic)||0,pulse:parseInt(d.pulse)||0,fhr:parseInt(d.fhr||d.heartRate||0)||0,timestamp:d.timestamp?(d.timestamp>1e12?d.timestamp:d.timestamp*1000):Date.now()};
     paintLive();
     const last=hist[0];
     const chg=!last||Math.abs(LV.temperature-last.temperature)>.1||Math.abs(LV.systolic-last.systolic)>2||Math.abs(LV.pulse-last.pulse)>2||Math.abs(LV.fhr-last.fhr)>2;
-    if(chg){
-      hist.unshift({...LV,date:new Date(LV.timestamp).toISOString()});
-      if(hist.length>10)hist=hist.slice(0,10);
-      try{await set('sensorHistory/'+DEV,hist.slice(0,5))}catch(e){}
-      paintHist();
-    }
+    if(chg){hist.unshift({...LV,date:new Date(LV.timestamp).toISOString()});if(hist.length>10)hist=hist.slice(0,10);try{await set('sensorHistory/'+DEV,hist.slice(0,5))}catch(e){}paintHist();}
   }catch(e){}
 }
-async function loadHist(){
-  const d=await get('sensorHistory/'+DEV,[]);
-  hist=Array.isArray(d)?d:[];
-  hist.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
-  paintHist();
-}
+async function loadHist(){const d=await get('sensorHistory/'+DEV,[]);hist=Array.isArray(d)?d:[];hist.sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));paintHist();}
 function paintLive(){
   document.querySelectorAll('.lt').forEach(e=>e.textContent=fmt(LV.temperature,1));
   document.querySelectorAll('.lb').forEach(e=>e.textContent=`${LV.systolic||'--'}/${LV.diastolic||'--'}`);
   document.querySelectorAll('.lp').forEach(e=>e.textContent=LV.pulse||'--');
   document.querySelectorAll('.lf').forEach(e=>e.textContent=LV.fhr||'--');
-  if(LV.timestamp){
-    const d=new Date(LV.timestamp);
-    document.querySelectorAll('.ld').forEach(e=>e.textContent=d.toLocaleDateString('sw-TZ',{day:'2-digit',month:'2-digit',year:'numeric'}));
-    document.querySelectorAll('.lt2').forEach(e=>e.textContent=d.toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));
-  }
+  if(LV.timestamp){const d=new Date(LV.timestamp);document.querySelectorAll('.ld').forEach(e=>e.textContent=d.toLocaleDateString('sw-TZ',{day:'2-digit',month:'2-digit',year:'numeric'}));document.querySelectorAll('.lt2').forEach(e=>e.textContent=d.toLocaleTimeString('sw-TZ',{hour:'2-digit',minute:'2-digit',second:'2-digit'}));}
   const s=document.querySelector('.sb');const ds=document.querySelector('.td');
-  if(s){
-    const t=LV.temperature;let st='KAWAIDA',c='normal',dsc='Joto ni la kawaida.';
-    if(t<35){st='CHINI SANA';c='cold';dsc='Joto lipo chini sana!'}
-    else if(t<36){st='CHINI';c='cold';dsc='Joto lipo chini ya kawaida.'}
-    else if(t<=37.5){st='KAWAIDA';c='normal';dsc='Joto ni la kawaida na salama.'}
-    else if(t<=38.5){st='JUU';c='fever';dsc='Joto limepanda! Ana homa.'}
-    else{st='JUU SANA';c='fever';dsc='Joto juu sana! Dharura.'}
-    s.textContent=st;s.className='sb '+c;if(ds)ds.textContent=dsc;
-  }
+  if(s){const t=LV.temperature;let st='KAWAIDA',c='normal',dsc='Joto ni la kawaida.';if(t<35){st='CHINI SANA';c='cold';dsc='Joto lipo chini sana!'}else if(t<36){st='CHINI';c='cold';dsc='Joto lipo chini ya kawaida.'}else if(t<=37.5){st='KAWAIDA';c='normal';dsc='Joto ni la kawaida na salama.'}else if(t<=38.5){st='JUU';c='fever';dsc='Joto limepanda! Ana homa.'}else{st='JUU SANA';c='fever';dsc='Joto juu sana! Dharura.'}s.textContent=st;s.className='sb '+c;if(ds)ds.textContent=dsc;}
 }
 function paintHist(){
   const t=$('sh');if(!t)return;
   if(!hist.length){t.innerHTML='<tr><td colspan="6" class="empty">Hakuna vipimo. Subiri kifaa M0005...</td></tr>';return}
-  t.innerHTML=hist.slice(0,5).map((x,i)=>{
-    const d=new Date(x.timestamp||Date.now());
-    return `<tr><td>${i+1}</td><td>${fmt(x.temperature,1)}</td><td>${x.systolic||'--'}/${x.diastolic||'--'}</td><td>${x.pulse||'--'}</td><td>${x.fhr||'--'}</td><td>${d.toLocaleString('sw-TZ')}</td></tr>`
-  }).join('');
+  t.innerHTML=hist.slice(0,5).map((x,i)=>{const d=new Date(x.timestamp||Date.now());return `<tr><td>${i+1}</td><td>${fmt(x.temperature,1)}</td><td>${x.systolic||'--'}/${x.diastolic||'--'}</td><td>${x.pulse||'--'}</td><td>${x.fhr||'--'}</td><td>${d.toLocaleString('sw-TZ')}</td></tr>`}).join('');
 }
 
 function liveBlock(title){
@@ -474,254 +428,196 @@ function wodiEmgBlock(role){
 }
 
 // =================================================================
-//  ALARM STATE — SINGLE SOURCE OF TRUTH
+//  ALARM STATE
 // =================================================================
 let currentEmergency = null;
 let audioCtx = null;
 let myRole = '';
 let pendingAlarms = [];
 let wakeLockObj = null;
+let isMinimized = false;
 
 const alarmState = {
-  active: false,
-  currentId: null,
-  soundTimer: null,
-  vibrateTimer: null,
-  oscillators: [],
-  shownIds: new Set()
+  active: false, currentId: null,
+  soundTimer: null, vibrateTimer: null,
+  oscillators: [], shownIds: new Set()
 };
 
-// === WAKE LOCK ===
-async function requestWakeLock(){
-  try{
-    if('wakeLock' in navigator && !wakeLockObj){
-      wakeLockObj = await navigator.wakeLock.request('screen');
-      wakeLockObj.addEventListener('release', () => { wakeLockObj = null; });
-    }
-  }catch(e){}
-}
-function releaseWakeLock(){
-  try{
-    if(wakeLockObj){ wakeLockObj.release(); wakeLockObj = null; }
-  }catch(e){}
-}
+async function requestWakeLock(){try{if('wakeLock' in navigator && !wakeLockObj){wakeLockObj = await navigator.wakeLock.request('screen');wakeLockObj.addEventListener('release', () => { wakeLockObj = null; });}}catch(e){}}
+function releaseWakeLock(){try{if(wakeLockObj){wakeLockObj.release();wakeLockObj = null;}}catch(e){}}
 
-// ============ EMERGENCY SENDER ============
 async function sendEm(type){
   $('em').classList.remove('on');
-  const role = sessionStorage.getItem('ro'), user = sessionStorage.getItem('un');
-  const srcWardMap = {
-    nurse_labour:'Labour Ward', nurse_theater:'Theater / Upasuaji',
-    nurse_postnatal:'Postnatal Ward', nurse_rch:'RCH Clinic', lab_tech:'Maabara',
-    chw:'CHW', admin:'Admin', coordinator:'Mratibu', driver:'Dereva',
-    mteja:'Mteja (Nyumbani)'
-  };
-  const srcWard = srcWardMap[role] || role;
-
-  let clientName = 'Mgonjwa';
-  let clientDetails = {};
-
-  if(role === 'mteja'){
-    const d = await getClient(user);
-    clientName = d.name || user;
-    clientDetails = {name:d.name||user, phone:d.phone||user, partner:d.partner||'-',
-      location:d.location||'-', district:d.district||'-', region:d.region||'-',
-      gravida:d.gravida||'-', para:d.para||'-', weight:d.weight||'-',
-      bp_sys:d.bp_sys||'-', bp_dia:d.bp_dia||'-', temp:d.temp||'-', status:d.status||'pregnant'};
+  const role=sessionStorage.getItem('ro'),user=sessionStorage.getItem('un');
+  const srcWardMap={nurse_labour:'Labour Ward',nurse_theater:'Theater / Upasuaji',nurse_postnatal:'Postnatal Ward',nurse_rch:'RCH Clinic',lab_tech:'Maabara',chw:'CHW',admin:'Admin',coordinator:'Mratibu',driver:'Dereva',mteja:'Mteja (Nyumbani)'};
+  const srcWard=srcWardMap[role]||role;
+  let clientName='Mgonjwa';
+  let clientDetails={};
+  if(role==='mteja'){
+    const d=await getClient(user);
+    clientName=d.name||user;
+    clientDetails={name:d.name||user,phone:d.phone||user,partner:d.partner||'-',location:d.location||'-',district:d.district||'-',region:d.region||'-',gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',bp_sys:d.bp_sys||'-',bp_dia:d.bp_dia||'-',temp:d.temp||'-',status:d.status||'pregnant'};
   } else {
-    const sel = $('lm1') || $('pnClientSelectCard') || $('labClientSelect') || $('mtejaSelect');
-    if(sel && sel.value){
-      clientName = sel.value;
-      const d = await getClient(clientName);
-      clientDetails = {name:clientName, phone:d.phone||'-', partner:d.partner||'-',
-        location:d.location||'-', district:d.district||'-', region:d.region||'-',
-        gravida:d.gravida||'-', para:d.para||'-', weight:d.weight||'-',
-        bp_sys:d.bp_sys||'-', bp_dia:d.bp_dia||'-', temp:d.temp||'-', status:d.status||'pregnant'};
+    const sel=$('lm1')||$('pnClientSelectCard')||$('labClientSelect')||$('mtejaSelect');
+    if(sel&&sel.value){
+      clientName=sel.value;
+      const d=await getClient(clientName);
+      clientDetails={name:clientName,phone:d.phone||'-',partner:d.partner||'-',location:d.location||'-',district:d.district||'-',region:d.region||'-',gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',bp_sys:d.bp_sys||'-',bp_dia:d.bp_dia||'-',temp:d.temp||'-',status:d.status||'pregnant'};
     }
   }
-
   try{
-    const emg = {
-      type, sourceWard:srcWard, role, user, clientName, clientDetails,
-      sessionId: MY_SESSION,
-      message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,
-      timestamp: Date.now(), status:'active', response:null, redirectedTo:null, comment:null
-    };
-    await db.ref('emergencies/emg_' + Date.now()).set(emg);
+    const emg={type,sourceWard:srcWard,role,user,clientName,clientDetails,sessionId:MY_SESSION,message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,timestamp:Date.now(),status:'active',response:null,redirectedTo:null,comment:null};
+    await db.ref('emergencies/emg_'+Date.now()).set(emg);
     playOnce();
-    alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}\n\nWote wanasikia MLIO na wanaona jina la mteja + details zake.`);
-  }catch(e){ alert('Hitilafu: ' + e.message); }
+    alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}`);
+  }catch(e){alert('Hitilafu: '+e.message)}
 }
 
-// =================================================================
-//  SOUND ENGINE — RECURSIVE + TRACKED OSCILLATORS
-// =================================================================
 function playOnce(){
   try{
-    if(!audioCtx){
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if(!Ctx) return;
-      audioCtx = new Ctx();
-    }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
-
-    const playNote = (freq, startAt, dur) => {
-      if(!audioCtx) return;
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = 'sine';
-      o.frequency.value = freq;
-      o.connect(g); g.connect(audioCtx.destination);
-      const t = audioCtx.currentTime + startAt;
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.4, t + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.start(t); o.stop(t + dur + 0.05);
+    if(!audioCtx){const Ctx=window.AudioContext||window.webkitAudioContext;if(!Ctx)return;audioCtx=new Ctx();}
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const playNote=(freq,startAt,dur)=>{
+      if(!audioCtx)return;
+      const o=audioCtx.createOscillator();const g=audioCtx.createGain();
+      o.type='sine';o.frequency.value=freq;o.connect(g);g.connect(audioCtx.destination);
+      const t=audioCtx.currentTime+startAt;
+      g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.4,t+0.03);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.start(t);o.stop(t+dur+0.05);
       alarmState.oscillators.push(o);
-      setTimeout(() => {
-        const idx = alarmState.oscillators.indexOf(o);
-        if(idx > -1) alarmState.oscillators.splice(idx, 1);
-      }, (dur + 0.2) * 1000);
+      setTimeout(()=>{const idx=alarmState.oscillators.indexOf(o);if(idx>-1)alarmState.oscillators.splice(idx,1);},(dur+0.2)*1000);
     };
-
-    // Pattern: beep-beep ... beep-beep
-    playNote(880, 0,    0.25);
-    playNote(660, 0.3,  0.25);
-    playNote(880, 0.65, 0.25);
-    playNote(660, 0.95, 0.25);
-  }catch(e){ console.warn('Audio:', e); }
+    playNote(880,0,0.25);playNote(660,0.3,0.25);playNote(880,0.65,0.25);playNote(660,0.95,0.25);
+  }catch(e){console.warn('Audio:',e)}
 }
 
-// === ANZA MLIO + VIBRATION (recursive setTimeout) ===
 function startRingLoop(emgId){
   if(alarmState.active && alarmState.currentId === emgId) return;
   stopRingLoop();
-
   alarmState.active = true;
   alarmState.currentId = emgId;
-
-  // Sound loop (recursive)
   playOnce();
-  const soundLoop = () => {
-    if(!alarmState.active) return;
-    playOnce();
-    alarmState.soundTimer = setTimeout(soundLoop, 1600);
-  };
+  const soundLoop = () => { if(!alarmState.active) return; playOnce(); alarmState.soundTimer = setTimeout(soundLoop, 1600); };
   alarmState.soundTimer = setTimeout(soundLoop, 1600);
-
-  // Vibration loop (recursive)
   if(navigator.vibrate){
     navigator.vibrate([600,200,600,200,600]);
-    const vibLoop = () => {
-      if(!alarmState.active) return;
-      if(navigator.vibrate) navigator.vibrate([600,200,600,200,600]);
-      alarmState.vibrateTimer = setTimeout(vibLoop, 4000);
-    };
+    const vibLoop = () => { if(!alarmState.active) return; if(navigator.vibrate) navigator.vibrate([600,200,600,200,600]); alarmState.vibrateTimer = setTimeout(vibLoop, 4000); };
     alarmState.vibrateTimer = setTimeout(vibLoop, 4000);
   }
-
   requestWakeLock();
-  console.log('🔔 Ring loop STARTED for alarm:', emgId);
+  console.log('🔔 Ring STARTED:', emgId);
 }
 
-// === SIMAMISHA MLIO PAPO HAPO ===
 function stopRingLoop(){
   alarmState.active = false;
   alarmState.currentId = null;
-
-  if(alarmState.soundTimer){
-    clearTimeout(alarmState.soundTimer);
-    alarmState.soundTimer = null;
-  }
-  if(alarmState.vibrateTimer){
-    clearTimeout(alarmState.vibrateTimer);
-    alarmState.vibrateTimer = null;
-  }
-
-  // Stop all oscillators immediately
-  alarmState.oscillators.forEach(o => {
-    try { o.stop(); o.disconnect(); } catch(e){}
-  });
+  if(alarmState.soundTimer){clearTimeout(alarmState.soundTimer);alarmState.soundTimer=null;}
+  if(alarmState.vibrateTimer){clearTimeout(alarmState.vibrateTimer);alarmState.vibrateTimer=null;}
+  alarmState.oscillators.forEach(o => { try { o.stop(); o.disconnect(); } catch(e){} });
   alarmState.oscillators = [];
-
   if(navigator.vibrate) navigator.vibrate(0);
   releaseWakeLock();
-  console.log('🔕 Ring loop STOPPED');
+  console.log('🔕 Ring STOPPED');
 }
 
-// Backward compat
 function playRing(){ playOnce(); }
 
-// =================================================================
-//  EMERGENCY LISTENER
-// =================================================================
-function isEmergencyForMe(emg, role){
-  const responders = ['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
-  if(!responders.includes(role)) return false;
-  if(emg.sessionId === MY_SESSION) return false;
-  if(emg.status !== 'active') return false;
+// ============ MINIMIZE / REOPEN ============
+function minimizeAlarm(){
+  isMinimized = true;
+  $('alertBox').style.display = 'none';
+  $('alertRing').classList.remove('on');
+  $('alarmMini').classList.add('on');
+  $('alarmMiniCount').textContent = pendingAlarms.filter(e=>e.status==='active').length || 1;
+  // MLIO UNAENDELEA — ndio maana hatuita stopRingLoop()
+}
+
+function reopenAlarm(){
+  isMinimized = false;
+  $('alertBox').style.display = 'block';
+  $('alertRing').classList.add('on');
+  $('alarmMini').classList.remove('on');
+}
+
+function isEmergencyForMe(emg,role){
+  const responders=['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
+  if(!responders.includes(role))return false;
+  if(emg.sessionId===MY_SESSION)return false;
+  if(emg.status!=='active')return false;
+  if(!isAlarmFresh(emg.timestamp))return false; // ⏱️ Alarm za zamani hazilili
   if(emg.redirectedTo){
-    const toRole = mapNameToRole(emg.redirectedTo);
-    if(toRole && toRole !== role) return false;
+    const toRole=mapNameToRole(emg.redirectedTo);
+    if(toRole && toRole!==role)return false;
   }
   return true;
 }
 
 function mapNameToRole(name){
-  if(!name) return null;
-  const n = name.toLowerCase();
-  if(n.includes('admin')) return 'admin';
-  if(n.includes('mratibu')||n.includes('coordinator')) return 'coordinator';
-  if(n.includes('chw')||n.includes('amina')) return 'chw';
-  if(n.includes('theater')||n.includes('neema')) return 'nurse_theater';
-  if(n.includes('postnatal')||n.includes('grace')) return 'nurse_postnatal';
-  if(n.includes('labour')||n.includes('labor')||n.includes('zainab')) return 'nurse_labour';
-  if(n.includes('rch')) return 'nurse_rch';
-  if(n.includes('dereva')||n.includes('juma ally')) return 'driver';
+  if(!name)return null;
+  const n=name.toLowerCase();
+  if(n.includes('admin'))return 'admin';
+  if(n.includes('mratibu')||n.includes('coordinator'))return 'coordinator';
+  if(n.includes('chw')||n.includes('amina'))return 'chw';
+  if(n.includes('theater')||n.includes('neema'))return 'nurse_theater';
+  if(n.includes('postnatal')||n.includes('grace'))return 'nurse_postnatal';
+  if(n.includes('labour')||n.includes('labor')||n.includes('zainab'))return 'nurse_labour';
+  if(n.includes('rch'))return 'nurse_rch';
+  if(n.includes('dereva')||n.includes('juma ally'))return 'driver';
   return null;
 }
 
 function startEmergencyListener(){
-  console.log('🔔 Listener started for:', myRole, '| Session:', MY_SESSION);
-  db.ref('emergencies').on('value', snap => {
-    const data = snap.val() || {};
-    const allItems = Object.entries(data).map(([id,v]) => ({id,...v}))
-      .sort((a,b) => b.timestamp - a.timestamp);
+  console.log('🔔 Listener started for:',myRole,'| Session:',MY_SESSION);
+  db.ref('emergencies').on('value',snap=>{
+    const data=snap.val()||{};
+    const allItems=Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>b.timestamp-a.timestamp);
+    const activeItems=allItems.filter(e=>e.status==='active');
+    const freshItems=activeItems.filter(e=>isAlarmFresh(e.timestamp));
+    const historyItems=allItems.filter(e=>e.status==='responding'||e.status==='resolved');
 
-    const activeItems = allItems.filter(e => e.status === 'active');
-    const historyItems = allItems.filter(e => e.status === 'responding' || e.status === 'resolved');
+    // ⏱️ ONDOA alarm za zamani kama hazijajibiwa
+    activeItems.forEach(async e => {
+      if(!isAlarmFresh(e.timestamp)){
+        try{
+          await db.ref('emergencies/'+e.id).update({status:'expired', expiredAt:Date.now()});
+        }catch(err){}
+      }
+    });
 
-    updateBell(activeItems);
+    updateBell(freshItems);
     updateHistoryUI(historyItems);
 
-    // === KAMA NINA ALERT INAYOENDELEA ===
     if(currentEmergency){
-      const still = activeItems.find(e => e.id === currentEmergency.id);
+      const still=freshItems.find(e=>e.id===currentEmergency.id);
       if(!still){
-        console.log('🔕 Current alarm no longer active. Stopping sound NOW.');
-        currentEmergency = null;
+        currentEmergency=null;
+        $('alertBox').style.display='none';
         $('alertRing').classList.remove('on');
+        $('alarmMini').classList.remove('on');
         stopRingLoop();
-        setTimeout(checkNextAlarm, 500);
+        setTimeout(checkNextAlarm,500);
       }
       return;
     }
 
-    // === KAMA MLIO UNAENDELEA LAKINI HAKUNA currentEmergency → SIMAMISHA ===
     if(alarmState.active && !currentEmergency){
-      console.log('🔕 No current alarm but sound was playing. Stopping.');
       stopRingLoop();
+      $('alertBox').style.display='none';
       $('alertRing').classList.remove('on');
+      $('alarmMini').classList.remove('on');
     }
 
-    // === ANGALIA ALARM MPYA INAYONIHUSU ===
-    const forMe = activeItems.filter(e => isEmergencyForMe(e, myRole));
-    pendingAlarms = forMe;
+    const forMe=freshItems.filter(e=>isEmergencyForMe(e,myRole));
+    pendingAlarms=forMe;
 
-    const newForMe = forMe.filter(e => !alarmState.shownIds.has(e.id));
+    if(isMinimized && forMe.length > 0){
+      $('alarmMiniCount').textContent = forMe.length;
+      $('alarmMini').classList.add('on');
+      return;
+    }
 
-    if(newForMe.length > 0 && !alarmState.active && !currentEmergency){
-      console.log('🔔 Showing new alarm:', newForMe[0].type, '| ID:', newForMe[0].id);
+    const newForMe=forMe.filter(e=>!alarmState.shownIds.has(e.id));
+    if(newForMe.length>0 && !alarmState.active && !currentEmergency){
       showEmergencyAlert(newForMe[0]);
     }
   });
@@ -730,61 +626,51 @@ function startEmergencyListener(){
 function checkNextAlarm(){
   if(currentEmergency || alarmState.active) return;
   const next = pendingAlarms.find(e => e.status === 'active' && !alarmState.shownIds.has(e.id));
-  if(next){
-    console.log('🔔 Next alarm:', next.type);
-    showEmergencyAlert(next);
-  } else {
+  if(next){ showEmergencyAlert(next); } else {
     stopRingLoop();
+    $('alertBox').style.display='none';
     $('alertRing').classList.remove('on');
+    $('alarmMini').classList.remove('on');
   }
 }
 
 function updateBell(items){
-  const nav = $('navActions'); if(!nav) return;
-  let bell = $('bellBtn');
-  if(!bell){
-    bell = document.createElement('button');
-    bell.id = 'bellBtn';
-    bell.className = 'bell';
-    bell.onclick = showPendingList;
-    nav.insertBefore(bell, nav.firstChild);
-  }
-  const myItems = items.filter(e => isEmergencyForMe(e, myRole));
-  if(myItems.length > 0){
-    bell.innerHTML = `🔔 Dharura <span class="count">${myItems.length}</span>`;
-    bell.classList.add('shake');
-  } else {
-    bell.innerHTML = '🔔 Dharura (0)';
-    bell.classList.remove('shake');
-  }
+  const nav=$('navActions');if(!nav)return;
+  let bell=$('bellBtn');
+  if(!bell){bell=document.createElement('button');bell.id='bellBtn';bell.className='bell';bell.onclick=showPendingList;nav.insertBefore(bell,nav.firstChild);}
+  const myItems=items.filter(e=>isEmergencyForMe(e,myRole));
+  if(myItems.length>0){bell.innerHTML=`🔔 Dharura <span class="count">${myItems.length}</span>`;bell.classList.add('shake');}
+  else{bell.innerHTML='🔔 Dharura (0)';bell.classList.remove('shake');}
 }
 
 function showPendingList(){
-  db.ref('emergencies').once('value', snap => {
-    const data = snap.val() || {};
-    const items = Object.entries(data).map(([id,v]) => ({id,...v}))
-      .filter(e => e.status === 'active' && isEmergencyForMe(e, myRole));
-    if(items.length === 0){ alert('✅ Hakuna dharura mpya.'); return; }
-    const list = items.map((e,i) => {
-      const c = e.clientDetails || {};
-      return `${i+1}. [${e.type}]\n   Kutoka: ${e.sourceWard||e.role}\n   Mgonjwa: ${e.clientName||c.name||'-'}\n   Muda: ${shortTime(e.timestamp)}`;
-    }).join('\n\n');
+  db.ref('emergencies').once('value',snap=>{
+    const data=snap.val()||{};
+    const items=Object.entries(data).map(([id,v])=>({id,...v})).filter(e=>e.status==='active'&&isAlarmFresh(e.timestamp)&&isEmergencyForMe(e,myRole));
+    if(items.length===0){alert('✅ Hakuna dharura mpya.');return;}
+    const list=items.map((e,i)=>{const c=e.clientDetails||{};return `${i+1}. [${e.type}]\n   Kutoka: ${e.sourceWard||e.role}\n   Mgonjwa: ${e.clientName||c.name||'-'}\n   Muda: ${shortTime(e.timestamp)}`;}).join('\n\n');
     if(confirm(`🔔 DHARURA ${items.length} MPYA:\n\n${list}\n\nFungua ya kwanza?`)) showEmergencyAlert(items[0]);
   });
 }
 
 function showEmergencyAlert(emg){
   currentEmergency = emg;
+  isMinimized = false;
+  $('alarmMini').classList.remove('on');
+  $('alertBox').style.display = 'block';
+  $('alertRing').classList.add('on');
+
   $('alertSource').textContent = `Kutoka: ${emg.sourceWard||emg.role||'Haijulikani'}`;
   $('alertMessage').textContent = `${emg.type}`;
   $('alertTime').textContent = `🕐 ${fullTime(emg.timestamp)}`;
 
-  const detailsEl = $('alertClientDetails');
-  const d = emg.clientDetails || {};
-  const name = emg.clientName || d.name || '-';
-  if(name && name !== 'Mgonjwa' || Object.keys(d).length > 0){
-    let html = `<div class="hdr">👤 TAARIFA ZA MGONJWA / MTEJA:</div>`;
-    html += `<div><b>👤 Jina:</b> ${d.name||name}</div>`;
+  const detailsEl=$('alertClientDetails');
+  const d=emg.clientDetails||{};
+  const name=emg.clientName||d.name||'Mgonjwa (Haijulikani)';
+  const hasDetails = (d.name && d.name !== '-') || (d.phone && d.phone !== '-') || (d.location && d.location !== '-');
+  if(hasDetails){
+    let html=`<div class="hdr">👤 TAARIFA ZA MGONJWA / MTEJA:</div>`;
+    html+=`<div><b>👤 Jina:</b> ${d.name||name}</div>`;
     if(d.phone && d.phone !== '-') html += `<div><b>📞 Simu:</b> ${d.phone}</div>`;
     if(d.partner && d.partner !== '-') html += `<div><b>💑 Mume/Mtegemezi:</b> ${d.partner}</div>`;
     if(d.location && d.location !== '-') html += `<div><b>📍 Kituo/Mtaa:</b> ${d.location}</div>`;
@@ -802,125 +688,99 @@ function showEmergencyAlert(emg){
     detailsEl.innerHTML = html;
     detailsEl.style.display = 'block';
   } else {
-    detailsEl.style.display = 'none';
+    // Fallback — onyesha taarifa za msingi
+    detailsEl.innerHTML = `<div class="hdr">👤 TAARIFA ZA DHARURA:</div>
+      <div><b>👤 Mgonjwa:</b> ${name}</div>
+      <div><b>📋 Aina:</b> ${emg.type}</div>
+      <div><b>🏥 Kutoka:</b> ${emg.sourceWard||emg.role||'-'}</div>
+      <div><b>👨‍⚕️ Mtumaji:</b> ${emg.user||'-'} (${emg.role||'-'})</div>`;
+    detailsEl.style.display = 'block';
   }
 
   $('alertComment').value = '';
 
-  const queueEl = $('alarmQueueInfo');
-  const otherActive = pendingAlarms.filter(e => e.id !== emg.id && e.status === 'active' && !alarmState.shownIds.has(e.id));
-  if(otherActive.length > 0){
-    queueEl.innerHTML = `⚠️ <b>Kuna dharura nyingine ${otherActive.length} zinazosubiri.</b> Ukimaliza hii, utaona inayofuata.`;
+  const queueEl=$('alarmQueueInfo');
+  const otherActive=pendingAlarms.filter(e=>e.id!==emg.id && e.status==='active' && !alarmState.shownIds.has(e.id));
+  if(otherActive.length>0){
+    queueEl.innerHTML = `⚠️ <b>Kuna dharura nyingine ${otherActive.length}.</b> Ukimaliza hii, utaona inayofuata.`;
     queueEl.style.display = 'block';
   } else {
     queueEl.style.display = 'none';
   }
 
-  $('alertRing').classList.add('on');
   alarmState.shownIds.add(emg.id);
   startRingLoop(emg.id);
 }
 
-// =================================================================
-//  RESPOND — SIMAMISHA MLIO PAPO HAPO
-// =================================================================
 async function respondEmergency(action){
   if(!currentEmergency) return;
-  const comment = ($('alertComment')?.value || '').trim();
-  const me = sessionStorage.getItem('un'), role = sessionStorage.getItem('ro');
+  const comment=($('alertComment')?.value||'').trim();
+  const me=sessionStorage.getItem('un'),role=sessionStorage.getItem('ro');
 
-  if(action === 'coming' && !comment){
-    if(!confirm('Hujaandika maoni. Unataka kuendelea bila comment?')) return;
+  if(action==='coming' && !comment){
+    if(!confirm('Hujaandika maoni. Kuendelea bila comment?')) return;
   }
 
-  // ⏹️ STOP MLIO PAPO HAPO — KABLA YA KILA KITU
   stopRingLoop();
+  $('alertBox').style.display='none';
   $('alertRing').classList.remove('on');
+  $('alarmMini').classList.remove('on');
 
-  const emgId = currentEmergency.id;
-  const emgCopy = {...currentEmergency};
+  const emgId=currentEmergency.id;
+  const emgCopy={...currentEmergency};
+  currentEmergency=null;
 
-  // ⬇️⬇️⬇️ MUHIMU: Ondoa currentEmergency MARA MOJA
-  currentEmergency = null;
+  const upd={response:action,respondedBy:me,respondedRole:role,respondedAt:Date.now(),respondedSession:MY_SESSION,comment:comment||'(Hakuna maoni)'};
 
-  const upd = {
-    response: action,
-    respondedBy: me,
-    respondedRole: role,
-    respondedAt: Date.now(),
-    respondedSession: MY_SESSION,
-    comment: comment || '(Hakuna maoni)'
-  };
-
-  if(action === 'coming'){
-    upd.status = 'responding';
-    upd.message = `✅ ${me} (${role}) amekubali (NAJA). ${comment?'Maoni: "'+comment+'"':''}`;
-    upd.respondedAtStr = fullTime(Date.now());
-    upd.responseTime = duration(emgCopy.timestamp, Date.now());
-
+  if(action==='coming'){
+    upd.status='responding';
+    upd.message=`✅ ${me} (${role}) amekubali (NAJA). ${comment?'Maoni: "'+comment+'"':''}`;
+    upd.respondedAtStr=fullTime(Date.now());
+    upd.responseTime=duration(emgCopy.timestamp,Date.now());
     await db.ref('emergencies/'+emgId).update(upd);
-
-    alert(`✅ UMEKUBALI (NAJA)!\n\nDharura: ${emgCopy.type}\nMgonjwa: ${emgCopy.clientName||'-'}\nKutoka: ${emgCopy.sourceWard||emgCopy.role}\n\n📝 Maoni yako: "${comment||'(Hakuna maoni)'}"\n⏱️ Muda wa kujibu: ${upd.responseTime}\n\n➡️ MLIO UMEKATIKA KWA WOTE.`);
+    alert(`✅ UMEKUBALI!\n\nDharura: ${emgCopy.type}\nMgonjwa: ${emgCopy.clientName||'-'}\n\n📝 Maoni: "${comment||'(Hakuna)'}"\n⏱️ Muda: ${upd.responseTime}`);
     setTimeout(checkNextAlarm, 1000);
-  } else if(action === 'busy'){
-    $('redirectEmgId').value = emgId;
-    if(comment) $('redirectNote').value = comment;
+  } else if(action==='busy'){
+    $('redirectEmgId').value=emgId;
+    if(comment)$('redirectNote').value=comment;
     $('redirectModal').classList.add('on');
-    // Rejesha kwa modal
-    currentEmergency = emgCopy;
+    currentEmergency=emgCopy;
     return;
   }
 }
 
 async function confirmRedirect(){
-  const id = $('redirectEmgId').value, to = $('redirectTo').value, note = $('redirectNote').value.trim();
-  if(!to){ alert('Chagua mtu wa kuelekeza.'); return; }
-  if(!note){ alert('Andika ujumbe.'); return; }
-  const me = sessionStorage.getItem('un');
-  await db.ref('emergencies/'+id).update({
-    status: 'active',
-    redirectedTo: to, redirectedBy: me, redirectedAt: Date.now(),
-    redirectedAtStr: fullTime(Date.now()),
-    redirectNote: note, comment: note,
-    message: `Imeelekezwa kwa ${to}: "${note}" (na ${me})`
-  });
+  const id=$('redirectEmgId').value,to=$('redirectTo').value,note=$('redirectNote').value.trim();
+  if(!to){alert('Chagua mtu.');return;}
+  if(!note){alert('Andika ujumbe.');return;}
+  const me=sessionStorage.getItem('un');
+  await db.ref('emergencies/'+id).update({status:'active',redirectedTo:to,redirectedBy:me,redirectedAt:Date.now(),redirectedAtStr:fullTime(Date.now()),redirectNote:note,comment:note,message:`Imeelekezwa kwa ${to}: "${note}" (na ${me})`});
   $('redirectModal').classList.remove('on');
+  $('alertBox').style.display='none';
   $('alertRing').classList.remove('on');
   stopRingLoop();
-  currentEmergency = null;
-  alert(`✅ Dharura imeelekezwa kwa ${to}.\nUjumbe: "${note}"\n\nMfumo wao utaita MLIO mara moja.`);
+  currentEmergency=null;
+  alert(`✅ Dharura imeelekezwa kwa ${to}.`);
   setTimeout(checkNextAlarm, 1000);
 }
 
 function closeRedirect(){
   stopRingLoop();
+  $('alertBox').style.display='none';
   $('alertRing').classList.remove('on');
   $('redirectModal').classList.remove('on');
-  currentEmergency = null;
+  currentEmergency=null;
   setTimeout(checkNextAlarm, 1000);
 }
 
-// =================================================================
-//  UPDATE HISTORY UI
-// =================================================================
 function updateHistoryUI(historyItems){
-  const el = $('processedAlarmsBody');
+  const el=$('processedAlarmsBody');
   if(!el) return;
-  if(!historyItems || historyItems.length === 0){
-    el.innerHTML = '<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';
-    return;
-  }
-  const mine = historyItems.filter(e => e.status === 'responding')
-    .sort((a,b) => (b.respondedAt||0) - (a.respondedAt||0)).slice(0, 20);
-
-  if(mine.length === 0){
-    el.innerHTML = '<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';
-    return;
-  }
-
-  el.innerHTML = mine.map(e => {
-    const c = e.clientDetails || {};
-    const name = e.clientName || c.name || '-';
+  if(!historyItems||historyItems.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
+  const mine=historyItems.filter(e=>e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
+  if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
+  el.innerHTML=mine.map(e=>{
+    const c=e.clientDetails||{};const name=e.clientName||c.name||'-';
     return `<tr>
       <td><b>${e.type}</b><br><small>${e.sourceWard||e.role||'-'}</small></td>
       <td><b>${name}</b><br><small>${c.phone||'-'}</small></td>
@@ -936,71 +796,45 @@ function processedAlarmsBlock(){
   return `
   <div class="processed-alarms">
     <h3>✅ DHARURA ZILIZOFANYIWA KAZI (Historia)</h3>
-    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Hapa zinaonekana dharura zote zilizojibiwa — zinaonyesha muda/ saa ya kupokea na kujibu, jina la mteja, na maoni ya mhudumu.</p>
+    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Dharura zote zilizojibiwa — zinaonyesha muda/saa, jina la mteja, na maoni ya mhudumu.</p>
     <div style="overflow-x:auto;">
       <table>
-        <thead>
-          <tr>
-            <th>Aina</th>
-            <th>Mgonjwa</th>
-            <th>🕐 Alipopokea</th>
-            <th>👤 Aliyetuma</th>
-            <th>⏱️ Alipojibu</th>
-            <th>📝 Maoni</th>
-          </tr>
-        </thead>
-        <tbody id="processedAlarmsBody">
-          <tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>
-        </tbody>
+        <thead><tr><th>Aina</th><th>Mgonjwa</th><th>🕐 Alipopokea</th><th>👤 Aliyetuma</th><th>⏱️ Alipojibu</th><th>📝 Maoni</th></tr></thead>
+        <tbody id="processedAlarmsBody"><tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr></tbody>
       </table>
     </div>
   </div>`;
 }
 
-// ============ CONFIRM REFERRAL ============
 async function confirmRef(){
-  const id = parseFloat($('hid').value), h = $('hs').value;
-  await updReferral(id, {status:'approved', toHospital:h, reviewedAt:new Date().toISOString()});
+  const id=parseFloat($('hid').value),h=$('hs').value;
+  await updReferral(id,{status:'approved',toHospital:h,reviewedAt:new Date().toISOString()});
   $('hm').classList.remove('on');
   alert('✅ Rufaa imethibitishwa kwenda '+h);
   await render('coordinator');
 }
 
-// =================================================================
-//  RENDER (ROLE ROUTER)
-// =================================================================
 async function render(role){
-  myRole = role;
-  const user = sessionStorage.getItem('un') || 'Mtumiaji';
-  const c = $('content');
-  let h = '';
-  const badge = $('cb'); badge.style.display = 'none';
+  myRole=role;
+  const user=sessionStorage.getItem('un')||'Mtumiaji';
+  const c=$('content');
+  let h='';
+  const badge=$('cb');badge.style.display='none';
 
-  // ---------- MTEJA ----------
-  if(role === 'mteja'){
-    const d = await getClient(user);
-    const st = d.status || 'pregnant';
-    badge.style.display = 'inline-block';
-    if(st === 'postnatal'){ badge.textContent = '👶 Postnatal'; badge.className = 'badge bg-y'; }
-    else { badge.textContent = '🤰 Mjamzito'; badge.className = 'badge bg-g'; }
-    const vs = d.visits || [];
-    const vRows = vs.length ? vs.map((v,i) => `<tr><td>${i+1}</td><td>${v.date||'-'}</td><td>${v.weight||'-'}</td><td>${v.bp||'-'}</td><td>${v.temp||'-'}</td><td>${v.advice||'-'}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">Hakuna mahudhurio</td></tr>';
-    const isPN = st === 'postnatal';
-    const myEmg = await get('emergencies',{});
-    const myResponded = Object.values(myEmg||{}).filter(e => e.user === user && e.status === 'responding').sort((a,b) => (b.respondedAt||0) - (a.respondedAt||0)).slice(0,3);
-    let responseMsg = '';
-    if(myResponded.length > 0){
-      responseMsg = myResponded.map(e => `
-        <div class="msg s">
-          ✅ <strong>MSAADA UNAKuja!</strong><br>
-          <b>Dharura:</b> ${e.type}<br>
-          <b>Mhudumu:</b> ${e.respondedBy||'-'} (${e.respondedRole||'-'})<br>
-          ${e.comment && e.comment !== '(Hakuna maoni)' ? '<b>Maoni:</b> "'+e.comment+'"<br>' : ''}
-          <small>⏱️ Alijibu: ${fullTime(e.respondedAt)}</small>
-        </div>
-      `).join('');
-    }
-    h = `
+  if(role==='mteja'){
+    const d=await getClient(user);
+    const st=d.status||'pregnant';
+    badge.style.display='inline-block';
+    if(st==='postnatal'){badge.textContent='👶 Postnatal';badge.className='badge bg-y';}
+    else{badge.textContent='🤰 Mjamzito';badge.className='badge bg-g';}
+    const vs=d.visits||[];
+    const vRows=vs.length?vs.map((v,i)=>`<tr><td>${i+1}</td><td>${v.date||'-'}</td><td>${v.weight||'-'}</td><td>${v.bp||'-'}</td><td>${v.temp||'-'}</td><td>${v.advice||'-'}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Hakuna mahudhurio</td></tr>';
+    const isPN=st==='postnatal';
+    const myEmg=await get('emergencies',{});
+    const myResponded=Object.values(myEmg||{}).filter(e=>e.user===user&&e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,3);
+    let responseMsg='';
+    if(myResponded.length>0){responseMsg=myResponded.map(e=>`<div class="msg s">✅ <strong>MSAADA UNAKuja!</strong><br><b>Dharura:</b> ${e.type}<br><b>Mhudumu:</b> ${e.respondedBy||'-'} (${e.respondedRole||'-'})<br>${e.comment&&e.comment!=='(Hakuna maoni)'?'<b>Maoni:</b> "'+e.comment+'"<br>':''}<small>⏱️ Alijibu: ${fullTime(e.respondedAt)}</small></div>`).join('');}
+    h=`
       ${liveBlock('📡 Data Yako (Kifaa M0005)')}
       ${histBlock()}
       ${responseMsg}
@@ -1010,12 +844,7 @@ async function render(role){
         <button class="tab" onclick="tab('t3',this)" ${isPN?'disabled':''}>🔄 Omba Kuhama</button>
       </div>
       <div id="t1" class="tc on">
-        ${!isPN ? `<div class="em">
-          <h3 style="color:#d32f2f;border:none;padding:0">🚨 EMERGENCY TRANSPORT ROOM</h3>
-          <p style="font-size:.9rem">Ukipata maumivu au changamoto, bonyeza kitufe hiki kupata msaada na usafiri.</p>
-          <button class="pulse" onclick="$('em').classList.add('on')">OMBA<br>MSAADA</button>
-          <p style="font-size:0.8rem;color:#666;margin-top:10px;">💡 MLIO unarudia rudia kwa Nurse wa Labour, RCH, Postnatal, Theater, Daktari Mkuu na Mratibu hadi mtu atakapojibu.</p>
-        </div>` : ''}
+        ${!isPN?`<div class="em"><h3 style="color:#d32f2f;border:none;padding:0">🚨 EMERGENCY TRANSPORT ROOM</h3><p style="font-size:.9rem">Ukipata maumivu au changamoto, bonyeza kitufe hiki kupata msaada na usafiri.</p><button class="pulse" onclick="$('em').classList.add('on')">OMBA<br>MSAADA</button><p style="font-size:0.8rem;color:#666;margin-top:10px;">💡 MLIO unarudia rudia kwa Nurse wa Labour, RCH, Postnatal, Theater, Daktari Mkuu hadi mtu atakapojibu.</p></div>`:''}
         <div class="card"><h3>📑 Kadi Yako ya Kliniki (RCH 4)</h3>
           <div style="border:2px solid #1565c0;border-radius:10px;padding:15px;background:#fff">
             <div style="text-align:center;border-bottom:2px solid #1565c0;padding-bottom:10px;margin-bottom:12px">
@@ -1034,71 +863,45 @@ async function render(role){
           <button class="btn b-green" onclick="window.print()" style="margin-top:10px">🖨️ PRINT KADI YAKO</button>
         </div>
       </div>
-      <div id="t2" class="tc">
-        <div class="card"><h3>🍼 Postnatal Care</h3>
-          <div class="msg i"><b>Live Device:</b> BP <span class="lb">--/--</span> | Joto <span class="lt">--</span>°C | Pulse <span class="lp">--</span></div>
-          ${d.deliveryDate ? `<p style="margin-top:8px"><b>📅 Tarehe ya Kujifungua:</b> ${d.deliveryDate}</p><p><b>👶 Njia:</b> ${d.deliveryMode||'-'}</p>` : ''}
-        </div>
-      </div>
+      <div id="t2" class="tc"><div class="card"><h3>🍼 Postnatal Care</h3>
+        <div class="msg i"><b>Live Device:</b> BP <span class="lb">--/--</span> | Joto <span class="lt">--</span>°C | Pulse <span class="lp">--</span></div>
+        ${d.deliveryDate?`<p style="margin-top:8px"><b>📅 Tarehe ya Kujifungua:</b> ${d.deliveryDate}</p><p><b>👶 Njia:</b> ${d.deliveryMode||'-'}</p>`:''}
+      </div></div>
       <div id="t3" class="tc">
-        ${isPN ? '<div class="card"><div class="msg d">❌ Umekwisha jifungua. Huwezi kuomba uhamisho.</div></div>' : `
-        <div class="card"><h3>🔄 Omba Kuhama Kituo</h3>
-          <form onsubmit="mtejaTransfer(event)">
-            <label>Kituo Kipya:</label>
-            <select id="tt" required><option>Chapwa HC</option><option>Tunduma HC</option><option>Sogea Dispensary</option></select>
-            <label>Sababu:</label><textarea id="tr" required placeholder="Sababu..."></textarea>
-            <button class="btn">TUMA OMBI</button>
-          </form></div>`}
+        ${isPN?'<div class="card"><div class="msg d">❌ Umekwisha jifungua. Huwezi kuomba uhamisho.</div></div>':`<div class="card"><h3>🔄 Omba Kuhama Kituo</h3><form onsubmit="mtejaTransfer(event)"><label>Kituo Kipya:</label><select id="tt" required><option>Chapwa HC</option><option>Tunduma HC</option><option>Sogea Dispensary</option></select><label>Sababu:</label><textarea id="tr" required placeholder="Sababu..."></textarea><button class="btn">TUMA OMBI</button></form></div>`}
       </div>`;
   }
 
-  // ---------- CHW ----------
-  else if(role === 'chw'){
-    const tr = await getTransfers();
-    const pend = tr.filter(t => t.status === 'pending');
-    const nt = await get('notifications/chw',{});
-    const notes = Object.values(nt||{}).sort((a,b) => b.timestamp - a.timestamp).slice(0,5);
-    const clients = await getClients();
-    const totalClients = Object.keys(clients).length;
-    const tRows = pend.length ? pend.map(t => `<tr><td>${t.clientName}</td><td>${t.fromFacility}</td><td>${t.toFacility}</td><td>${t.reason}</td>
-      <td><button class="btn2 b-green" onclick="chwApp(${t.id},1)">Kubali</button><button class="btn2 b-red" onclick="chwApp(${t.id},0)">Kataa</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">Hakuna maombi</td></tr>';
-    h = `${liveBlock('🌡️ Mteja Anayefuatiliwa')}${histBlock()}${wodiEmgBlock('chw')}${processedAlarmsBlock()}
-      <div class="stats">
-        <div class="sc"><h3>${totalClients}</h3><p>Wateja Wote Mtaani</p></div>
-        <div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Maombi Yanayosubiri</p></div>
-      </div>
-      <div class="card"><h3>📬 Taarifa Mpya</h3>${notes.length ? notes.map(n => `<div class="msg i"><b>${n.clientName}:</b> ${n.message}</div>`).join('') : '<p style="color:#888">Hakuna taarifa mpya.</p>'}</div>
+  else if(role==='chw'){
+    const tr=await getTransfers();const pend=tr.filter(t=>t.status==='pending');
+    const nt=await get('notifications/chw',{});const notes=Object.values(nt||{}).sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
+    const clients=await getClients();const totalClients=Object.keys(clients).length;
+    const tRows=pend.length?pend.map(t=>`<tr><td>${t.clientName}</td><td>${t.fromFacility}</td><td>${t.toFacility}</td><td>${t.reason}</td><td><button class="btn2 b-green" onclick="chwApp(${t.id},1)">Kubali</button><button class="btn2 b-red" onclick="chwApp(${t.id},0)">Kataa</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Hakuna maombi</td></tr>';
+    h=`${liveBlock('🌡️ Mteja Anayefuatiliwa')}${histBlock()}${wodiEmgBlock('chw')}${processedAlarmsBlock()}
+      <div class="stats"><div class="sc"><h3>${totalClients}</h3><p>Wateja Wote</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Maombi</p></div></div>
+      <div class="card"><h3>📬 Taarifa Mpya</h3>${notes.length?notes.map(n=>`<div class="msg i"><b>${n.clientName}:</b> ${n.message}</div>`).join(''):'<p style="color:#888">Hakuna.</p>'}</div>
       <div class="card"><h3>🔄 Maombi ya Uhamisho</h3><table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Kwenda</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${tRows}</tbody></table></div>`;
   }
 
-  // ---------- DRIVER ----------
-  else if(role === 'driver'){
-    h = `${liveBlock('🚑 Hali ya Mgonjwa')}${histBlock()}${wodiEmgBlock('driver')}${processedAlarmsBlock()}
+  else if(role==='driver'){
+    h=`${liveBlock('🚑 Hali ya Mgonjwa')}${histBlock()}${wodiEmgBlock('driver')}${processedAlarmsBlock()}
       <div class="stats"><div class="sc" style="border-left-color:#d32f2f"><h3>48</h3><p>Km Leo</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>320</h3><p>Km Wiki</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>1,450</h3><p>Km Mwezi</p></div></div>`;
   }
 
-  // ---------- LABOUR ----------
-  else if(role === 'nurse_labour'){
-    const clients = await getClients();
-    const lm = [];
-    for(const n of Object.keys(clients)){ const d = clients[n]; if(d.status === 'pregnant' || d.status === 'labour') lm.push({name:n,...d}); }
-    const refs = await getReferrals();
-    const pend = refs.filter(r => r.status === 'pending');
-    const lRows = lm.length ? lm.map(m => `<tr><td>${m.name}</td><td>${m.phone||'-'}</td><td>${m.status||'-'}</td>
-      <td><button class="btn2" style="background:#6a1b9a" onclick="pickMom('${m.name}')">✅ Sajili Kujifungua</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Hakuna mama</td></tr>';
-    const rRows = pend.length ? pend.map(r => `<tr><td>${r.clientName}</td><td>${r.fromWard||'-'}</td><td>${r.reason||'-'}</td><td><button class="btn2 b-green" onclick="labAppRef(${r.id})">Kubali</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Hakuna rufaa</td></tr>';
-    h = `${liveBlock('🌡️ Mama Anayejifungua (Live)')}${histBlock()}${wodiEmgBlock('nurse_labour')}${processedAlarmsBlock()}
-      <div class="stats">
-        <div class="sc" style="border-left-color:#6a1b9a"><h3>${lm.length}</h3><p>Wajawazito Labour</p></div>
-        <div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Rufaa Zinazoingia</p></div>
-      </div>
+  else if(role==='nurse_labour'){
+    const clients=await getClients();const lm=[];
+    for(const n of Object.keys(clients)){const d=clients[n];if(d.status==='pregnant'||d.status==='labour')lm.push({name:n,...d});}
+    const refs=await getReferrals();const pend=refs.filter(r=>r.status==='pending');
+    const lRows=lm.length?lm.map(m=>`<tr><td>${m.name}</td><td>${m.phone||'-'}</td><td>${m.status||'-'}</td><td><button class="btn2" style="background:#6a1b9a" onclick="pickMom('${m.name}')">✅ Sajili Kujifungua</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Hakuna mama</td></tr>';
+    const rRows=pend.length?pend.map(r=>`<tr><td>${r.clientName}</td><td>${r.fromWard||'-'}</td><td>${r.reason||'-'}</td><td><button class="btn2 b-green" onclick="labAppRef(${r.id})">Kubali</button></td></tr>`).join(''):'<tr><td colspan="4" class="empty">Hakuna rufaa</td></tr>';
+    h=`${liveBlock('🌡️ Mama Anayejifungua (Live)')}${histBlock()}${wodiEmgBlock('nurse_labour')}${processedAlarmsBlock()}
+      <div class="stats"><div class="sc" style="border-left-color:#6a1b9a"><h3>${lm.length}</h3><p>Wajawazito Labour</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Rufaa</p></div></div>
       <div class="card"><h3>🤰 Wajawazito Waliopo Labour Ward</h3><table><thead><tr><th>Jina</th><th>Simu</th><th>Hali</th><th>Kitendo</th></tr></thead><tbody>${lRows}</tbody></table></div>
       <div class="card" style="border:2px solid #d32f2f"><h3 style="color:#d32f2f">📥 Rufaa Zinazoingia</h3><table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${rRows}</tbody></table></div>
-      <div class="card" style="border-top:5px solid #6a1b9a">
-        <h3 style="color:#6a1b9a">👶 Sajili Kujifungua & Tuma Postnatal</h3>
+      <div class="card" style="border-top:5px solid #6a1b9a"><h3 style="color:#6a1b9a">👶 Sajili Kujifungua & Tuma Postnatal</h3>
         <form onsubmit="labSave(event)">
           <label>Chagua Mama:</label>
-          <select id="lm1" required>${lm.length ? lm.map(m => `<option value="${m.name}">${m.name}</option>`).join('') : '<option value="">Hakuna mama</option>'}</select>
+          <select id="lm1" required>${lm.length?lm.map(m=>`<option value="${m.name}">${m.name}</option>`).join(''):'<option value="">Hakuna mama</option>'}</select>
           <label>Njia ya Uzazi:</label>
           <select id="lm2" required><option>Kawaida (SVD)</option><option>Upasuaji (C/S)</option></select>
           <label>Maoni ya Daktari:</label>
@@ -1106,7 +909,7 @@ async function render(role){
           <div style="background:#fdf2f8;border:1.5px dashed #6a1b9a;padding:12px;border-radius:8px;margin-bottom:12px">
             <h4 style="margin:0 0 8px;color:#6a1b9a">👥 Taarifa kwa Ndugu na CHW</h4>
             <label>Ujumbe kwa Ndugu:</label>
-            <select id="lm4"><option value="MAMA NA MTOTO WAPO SALAMA">Mama na Mtoto wapo salama</option><option value="MAMA AMEJIFUNGUA SALAMA, ANASUBIRIWA RUKSA">Mama amejifungua salama</option><option value="DHARURA: ANAHITAJI MSAADA">Dharura: anahitaji msaada</option></select>
+            <select id="lm4"><option value="MAMA NA MTOTO WAPO SALAMA">Mama na Mtoto wapo salama</option><option value="MAMA AMEJIFUNGUA SALAMA">Mama amejifungua salama</option><option value="DHARURA: ANAHITAJI MSAADA">Dharura: anahitaji msaada</option></select>
             <label>Agizo kwa CHW:</label>
             <textarea id="lm5" rows="2" placeholder="Maelekezo..."></textarea>
           </div>
@@ -1115,37 +918,23 @@ async function render(role){
       </div>`;
   }
 
-  // ---------- POSTNATAL ----------
-  else if(role === 'nurse_postnatal'){
-    const all = await getClients();
-    const pn = Object.keys(all).filter(k => all[k].status === 'postnatal');
-    const nt = await get('notifications/postnatal',{});
-    const notes = Object.values(nt||{}).sort((a,b) => b.timestamp - a.timestamp).slice(0,5);
-    const rows = pn.length ? pn.map(n => {
-      const d = all[n];
-      return `<tr><td><b>${n}</b></td><td>${d.deliveryMode||'-'}</td><td>${d.deliveryDate||'-'}</td><td>${d.deliveredBy||'-'}</td>
-      <td><button class="btn2 b-green" onclick="pnDisc('${n}')">✅ Discharge</button><button class="btn2 b-blue" onclick="pnView('${n}')">Kadi</button></td></tr>`;
-    }).join('') : '<tr><td colspan="5" class="empty">Hakuna mama Postnatal.</td></tr>';
-    h = `${liveBlock('🏠 Joto la Mama Postnatal (Live)')}${histBlock()}${wodiEmgBlock('nurse_postnatal')}${processedAlarmsBlock()}
+  else if(role==='nurse_postnatal'){
+    const all=await getClients();const pn=Object.keys(all).filter(k=>all[k].status==='postnatal');
+    const nt=await get('notifications/postnatal',{});const notes=Object.values(nt||{}).sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
+    const rows=pn.length?pn.map(n=>{const d=all[n];return `<tr><td><b>${n}</b></td><td>${d.deliveryMode||'-'}</td><td>${d.deliveryDate||'-'}</td><td>${d.deliveredBy||'-'}</td><td><button class="btn2 b-green" onclick="pnDisc('${n}')">✅ Discharge</button><button class="btn2 b-blue" onclick="pnView('${n}')">Kadi</button></td></tr>`;}).join(''):'<tr><td colspan="5" class="empty">Hakuna mama Postnatal.</td></tr>';
+    h=`${liveBlock('🏠 Joto la Mama Postnatal')}${histBlock()}${wodiEmgBlock('nurse_postnatal')}${processedAlarmsBlock()}
       <div class="stats"><div class="sc" style="border-left-color:#00838f"><h3>${pn.length}</h3><p>Wateja Postnatal</p></div></div>
-      <div class="card"><h3>📬 Taarifa Mpya Kutoka Labour Ward</h3>${notes.length ? notes.map(n => `<div class="msg i"><b>${n.clientName}:</b> ${n.message}</div>`).join('') : '<p style="color:#888">Hakuna taarifa mpya.</p>'}</div>
+      <div class="card"><h3>📬 Taarifa Mpya</h3>${notes.length?notes.map(n=>`<div class="msg i"><b>${n.clientName}:</b> ${n.message}</div>`).join(''):'<p style="color:#888">Hakuna.</p>'}</div>
       <div class="card" style="border:2px solid #00838f"><h3 style="color:#00838f">🛏️ Orodha ya Wateja Postnatal</h3>
         <table><thead><tr><th>Mama</th><th>Njia</th><th>Tarehe</th><th>Aliyefanya</th><th>Vitendo</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
-  // ---------- RCH ----------
-  else if(role === 'nurse_rch'){
-    const clients = await getClients();
-    const tr = await getTransfers();
-    const pend = tr.filter(t => t.status === 'pending');
-    const tRows = pend.length ? pend.map(t => `<tr><td>${t.clientName}</td><td>${t.fromFacility}</td><td>${t.toFacility}</td><td>${t.reason}</td>
-      <td><button class="btn2 b-green" onclick="rchApp(${t.id},1)">Kubali</button><button class="btn2 b-red" onclick="rchApp(${t.id},0)">Kataa</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">Hakuna maombi</td></tr>';
-    const cRows = Object.keys(clients).slice(0,20).map(k => `<tr><td>${k}</td><td>${clients[k].status||'-'}</td><td>${clients[k].phone||k}</td></tr>`).join('') || '<tr><td colspan="3" class="empty">Hakuna wateja</td></tr>';
-    h = `${liveBlock('🌡️ Mgonjwa RCH (Live)')}${histBlock()}${wodiEmgBlock('nurse_rch')}${processedAlarmsBlock()}
-      <div class="stats">
-        <div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja Wote</p></div>
-        <div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Maombi</p></div>
-      </div>
+  else if(role==='nurse_rch'){
+    const clients=await getClients();const tr=await getTransfers();const pend=tr.filter(t=>t.status==='pending');
+    const tRows=pend.length?pend.map(t=>`<tr><td>${t.clientName}</td><td>${t.fromFacility}</td><td>${t.toFacility}</td><td>${t.reason}</td><td><button class="btn2 b-green" onclick="rchApp(${t.id},1)">Kubali</button><button class="btn2 b-red" onclick="rchApp(${t.id},0)">Kataa</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Hakuna maombi</td></tr>';
+    const cRows=Object.keys(clients).slice(0,20).map(k=>`<tr><td>${k}</td><td>${clients[k].status||'-'}</td><td>${clients[k].phone||k}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">Hakuna wateja</td></tr>';
+    h=`${liveBlock('🌡️ Mgonjwa RCH')}${histBlock()}${wodiEmgBlock('nurse_rch')}${processedAlarmsBlock()}
+      <div class="stats"><div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja Wote</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Maombi</p></div></div>
       <div class="card"><h3>📝 Sajili Mteja Mpya</h3>
         <form onsubmit="rchReg(event)"><div class="grid">
           <div><label>Jina</label><input id="rn" required></div>
@@ -1160,9 +949,8 @@ async function render(role){
       <div class="card"><h3>📋 Wateja Wote (${Object.keys(clients).length})</h3><table><thead><tr><th>Jina</th><th>Hali</th><th>Simu</th></tr></thead><tbody>${cRows}</tbody></table></div>`;
   }
 
-  // ---------- THEATER ----------
-  else if(role === 'nurse_theater'){
-    h = `${liveBlock('🔪 Hali ya Mgonjwa (Theater)')}${histBlock()}${wodiEmgBlock('nurse_theater')}${processedAlarmsBlock()}
+  else if(role==='nurse_theater'){
+    h=`${liveBlock('🔪 Hali ya Mgonjwa (Theater)')}${histBlock()}${wodiEmgBlock('nurse_theater')}${processedAlarmsBlock()}
       <div class="card" style="border:2px solid #6a1b9a"><h3 style="color:#6a1b9a">📋 Roster ya Theatre</h3>
         <table><tbody>
           <tr><td><strong>Daktari</strong></td><td>Dr. Juma Kingo</td></tr>
@@ -1172,206 +960,67 @@ async function render(role){
       </div>`;
   }
 
-  // ---------- LAB ----------
-  else if(role === 'lab_tech'){
-    h = `${liveBlock('🧪 Maabara')}${histBlock()}${wodiEmgBlock('lab_tech')}${processedAlarmsBlock()}
+  else if(role==='lab_tech'){
+    h=`${liveBlock('🧪 Maabara')}${histBlock()}${wodiEmgBlock('lab_tech')}${processedAlarmsBlock()}
       <div class="card"><h3>🧪 Maombi ya Sampuli</h3><p style="color:#888">Hakuna maombi kwa sasa.</p></div>`;
   }
 
-  // ---------- COORDINATOR ----------
-  else if(role === 'coordinator'){
-    const refs = await getReferrals();
-    const pend = refs.filter(r => r.status === 'pending');
-    const appr = refs.filter(r => r.status === 'approved');
-    const rows = pend.length ? pend.map(r => `<tr><td>${r.clientName}</td><td>${r.fromWard}</td><td>${r.toHospital||'-'}</td><td>${r.reason||'-'}</td>
-      <td><button class="btn2 b-green" onclick="coordApp(${r.id})">Kubali</button><button class="btn2 b-red" onclick="coordRej(${r.id})">Kataa</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">Hakuna rufaa</td></tr>';
-    h = `${liveBlock('📊 Rufaa (Mratibu)')}${histBlock()}${wodiEmgBlock('coordinator')}${processedAlarmsBlock()}
-      <div class="stats">
-        <div class="sc" style="border-left-color:#e65100"><h3>${pend.length}</h3><p>Zinazosubiri</p></div>
-        <div class="sc" style="border-left-color:#2e7d32"><h3>${appr.length}</h3><p>Zimethibitishwa</p></div>
-        <div class="sc"><h3>${refs.length}</h3><p>Jumla</p></div>
-      </div>
+  else if(role==='coordinator'){
+    const refs=await getReferrals();const pend=refs.filter(r=>r.status==='pending');const appr=refs.filter(r=>r.status==='approved');
+    const rows=pend.length?pend.map(r=>`<tr><td>${r.clientName}</td><td>${r.fromWard}</td><td>${r.toHospital||'-'}</td><td>${r.reason||'-'}</td><td><button class="btn2 b-green" onclick="coordApp(${r.id})">Kubali</button><button class="btn2 b-red" onclick="coordRej(${r.id})">Kataa</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Hakuna rufaa</td></tr>';
+    h=`${liveBlock('📊 Rufaa (Mratibu)')}${histBlock()}${wodiEmgBlock('coordinator')}${processedAlarmsBlock()}
+      <div class="stats"><div class="sc" style="border-left-color:#e65100"><h3>${pend.length}</h3><p>Zinazosubiri</p></div><div class="sc" style="border-left-color:#2e7d32"><h3>${appr.length}</h3><p>Zimethibitishwa</p></div><div class="sc"><h3>${refs.length}</h3><p>Jumla</p></div></div>
       <div class="card"><h3>📋 Rufaa Zinazosubiri Idhini</h3><table><thead><tr><th>Mteja</th><th>Kutoka</th><th>Kwenda</th><th>Sababu</th><th>Kitendo</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
 
-  // ---------- ADMIN ----------
-  else if(role === 'admin'){
-    const emg = await get('emergencies',{});
-    const allList = Object.values(emg||{}).sort((a,b) => b.timestamp - a.timestamp);
-    const activeList = allList.filter(e => e.status === 'active');
-    const histList = allList.filter(e => e.status === 'responding').slice(0,20);
-    const emgRows = activeList.length ? activeList.slice(0,10).map(e => `<tr>
-      <td><b>${e.type||'-'}</b></td>
-      <td>${e.sourceWard||e.role||'-'}</td>
-      <td>${e.clientName||e.user||'-'}</td>
-      <td>${fullTime(e.timestamp)}</td>
-      <td><span class="badge bg-r">⏳ Inasubiri</span></td>
-    </tr>`).join('') : '<tr><td colspan="5" class="empty">Hakuna dharura mpya</td></tr>';
-    const histRows = histList.length ? histList.map(e => `<tr>
-      <td><b>${e.type}</b></td>
-      <td>${e.sourceWard||e.role||'-'}</td>
-      <td>${e.clientName||'-'}</td>
-      <td>${shortTime(e.timestamp)}</td>
-      <td>${e.respondedBy||'-'}</td>
-      <td>${shortTime(e.respondedAt)} <small>(${e.responseTime||duration(e.timestamp,e.respondedAt)})</small></td>
-      <td>${e.comment||'-'}</td>
-    </tr>`).join('') : '<tr><td colspan="7" class="empty">Hakuna historia</td></tr>';
-    const clients = await getClients();
-    h = `${liveBlock('⚙️ Data ya Kifaa (Admin)')}${histBlock()}${wodiEmgBlock('admin')}
-      <div class="stats">
-        <div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja Wote</p></div>
-        <div class="sc" style="border-left-color:#d32f2f"><h3>${activeList.length}</h3><p>Dharura Mpya</p></div>
-        <div class="sc" style="border-left-color:#2e7d32"><h3>${histList.length}</h3><p>Zilizojibiwa</p></div>
-      </div>
-      <div class="card" style="border:2px solid #d32f2f"><h3 style="color:#d32f2f">🚨 Dharura Mpya (Zinasubiri)</h3><table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>Muda</th><th>Hali</th></tr></thead><tbody>${emgRows}</tbody></table></div>
-      <div class="card" style="border:2px solid #2e7d32"><h3 style="color:#2e7d32">✅ Dharura Zilizojibiwa (Historia)</h3>
-        <table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>🕐 Kupokea</th><th>👤 Alijibu</th><th>⏱️ Kujibu</th><th>📝 Maoni</th></tr></thead><tbody>${histRows}</tbody></table>
-      </div>
-      <div class="card"><h3>👥 Wateja Wote (${Object.keys(clients).length})</h3>
-        <table><thead><tr><th>Jina</th><th>Hali</th></tr></thead><tbody>${Object.keys(clients).map(k => `<tr><td>${k}</td><td>${clients[k].status||'-'}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">Hakuna wateja</td></tr>'}</tbody></table>
-      </div>`;
+  else if(role==='admin'){
+    const emg=await get('emergencies',{});
+    const allList=Object.values(emg||{}).sort((a,b)=>b.timestamp-a.timestamp);
+    const activeList=allList.filter(e=>e.status==='active'&&isAlarmFresh(e.timestamp));
+    const histList=allList.filter(e=>e.status==='responding').slice(0,20);
+    const emgRows=activeList.length?activeList.slice(0,10).map(e=>`<tr><td><b>${e.type||'-'}</b></td><td>${e.sourceWard||e.role||'-'}</td><td>${e.clientName||e.user||'-'}</td><td>${fullTime(e.timestamp)}</td><td><span class="badge bg-r">⏳</span></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Hakuna dharura mpya</td></tr>';
+    const histRows=histList.length?histList.map(e=>`<tr><td><b>${e.type}</b></td><td>${e.sourceWard||e.role||'-'}</td><td>${e.clientName||'-'}</td><td>${shortTime(e.timestamp)}</td><td>${e.respondedBy||'-'}</td><td>${shortTime(e.respondedAt)} <small>(${e.responseTime||duration(e.timestamp,e.respondedAt)})</small></td><td>${e.comment||'-'}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Hakuna</td></tr>';
+    const clients=await getClients();
+    h=`${liveBlock('⚙️ Data ya Kifaa (Admin)')}${histBlock()}${wodiEmgBlock('admin')}
+      <div class="stats"><div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${activeList.length}</h3><p>Dharura Mpya</p></div><div class="sc" style="border-left-color:#2e7d32"><h3>${histList.length}</h3><p>Zilizojibiwa</p></div></div>
+      <div class="card" style="border:2px solid #d32f2f"><h3 style="color:#d32f2f">🚨 Dharura Mpya</h3><table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>Muda</th><th>Hali</th></tr></thead><tbody>${emgRows}</tbody></table></div>
+      <div class="card" style="border:2px solid #2e7d32"><h3 style="color:#2e7d32">✅ Historia</h3><table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>🕐 Kupokea</th><th>👤 Alijibu</th><th>⏱️</th><th>📝 Maoni</th></tr></thead><tbody>${histRows}</tbody></table></div>
+      <div class="card"><h3>👥 Wateja Wote (${Object.keys(clients).length})</h3><table><thead><tr><th>Jina</th><th>Hali</th></tr></thead><tbody>${Object.keys(clients).map(k=>`<tr><td>${k}</td><td>${clients[k].status||'-'}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">Hakuna</td></tr>'}</tbody></table></div>`;
   }
 
-  c.innerHTML = h;
-
-  // Update history table after render
+  c.innerHTML=h;
   try{
-    const emgSnap = await db.ref('emergencies').once('value');
-    const data = emgSnap.val() || {};
-    const historyItems = Object.entries(data).map(([id,v]) => ({id,...v})).filter(e => e.status === 'responding');
+    const emgSnap=await db.ref('emergencies').once('value');
+    const data=emgSnap.val()||{};
+    const historyItems=Object.entries(data).map(([id,v])=>({id,...v})).filter(e=>e.status==='responding');
     updateHistoryUI(historyItems);
   }catch(e){}
-
-  await loadLive();
-  await loadHist();
+  await loadLive();await loadHist();
 }
 
-// ============ TAB ============
-function tab(id,btn){
-  document.querySelectorAll('.tc').forEach(t => t.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(b => b.classList.remove('on'));
-  $(id).classList.add('on'); btn.classList.add('on');
-}
+function tab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));$(id).classList.add('on');btn.classList.add('on');}
+window.mtejaTransfer=async(e)=>{e.preventDefault();const to=$('tt').value,r=$('tr').value.trim();if(!r){alert('Ingiza sababu');return;}const d=await getClient(sessionStorage.getItem('un'));await addTransfer({clientName:sessionStorage.getItem('un'),fromFacility:d.location||'Tunduma TC',toFacility:to,reason:r,requestedBy:'Mteja',clientPhone:d.phone||''});alert('✅ Ombi limetumwa!');await render('mteja');};
+window.chwApp=async(id,ok)=>{await updTransfer(id,{status:ok?'approved':'rejected',reviewedAt:new Date().toISOString()});alert(ok?'✅':'❌');await render('chw');};
+window.pickMom=(n)=>{$('lm1').value=n;$('lm1').scrollIntoView({behavior:'smooth'});};
+window.labAppRef=async(id)=>{await updReferral(id,{status:'approved',reviewedAt:new Date().toISOString()});alert('✅ Rufaa imethibitishwa');await render('nurse_labour');};
+window.labSave=async(e)=>{e.preventDefault();const m=$('lm1').value,mo=$('lm2').value,no=$('lm3').value.trim(),msg=$('lm4').value,chw=$('lm5')?.value||'';if(!m){alert('Chagua mama');return;}const d=await getClient(m);d.status='postnatal';d.deliveryDate=new Date().toISOString().split('T')[0];d.deliveryMode=mo;d.deliveryNotes=no;d.sourceWard='Labour';d.deliveredBy=sessionStorage.getItem('un');d.deliveredAt=Date.now();d.messageToNdugu=msg;d.messageToCHW=chw;await setClient(m,d);await set('notifications/postnatal/'+Date.now(),{clientName:m,message:`Mama ${m} amejifungua (${mo}).`,timestamp:Date.now(),from:'Labour Ward'});await set('notifications/chw/'+Date.now(),{clientName:m,message:`Mama ${m} amejifungua (${mo}). ${chw}`,timestamp:Date.now(),from:'Labour Ward'});alert(`✅ ${m} amejifungua!`);e.target.reset();await render('nurse_labour');};
+window.pnDisc=async(n)=>{if(!confirm(`Ruhusu ${n}?`))return;const d=await getClient(n);d.status='discharged';d.dischargeDate=new Date().toISOString().split('T')[0];await setClient(n,d);await set('notifications/chw/'+Date.now(),{clientName:n,message:`${n} ameruhusiwa.`,timestamp:Date.now(),from:'Postnatal'});alert(`✅ ${n} ameruhusiwa.`);await render('nurse_postnatal');};
+window.pnView=async(n)=>{const d=await getClient(n);alert(`📋 KADI YA ${n}\n\nNjia: ${d.deliveryMode||'-'}\nTarehe: ${d.deliveryDate||'-'}\nNotes: ${d.deliveryNotes||'-'}`);};
+window.rchReg=async(e)=>{e.preventDefault();const name=$('rn').value.trim(),phone=$('rp').value.trim();if(!name||!phone){alert('Jaza Jina na Simu');return;}await setClient(name,{name,phone,partner:$('rm').value.trim(),location:$('rl').value.trim(),gravida:$('rg').value.trim(),para:$('rpa').value.trim(),status:'pregnant',createdAt:new Date().toISOString()});alert(`✅ ${name} amesajiliwa!`);e.target.reset();await render('nurse_rch');};
+window.rchApp=async(id,ok)=>{await updTransfer(id,{status:ok?'approved':'rejected',reviewedAt:new Date().toISOString()});alert(ok?'✅':'❌');await render('nurse_rch');};
+window.coordApp=(id)=>{$('hid').value=id;$('hm').classList.add('on');};
+window.coordRej=async(id)=>{const r=prompt('Sababu:');if(!r)return;await updReferral(id,{status:'rejected',coordinatorNote:r,reviewedAt:new Date().toISOString()});alert('❌');await render('coordinator');};
+window.adminStaff=async(e)=>{e.preventDefault();const dept=$('as1').value,cadre=$('as2').value,name=$('as3').value.trim(),phone=$('as4').value.trim(),pwd=$('as5').value;if(!dept||!name||!phone||!pwd){alert('Jaza');return;}let role='nurse_rch';if(dept==='Labour Ward')role='nurse_labour';else if(dept==='Postnatal Ward')role='nurse_postnatal';else if(dept==='Theater')role='nurse_theater';else if(dept==='Maabara')role='lab_tech';await saveUser(phone,{name,role,cadre,password:pwd,createdAt:new Date().toISOString()});alert(`✅ ${name} amesajiliwa! Role: ${role}`);e.target.reset();};
 
-// ============ MTEJA ============
-window.mtejaTransfer = async(e) => {
-  e.preventDefault();
-  const to = $('tt').value, r = $('tr').value.trim();
-  if(!r){ alert('Ingiza sababu'); return; }
-  const d = await getClient(sessionStorage.getItem('un'));
-  await addTransfer({clientName:sessionStorage.getItem('un'), fromFacility:d.location||'Tunduma TC', toFacility:to, reason:r, requestedBy:'Mteja', clientPhone:d.phone||''});
-  alert('✅ Ombi limetumwa!');
-  await render('mteja');
-};
-
-// ============ CHW ============
-window.chwApp = async(id,ok) => {
-  await updTransfer(id, {status:ok?'approved':'rejected', reviewedAt:new Date().toISOString()});
-  alert(ok ? '✅ Umekubali' : '❌ Umekataa');
-  await render('chw');
-};
-
-// ============ DRIVER ============
-window.dAccept = (n,a,p,c) => {
-  $('rq') && ($('rq').style.display = 'none');
-  $('trip') && ($('trip').style.display = 'block');
-  $('acn') && ($('acn').textContent = n);
-  $('aca') && ($('aca').textContent = a);
-  $('acp') && ($('acp').textContent = p);
-  $('acc') && ($('acc').textContent = c);
-  $('cbtn') && ($('cbtn').href = 'tel:' + p);
-  alert('✅ Umemkubali ' + n);
-};
-
-// ============ LABOUR ============
-window.pickMom = (n) => { $('lm1').value = n; $('lm1').scrollIntoView({behavior:'smooth'}); };
-window.labAppRef = async(id) => { await updReferral(id, {status:'approved', reviewedAt:new Date().toISOString()}); alert('✅ Rufaa imethibitishwa'); await render('nurse_labour'); };
-window.labSave = async(e) => {
-  e.preventDefault();
-  const m = $('lm1').value, mo = $('lm2').value, no = $('lm3').value.trim(), msg = $('lm4').value, chw = $('lm5')?.value || '';
-  if(!m){ alert('Chagua mama'); return; }
-  const d = await getClient(m);
-  d.status = 'postnatal'; d.deliveryDate = new Date().toISOString().split('T')[0];
-  d.deliveryMode = mo; d.deliveryNotes = no;
-  d.sourceWard = 'Labour'; d.deliveredBy = sessionStorage.getItem('un'); d.deliveredAt = Date.now();
-  d.messageToNdugu = msg; d.messageToCHW = chw;
-  await setClient(m, d);
-  await set('notifications/postnatal/'+Date.now(), {clientName:m, message:`Mama ${m} amejifungua (${mo}).`, timestamp:Date.now(), from:'Labour Ward'});
-  await set('notifications/chw/'+Date.now(), {clientName:m, message:`Mama ${m} amejifungua (${mo}). ${chw}`, timestamp:Date.now(), from:'Labour Ward'});
-  alert(`✅ ${m} amejifungua!\nNjia: ${mo}`);
-  e.target.reset();
-  await render('nurse_labour');
-};
-
-// ============ POSTNATAL ============
-window.pnDisc = async(n) => {
-  if(!confirm(`Ruhusu ${n}?`)) return;
-  const d = await getClient(n); d.status = 'discharged'; d.dischargeDate = new Date().toISOString().split('T')[0];
-  await setClient(n, d);
-  await set('notifications/chw/'+Date.now(), {clientName:n, message:`${n} ameruhusiwa.`, timestamp:Date.now(), from:'Postnatal'});
-  alert(`✅ ${n} ameruhusiwa.`);
-  await render('nurse_postnatal');
-};
-window.pnView = async(n) => {
-  const d = await getClient(n);
-  alert(`📋 KADI YA ${n}\n\nNjia: ${d.deliveryMode||'-'}\nTarehe: ${d.deliveryDate||'-'}\nNotes: ${d.deliveryNotes||'-'}`);
-};
-
-// ============ RCH ============
-window.rchReg = async(e) => {
-  e.preventDefault();
-  const name = $('rn').value.trim(), phone = $('rp').value.trim();
-  if(!name || !phone){ alert('Jaza Jina na Simu'); return; }
-  await setClient(name, {name, phone, partner:$('rm').value.trim(), location:$('rl').value.trim(), gravida:$('rg').value.trim(), para:$('rpa').value.trim(), status:'pregnant', createdAt:new Date().toISOString()});
-  alert(`✅ ${name} amesajiliwa!`);
-  e.target.reset(); await render('nurse_rch');
-};
-window.rchApp = async(id,ok) => {
-  await updTransfer(id, {status:ok?'approved':'rejected', reviewedAt:new Date().toISOString()});
-  alert(ok ? '✅ Umekubali' : '❌ Umekataa');
-  await render('nurse_rch');
-};
-
-// ============ COORDINATOR ============
-window.coordApp = (id) => { $('hid').value = id; $('hm').classList.add('on'); };
-window.coordRej = async(id) => {
-  const r = prompt('Sababu:'); if(!r) return;
-  await updReferral(id, {status:'rejected', coordinatorNote:r, reviewedAt:new Date().toISOString()});
-  alert('❌ Rufaa imekataliwa'); await render('coordinator');
-};
-
-// ============ ADMIN ============
-window.adminStaff = async(e) => {
-  e.preventDefault();
-  const dept = $('as1').value, cadre = $('as2').value, name = $('as3').value.trim(), phone = $('as4').value.trim(), pwd = $('as5').value;
-  if(!dept || !name || !phone || !pwd){ alert('Jaza sehemu zote'); return; }
-  let role = 'nurse_rch';
-  if(dept === 'Labour Ward') role = 'nurse_labour';
-  else if(dept === 'Postnatal Ward') role = 'nurse_postnatal';
-  else if(dept === 'Theater') role = 'nurse_theater';
-  else if(dept === 'Maabara') role = 'lab_tech';
-  await saveUser(phone, {name, role, cadre, password:pwd, createdAt:new Date().toISOString()});
-  alert(`✅ ${name} amesajiliwa! Role: ${role}`);
-  e.target.reset();
-};
-
-// ============ INIT ============
 (async()=>{
-  const li = sessionStorage.getItem('li'), role = sessionStorage.getItem('ro');
-  if(li && role){ await showDash(role); }
-  else { $('login').style.display = 'flex'; $('dash').style.display = 'none'; }
-  await loadHist(); await loadLive();
-  setInterval(loadLive, 5000);
-
-  // Resume audio context on any user interaction
-  ['click','touchstart','keydown'].forEach(evt => {
-    document.addEventListener(evt, () => {
-      if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    }, {once:true});
-  });
+  const li=sessionStorage.getItem('li'),role=sessionStorage.getItem('ro');
+  if(li&&role){await showDash(role);}
+  else{$('login').style.display='flex';$('dash').style.display='none';}
+  await loadHist();await loadLive();
+  setInterval(loadLive,5000);
+  ['click','touchstart','keydown'].forEach(evt=>{document.addEventListener(evt,()=>{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();},{once:true});});
 })();
-
-console.log('🌸 MAMA-SAFELIFE — Alarm Loop System tayari! Device: ' + DEV + ' Session: ' + MY_SESSION);
+console.log('🌸 MAMA-SAFELIFE tayari! Device: '+DEV+' Session: '+MY_SESSION);
 </script>
 </body>
 </html>
