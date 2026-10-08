@@ -90,9 +90,6 @@ th{background:#f8f9fa}
 .process{background:#fffde7;border:1px dashed #fbc02d;padding:12px;border-radius:8px;text-align:left;margin-top:12px;display:none}
 .pstep{margin:6px 0;font-size:.9rem;color:#444}
 
-/* ============================================================
-   MFUMO WA DHARURA — SOUND + VIBRATION + LOOP
-   ============================================================ */
 .alert-ring{
   display:none;position:fixed;inset:0;background:rgba(200,0,0,0.92);z-index:9999;
   justify-content:center;align-items:center;padding:20px;animation:flashbg 1.2s infinite;
@@ -126,7 +123,6 @@ th{background:#f8f9fa}
 
 .alarm-queue-info{background:#fff3cd;border-left:5px solid #ff9800;padding:8px 12px;border-radius:6px;margin-top:10px;font-size:0.85rem;color:#856404;font-weight:600}
 
-/* === SOUND WAVE ANIMATION === */
 .sound-wave{display:inline-flex;gap:3px;align-items:flex-end;height:24px;margin-left:8px;vertical-align:middle}
 .sound-wave span{width:3px;background:#c62828;animation:wave 0.6s infinite ease-in-out}
 .sound-wave span:nth-child(2){animation-delay:0.1s}
@@ -299,8 +295,8 @@ firebase.initializeApp({
   appId:"1:782977810443:web:5e0083c3c3c6f79974470e"
 });
 const db = firebase.database();
-const DEV='M0005';
-const USER='0674377704', PASS='1234';
+const DEV = 'M0005';
+const USER = '0674377704', PASS = '1234';
 
 if(!sessionStorage.getItem('msl_session_id')){
   sessionStorage.setItem('msl_session_id','sess_'+Date.now()+'_'+Math.random().toString(36).slice(2,8));
@@ -348,13 +344,13 @@ function duration(ts1,ts2){
 // ============ LOGIN ============
 function login(e){
   e.preventDefault();
-  const u=$('u').value.trim(),p=$('p').value.trim(),r=$('r').value;
+  const u=$('u').value.trim(), p=$('p').value.trim(), r=$('r').value;
   if(u!==USER){alert('Namba si sahihi. Tumia: '+USER);return}
   if(p!==PASS){alert('Nenosiri si sahihi. Tumia: '+PASS);return}
   sessionStorage.setItem('li','1');sessionStorage.setItem('un',u);sessionStorage.setItem('ro',r);
   showDash(r);
 }
-function logout(){if(!confirm('Toka?'))return;sessionStorage.clear();location.reload()}
+function logout(){if(!confirm('Toka?'))return;stopRingLoop();sessionStorage.clear();location.reload()}
 
 async function showDash(role){
   $('login').style.display='none';$('dash').style.display='flex';
@@ -478,76 +474,89 @@ function wodiEmgBlock(role){
 }
 
 // =================================================================
-//  EMERGENCY SENDER
+//  ALARM STATE — SINGLE SOURCE OF TRUTH
 // =================================================================
-let currentEmergency=null,alertPlaying=false,audioCtx=null,alertInterval=null,vibrationInterval=null,myRole='';
-let pendingAlarms=[];
-let wakeLockObj=null;
+let currentEmergency = null;
+let audioCtx = null;
+let myRole = '';
+let pendingAlarms = [];
+let wakeLockObj = null;
 
-// === WAKE LOCK — kuzuia screen kuzima wakati wa alarm ===
+const alarmState = {
+  active: false,
+  currentId: null,
+  soundTimer: null,
+  vibrateTimer: null,
+  oscillators: [],
+  shownIds: new Set()
+};
+
+// === WAKE LOCK ===
 async function requestWakeLock(){
   try{
     if('wakeLock' in navigator && !wakeLockObj){
-      wakeLockObj=await navigator.wakeLock.request('screen');
-      wakeLockObj.addEventListener('release',()=>{wakeLockObj=null});
+      wakeLockObj = await navigator.wakeLock.request('screen');
+      wakeLockObj.addEventListener('release', () => { wakeLockObj = null; });
     }
   }catch(e){}
 }
 function releaseWakeLock(){
   try{
-    if(wakeLockObj){wakeLockObj.release();wakeLockObj=null}
+    if(wakeLockObj){ wakeLockObj.release(); wakeLockObj = null; }
   }catch(e){}
 }
 
+// ============ EMERGENCY SENDER ============
 async function sendEm(type){
   $('em').classList.remove('on');
-  const role=sessionStorage.getItem('ro'),user=sessionStorage.getItem('un');
-  const srcWardMap={nurse_labour:'Labour Ward',nurse_theater:'Theater / Upasuaji',
-    nurse_postnatal:'Postnatal Ward',nurse_rch:'RCH Clinic',lab_tech:'Maabara',
-    chw:'CHW',admin:'Admin',coordinator:'Mratibu',driver:'Dereva',
-    mteja:'Mteja (Nyumbani)'};
-  const srcWard=srcWardMap[role]||role;
+  const role = sessionStorage.getItem('ro'), user = sessionStorage.getItem('un');
+  const srcWardMap = {
+    nurse_labour:'Labour Ward', nurse_theater:'Theater / Upasuaji',
+    nurse_postnatal:'Postnatal Ward', nurse_rch:'RCH Clinic', lab_tech:'Maabara',
+    chw:'CHW', admin:'Admin', coordinator:'Mratibu', driver:'Dereva',
+    mteja:'Mteja (Nyumbani)'
+  };
+  const srcWard = srcWardMap[role] || role;
 
-  let clientName='Mgonjwa';
-  let clientDetails={};
+  let clientName = 'Mgonjwa';
+  let clientDetails = {};
 
-  if(role==='mteja'){
-    const d=await getClient(user);
-    clientName=d.name||user;
-    clientDetails={name:d.name||user,phone:d.phone||user,partner:d.partner||'-',
-      location:d.location||'-',district:d.district||'-',region:d.region||'-',
-      gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',
-      bp_sys:d.bp_sys||'-',bp_dia:d.bp_dia||'-',temp:d.temp||'-',status:d.status||'pregnant'};
+  if(role === 'mteja'){
+    const d = await getClient(user);
+    clientName = d.name || user;
+    clientDetails = {name:d.name||user, phone:d.phone||user, partner:d.partner||'-',
+      location:d.location||'-', district:d.district||'-', region:d.region||'-',
+      gravida:d.gravida||'-', para:d.para||'-', weight:d.weight||'-',
+      bp_sys:d.bp_sys||'-', bp_dia:d.bp_dia||'-', temp:d.temp||'-', status:d.status||'pregnant'};
   } else {
-    const sel=$('lm1')||$('pnClientSelectCard')||$('labClientSelect')||$('mtejaSelect');
-    if(sel&&sel.value){
-      clientName=sel.value;
-      const d=await getClient(clientName);
-      clientDetails={name:clientName,phone:d.phone||'-',partner:d.partner||'-',
-        location:d.location||'-',district:d.district||'-',region:d.region||'-',
-        gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',
-        bp_sys:d.bp_sys||'-',bp_dia:d.bp_dia||'-',temp:d.temp||'-',status:d.status||'pregnant'};
+    const sel = $('lm1') || $('pnClientSelectCard') || $('labClientSelect') || $('mtejaSelect');
+    if(sel && sel.value){
+      clientName = sel.value;
+      const d = await getClient(clientName);
+      clientDetails = {name:clientName, phone:d.phone||'-', partner:d.partner||'-',
+        location:d.location||'-', district:d.district||'-', region:d.region||'-',
+        gravida:d.gravida||'-', para:d.para||'-', weight:d.weight||'-',
+        bp_sys:d.bp_sys||'-', bp_dia:d.bp_dia||'-', temp:d.temp||'-', status:d.status||'pregnant'};
     }
   }
 
   try{
-    const emg={
-      type,sourceWard:srcWard,role,user,clientName,clientDetails,
-      sessionId:MY_SESSION,
+    const emg = {
+      type, sourceWard:srcWard, role, user, clientName, clientDetails,
+      sessionId: MY_SESSION,
       message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,
-      timestamp:Date.now(),status:'active',response:null,redirectedTo:null,comment:null
+      timestamp: Date.now(), status:'active', response:null, redirectedTo:null, comment:null
     };
-    await db.ref('emergencies/emg_'+Date.now()).set(emg);
-    // play once for sender
-    playRing();
+    await db.ref('emergencies/emg_' + Date.now()).set(emg);
+    playOnce();
     alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}\n\nWote wanasikia MLIO na wanaona jina la mteja + details zake.`);
-  }catch(e){alert('Hitilafu: '+e.message)}
+  }catch(e){ alert('Hitilafu: ' + e.message); }
 }
 
 // =================================================================
-//  SOUND ENGINE — LOOP MPaka IJIBIWE + VIBRATION CONTINUOUS
+//  SOUND ENGINE — RECURSIVE + TRACKED OSCILLATORS
 // =================================================================
-function playRing(){
+function playOnce(){
   try{
     if(!audioCtx){
       const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -555,83 +564,112 @@ function playRing(){
       audioCtx = new Ctx();
     }
     if(audioCtx.state === 'suspended') audioCtx.resume();
-    const play = (freq, startAt, dur) => {
+
+    const playNote = (freq, startAt, dur) => {
+      if(!audioCtx) return;
       const o = audioCtx.createOscillator();
       const g = audioCtx.createGain();
-      o.type='sine'; o.frequency.value=freq;
+      o.type = 'sine';
+      o.frequency.value = freq;
       o.connect(g); g.connect(audioCtx.destination);
       const t = audioCtx.currentTime + startAt;
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.4, t+0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t+dur);
-      o.start(t); o.stop(t+dur+0.05);
+      g.gain.exponentialRampToValueAtTime(0.4, t + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.start(t); o.stop(t + dur + 0.05);
+      alarmState.oscillators.push(o);
+      setTimeout(() => {
+        const idx = alarmState.oscillators.indexOf(o);
+        if(idx > -1) alarmState.oscillators.splice(idx, 1);
+      }, (dur + 0.2) * 1000);
     };
-    // Pattern: beep-beep ... beep-beep (double beep × 2)
-    play(880, 0, 0.25);
-    play(660, 0.3, 0.25);
-    play(880, 0.65, 0.25);
-    play(660, 0.95, 0.25);
-  }catch(e){console.warn('Audio:',e)}
+
+    // Pattern: beep-beep ... beep-beep
+    playNote(880, 0,    0.25);
+    playNote(660, 0.3,  0.25);
+    playNote(880, 0.65, 0.25);
+    playNote(660, 0.95, 0.25);
+  }catch(e){ console.warn('Audio:', e); }
 }
 
-// === START LOOP — MLIO + VIBRATION hadi ijibiwe ===
-function startRingLoop(){
-  if(alertInterval) return;
-  alertPlaying = true;
-  // Play immediately
-  playRing();
-  // Repeat every 1.6 seconds — MLIO UNARUDIA RUDIA
-  alertInterval = setInterval(playRing, 1600);
+// === ANZA MLIO + VIBRATION (recursive setTimeout) ===
+function startRingLoop(emgId){
+  if(alarmState.active && alarmState.currentId === emgId) return;
+  stopRingLoop();
 
-  // === VIBRATION CONTINUOUS LOOP ===
+  alarmState.active = true;
+  alarmState.currentId = emgId;
+
+  // Sound loop (recursive)
+  playOnce();
+  const soundLoop = () => {
+    if(!alarmState.active) return;
+    playOnce();
+    alarmState.soundTimer = setTimeout(soundLoop, 1600);
+  };
+  alarmState.soundTimer = setTimeout(soundLoop, 1600);
+
+  // Vibration loop (recursive)
   if(navigator.vibrate){
     navigator.vibrate([600,200,600,200,600]);
-    vibrationInterval = setInterval(()=>{
+    const vibLoop = () => {
+      if(!alarmState.active) return;
       if(navigator.vibrate) navigator.vibrate([600,200,600,200,600]);
-    }, 4000);
+      alarmState.vibrateTimer = setTimeout(vibLoop, 4000);
+    };
+    alarmState.vibrateTimer = setTimeout(vibLoop, 4000);
   }
 
-  // Wake lock
   requestWakeLock();
+  console.log('🔔 Ring loop STARTED for alarm:', emgId);
 }
 
-// === STOP LOOP — KATISHA PAPO HAPO ===
+// === SIMAMISHA MLIO PAPO HAPO ===
 function stopRingLoop(){
-  // Clear sound interval
-  if(alertInterval){ clearInterval(alertInterval); alertInterval=null; }
-  // Clear vibration interval
-  if(vibrationInterval){ clearInterval(vibrationInterval); vibrationInterval=null; }
-  alertPlaying = false;
-  // Stop vibration NOW
+  alarmState.active = false;
+  alarmState.currentId = null;
+
+  if(alarmState.soundTimer){
+    clearTimeout(alarmState.soundTimer);
+    alarmState.soundTimer = null;
+  }
+  if(alarmState.vibrateTimer){
+    clearTimeout(alarmState.vibrateTimer);
+    alarmState.vibrateTimer = null;
+  }
+
+  // Stop all oscillators immediately
+  alarmState.oscillators.forEach(o => {
+    try { o.stop(); o.disconnect(); } catch(e){}
+  });
+  alarmState.oscillators = [];
+
   if(navigator.vibrate) navigator.vibrate(0);
-  // Release wake lock
   releaseWakeLock();
   console.log('🔕 Ring loop STOPPED');
 }
 
+// Backward compat
+function playRing(){ playOnce(); }
+
 // =================================================================
-//  EMERGENCY LISTENER — ALL ONLINE USERS IN TARGET DEPT
+//  EMERGENCY LISTENER
 // =================================================================
-function isEmergencyForMe(emg,role){
-  // === KILA KITENGO HUSIKA KINASIKIA ===
-  // Nurses zote, admin, coordinator, chw, driver — wote wanaona
-  const responders=['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
+function isEmergencyForMe(emg, role){
+  const responders = ['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
   if(!responders.includes(role)) return false;
-  // Usione yako mwenyewe (kwa session id)
-  if(emg.sessionId===MY_SESSION) return false;
-  // Bado hai tu (haijajibiwa)
-  if(emg.status!=='active') return false;
-  // Kama imeelekezwa kwa mtu mwingine, usiione
+  if(emg.sessionId === MY_SESSION) return false;
+  if(emg.status !== 'active') return false;
   if(emg.redirectedTo){
-    const toRole=mapNameToRole(emg.redirectedTo);
-    if(toRole && toRole!==role) return false;
+    const toRole = mapNameToRole(emg.redirectedTo);
+    if(toRole && toRole !== role) return false;
   }
   return true;
 }
 
 function mapNameToRole(name){
   if(!name) return null;
-  const n=name.toLowerCase();
+  const n = name.toLowerCase();
   if(n.includes('admin')) return 'admin';
   if(n.includes('mratibu')||n.includes('coordinator')) return 'coordinator';
   if(n.includes('chw')||n.includes('amina')) return 'chw';
@@ -650,13 +688,9 @@ function startEmergencyListener(){
     const allItems = Object.entries(data).map(([id,v]) => ({id,...v}))
       .sort((a,b) => b.timestamp - a.timestamp);
 
-    // Active (bado haijajibiwa) — haya yanalia
     const activeItems = allItems.filter(e => e.status === 'active');
-
-    // History (zilizojibiwa) — hazilia
     const historyItems = allItems.filter(e => e.status === 'responding' || e.status === 'resolved');
 
-    // Update bell + history table
     updateBell(activeItems);
     updateHistoryUI(historyItems);
 
@@ -664,41 +698,44 @@ function startEmergencyListener(){
     if(currentEmergency){
       const still = activeItems.find(e => e.id === currentEmergency.id);
       if(!still){
-        // === MTU MWINGINE AMEIJIBU → KATISHA MLIO PAPO HAPO! ===
-        console.log('🔕 Alarm resolved by someone else. Stopping sound...');
+        console.log('🔕 Current alarm no longer active. Stopping sound NOW.');
         currentEmergency = null;
         $('alertRing').classList.remove('on');
         stopRingLoop();
-        // Angalia kama kuna nyingine
         setTimeout(checkNextAlarm, 500);
       }
       return;
     }
 
-    // === KAMA HAKUNA ALERT INAYOENDELEA, ANGALIA MPYA ===
+    // === KAMA MLIO UNAENDELEA LAKINI HAKUNA currentEmergency → SIMAMISHA ===
+    if(alarmState.active && !currentEmergency){
+      console.log('🔕 No current alarm but sound was playing. Stopping.');
+      stopRingLoop();
+      $('alertRing').classList.remove('on');
+    }
+
+    // === ANGALIA ALARM MPYA INAYONIHUSU ===
     const forMe = activeItems.filter(e => isEmergencyForMe(e, myRole));
     pendingAlarms = forMe;
 
-    if(forMe.length > 0 && !alertPlaying){
-      console.log('🔔 New alarm for me:', forMe[0].type);
-      showEmergencyAlert(forMe[0]);
-    }
+    const newForMe = forMe.filter(e => !alarmState.shownIds.has(e.id));
 
-    // === KAMA HAKUNA ACTIVE YOYOTE INAYONIHUSU, LAKINI MLIO UNAENDELEA → SIMAMISHA ===
-    if(forMe.length === 0 && alertPlaying && !currentEmergency){
-      console.log('🔕 No active alarms for me — stopping sound');
-      stopRingLoop();
-      $('alertRing').classList.remove('on');
+    if(newForMe.length > 0 && !alarmState.active && !currentEmergency){
+      console.log('🔔 Showing new alarm:', newForMe[0].type, '| ID:', newForMe[0].id);
+      showEmergencyAlert(newForMe[0]);
     }
   });
 }
 
 function checkNextAlarm(){
-  if(currentEmergency || alertPlaying) return;
-  const next = pendingAlarms.find(e => e.status === 'active');
+  if(currentEmergency || alarmState.active) return;
+  const next = pendingAlarms.find(e => e.status === 'active' && !alarmState.shownIds.has(e.id));
   if(next){
     console.log('🔔 Next alarm:', next.type);
     showEmergencyAlert(next);
+  } else {
+    stopRingLoop();
+    $('alertRing').classList.remove('on');
   }
 }
 
@@ -736,7 +773,6 @@ function showPendingList(){
   });
 }
 
-// === SHOW ALERT + START SOUND LOOP ===
 function showEmergencyAlert(emg){
   currentEmergency = emg;
   $('alertSource').textContent = `Kutoka: ${emg.sourceWard||emg.role||'Haijulikani'}`;
@@ -772,7 +808,7 @@ function showEmergencyAlert(emg){
   $('alertComment').value = '';
 
   const queueEl = $('alarmQueueInfo');
-  const otherActive = pendingAlarms.filter(e => e.id !== emg.id && e.status === 'active');
+  const otherActive = pendingAlarms.filter(e => e.id !== emg.id && e.status === 'active' && !alarmState.shownIds.has(e.id));
   if(otherActive.length > 0){
     queueEl.innerHTML = `⚠️ <b>Kuna dharura nyingine ${otherActive.length} zinazosubiri.</b> Ukimaliza hii, utaona inayofuata.`;
     queueEl.style.display = 'block';
@@ -781,12 +817,12 @@ function showEmergencyAlert(emg){
   }
 
   $('alertRing').classList.add('on');
-  // === ANZA MLIO + VIBRATION (utarudia hadi ijibiwe) ===
-  startRingLoop();
+  alarmState.shownIds.add(emg.id);
+  startRingLoop(emg.id);
 }
 
 // =================================================================
-//  RESPOND — KATISHA MLIO PAPO HAPO KWA WOTE
+//  RESPOND — SIMAMISHA MLIO PAPO HAPO
 // =================================================================
 async function respondEmergency(action){
   if(!currentEmergency) return;
@@ -797,12 +833,15 @@ async function respondEmergency(action){
     if(!confirm('Hujaandika maoni. Unataka kuendelea bila comment?')) return;
   }
 
-  // ⏹️ STOP MLIO + VIBRATION MARA MOJA
+  // ⏹️ STOP MLIO PAPO HAPO — KABLA YA KILA KITU
   stopRingLoop();
   $('alertRing').classList.remove('on');
 
   const emgId = currentEmergency.id;
   const emgCopy = {...currentEmergency};
+
+  // ⬇️⬇️⬇️ MUHIMU: Ondoa currentEmergency MARA MOJA
+  currentEmergency = null;
 
   const upd = {
     response: action,
@@ -814,7 +853,6 @@ async function respondEmergency(action){
   };
 
   if(action === 'coming'){
-    // ⏹️ STATUS → responding (haitalia tena)
     upd.status = 'responding';
     upd.message = `✅ ${me} (${role}) amekubali (NAJA). ${comment?'Maoni: "'+comment+'"':''}`;
     upd.respondedAtStr = fullTime(Date.now());
@@ -823,15 +861,15 @@ async function respondEmergency(action){
     await db.ref('emergencies/'+emgId).update(upd);
 
     alert(`✅ UMEKUBALI (NAJA)!\n\nDharura: ${emgCopy.type}\nMgonjwa: ${emgCopy.clientName||'-'}\nKutoka: ${emgCopy.sourceWard||emgCopy.role}\n\n📝 Maoni yako: "${comment||'(Hakuna maoni)'}"\n⏱️ Muda wa kujibu: ${upd.responseTime}\n\n➡️ MLIO UMEKATIKA KWA WOTE.`);
+    setTimeout(checkNextAlarm, 1000);
   } else if(action === 'busy'){
     $('redirectEmgId').value = emgId;
     if(comment) $('redirectNote').value = comment;
     $('redirectModal').classList.add('on');
+    // Rejesha kwa modal
+    currentEmergency = emgCopy;
     return;
   }
-
-  currentEmergency = null;
-  setTimeout(checkNextAlarm, 800);
 }
 
 async function confirmRedirect(){
@@ -847,11 +885,20 @@ async function confirmRedirect(){
     message: `Imeelekezwa kwa ${to}: "${note}" (na ${me})`
   });
   $('redirectModal').classList.remove('on');
+  $('alertRing').classList.remove('on');
+  stopRingLoop();
   currentEmergency = null;
   alert(`✅ Dharura imeelekezwa kwa ${to}.\nUjumbe: "${note}"\n\nMfumo wao utaita MLIO mara moja.`);
-  setTimeout(checkNextAlarm, 800);
+  setTimeout(checkNextAlarm, 1000);
 }
-function closeRedirect(){ $('redirectModal').classList.remove('on'); currentEmergency=null; setTimeout(checkNextAlarm,800); }
+
+function closeRedirect(){
+  stopRingLoop();
+  $('alertRing').classList.remove('on');
+  $('redirectModal').classList.remove('on');
+  currentEmergency = null;
+  setTimeout(checkNextAlarm, 1000);
+}
 
 // =================================================================
 //  UPDATE HISTORY UI
@@ -920,7 +967,7 @@ async function confirmRef(){
 }
 
 // =================================================================
-//  RENDER (ROLE ROUTER) — same as before but I'll add processed block
+//  RENDER (ROLE ROUTER)
 // =================================================================
 async function render(role){
   myRole = role;
@@ -940,7 +987,7 @@ async function render(role){
     const vRows = vs.length ? vs.map((v,i) => `<tr><td>${i+1}</td><td>${v.date||'-'}</td><td>${v.weight||'-'}</td><td>${v.bp||'-'}</td><td>${v.temp||'-'}</td><td>${v.advice||'-'}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">Hakuna mahudhurio</td></tr>';
     const isPN = st === 'postnatal';
     const myEmg = await get('emergencies',{});
-    const myResponded = Object.values(myEmg||{}).filter(e => e.user===user && e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,3);
+    const myResponded = Object.values(myEmg||{}).filter(e => e.user === user && e.status === 'responding').sort((a,b) => (b.respondedAt||0) - (a.respondedAt||0)).slice(0,3);
     let responseMsg = '';
     if(myResponded.length > 0){
       responseMsg = myResponded.map(e => `
@@ -1010,7 +1057,7 @@ async function render(role){
     const tr = await getTransfers();
     const pend = tr.filter(t => t.status === 'pending');
     const nt = await get('notifications/chw',{});
-    const notes = Object.values(nt||{}).sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
+    const notes = Object.values(nt||{}).sort((a,b) => b.timestamp - a.timestamp).slice(0,5);
     const clients = await getClients();
     const totalClients = Object.keys(clients).length;
     const tRows = pend.length ? pend.map(t => `<tr><td>${t.clientName}</td><td>${t.fromFacility}</td><td>${t.toFacility}</td><td>${t.reason}</td>
@@ -1034,9 +1081,9 @@ async function render(role){
   else if(role === 'nurse_labour'){
     const clients = await getClients();
     const lm = [];
-    for(const n of Object.keys(clients)){ const d = clients[n]; if(d.status==='pregnant'||d.status==='labour') lm.push({name:n,...d}); }
+    for(const n of Object.keys(clients)){ const d = clients[n]; if(d.status === 'pregnant' || d.status === 'labour') lm.push({name:n,...d}); }
     const refs = await getReferrals();
-    const pend = refs.filter(r => r.status==='pending');
+    const pend = refs.filter(r => r.status === 'pending');
     const lRows = lm.length ? lm.map(m => `<tr><td>${m.name}</td><td>${m.phone||'-'}</td><td>${m.status||'-'}</td>
       <td><button class="btn2" style="background:#6a1b9a" onclick="pickMom('${m.name}')">✅ Sajili Kujifungua</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Hakuna mama</td></tr>';
     const rRows = pend.length ? pend.map(r => `<tr><td>${r.clientName}</td><td>${r.fromWard||'-'}</td><td>${r.reason||'-'}</td><td><button class="btn2 b-green" onclick="labAppRef(${r.id})">Kubali</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Hakuna rufaa</td></tr>';
@@ -1051,7 +1098,7 @@ async function render(role){
         <h3 style="color:#6a1b9a">👶 Sajili Kujifungua & Tuma Postnatal</h3>
         <form onsubmit="labSave(event)">
           <label>Chagua Mama:</label>
-          <select id="lm1" required>${lm.length?lm.map(m=>`<option value="${m.name}">${m.name}</option>`).join(''):'<option value="">Hakuna mama</option>'}</select>
+          <select id="lm1" required>${lm.length ? lm.map(m => `<option value="${m.name}">${m.name}</option>`).join('') : '<option value="">Hakuna mama</option>'}</select>
           <label>Njia ya Uzazi:</label>
           <select id="lm2" required><option>Kawaida (SVD)</option><option>Upasuaji (C/S)</option></select>
           <label>Maoni ya Daktari:</label>
@@ -1073,12 +1120,15 @@ async function render(role){
     const all = await getClients();
     const pn = Object.keys(all).filter(k => all[k].status === 'postnatal');
     const nt = await get('notifications/postnatal',{});
-    const notes = Object.values(nt||{}).sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
-    const rows = pn.length ? pn.map(n => { const d = all[n]; return `<tr><td><b>${n}</b></td><td>${d.deliveryMode||'-'}</td><td>${d.deliveryDate||'-'}</td><td>${d.deliveredBy||'-'}</td>
-      <td><button class="btn2 b-green" onclick="pnDisc('${n}')">✅ Discharge</button><button class="btn2 b-blue" onclick="pnView('${n}')">Kadi</button></td></tr>`; }).join('') : '<tr><td colspan="5" class="empty">Hakuna mama Postnatal.</td></tr>';
+    const notes = Object.values(nt||{}).sort((a,b) => b.timestamp - a.timestamp).slice(0,5);
+    const rows = pn.length ? pn.map(n => {
+      const d = all[n];
+      return `<tr><td><b>${n}</b></td><td>${d.deliveryMode||'-'}</td><td>${d.deliveryDate||'-'}</td><td>${d.deliveredBy||'-'}</td>
+      <td><button class="btn2 b-green" onclick="pnDisc('${n}')">✅ Discharge</button><button class="btn2 b-blue" onclick="pnView('${n}')">Kadi</button></td></tr>`;
+    }).join('') : '<tr><td colspan="5" class="empty">Hakuna mama Postnatal.</td></tr>';
     h = `${liveBlock('🏠 Joto la Mama Postnatal (Live)')}${histBlock()}${wodiEmgBlock('nurse_postnatal')}${processedAlarmsBlock()}
       <div class="stats"><div class="sc" style="border-left-color:#00838f"><h3>${pn.length}</h3><p>Wateja Postnatal</p></div></div>
-      <div class="card"><h3>📬 Taarifa Mpya Kutoka Labour Ward</h3>${notes.length?notes.map(n=>`<div class="msg i"><b>${n.clientName}:</b> ${n.message}</div>`).join(''):'<p style="color:#888">Hakuna taarifa mpya.</p>'}</div>
+      <div class="card"><h3>📬 Taarifa Mpya Kutoka Labour Ward</h3>${notes.length ? notes.map(n => `<div class="msg i"><b>${n.clientName}:</b> ${n.message}</div>`).join('') : '<p style="color:#888">Hakuna taarifa mpya.</p>'}</div>
       <div class="card" style="border:2px solid #00838f"><h3 style="color:#00838f">🛏️ Orodha ya Wateja Postnatal</h3>
         <table><thead><tr><th>Mama</th><th>Njia</th><th>Tarehe</th><th>Aliyefanya</th><th>Vitendo</th></tr></thead><tbody>${rows}</tbody></table></div>`;
   }
@@ -1147,7 +1197,7 @@ async function render(role){
   // ---------- ADMIN ----------
   else if(role === 'admin'){
     const emg = await get('emergencies',{});
-    const allList = Object.values(emg||{}).sort((a,b)=>b.timestamp-a.timestamp);
+    const allList = Object.values(emg||{}).sort((a,b) => b.timestamp - a.timestamp);
     const activeList = allList.filter(e => e.status === 'active');
     const histList = allList.filter(e => e.status === 'responding').slice(0,20);
     const emgRows = activeList.length ? activeList.slice(0,10).map(e => `<tr>
@@ -1178,7 +1228,7 @@ async function render(role){
         <table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>🕐 Kupokea</th><th>👤 Alijibu</th><th>⏱️ Kujibu</th><th>📝 Maoni</th></tr></thead><tbody>${histRows}</tbody></table>
       </div>
       <div class="card"><h3>👥 Wateja Wote (${Object.keys(clients).length})</h3>
-        <table><thead><tr><th>Jina</th><th>Hali</th></tr></thead><tbody>${Object.keys(clients).map(k=>`<tr><td>${k}</td><td>${clients[k].status||'-'}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">Hakuna wateja</td></tr>'}</tbody></table>
+        <table><thead><tr><th>Jina</th><th>Hali</th></tr></thead><tbody>${Object.keys(clients).map(k => `<tr><td>${k}</td><td>${clients[k].status||'-'}</td></tr>`).join('') || '<tr><td colspan="2" class="empty">Hakuna wateja</td></tr>'}</tbody></table>
       </div>`;
   }
 
@@ -1209,15 +1259,15 @@ window.mtejaTransfer = async(e) => {
   const to = $('tt').value, r = $('tr').value.trim();
   if(!r){ alert('Ingiza sababu'); return; }
   const d = await getClient(sessionStorage.getItem('un'));
-  await addTransfer({clientName:sessionStorage.getItem('un'),fromFacility:d.location||'Tunduma TC',toFacility:to,reason:r,requestedBy:'Mteja',clientPhone:d.phone||''});
+  await addTransfer({clientName:sessionStorage.getItem('un'), fromFacility:d.location||'Tunduma TC', toFacility:to, reason:r, requestedBy:'Mteja', clientPhone:d.phone||''});
   alert('✅ Ombi limetumwa!');
   await render('mteja');
 };
 
 // ============ CHW ============
 window.chwApp = async(id,ok) => {
-  await updTransfer(id,{status:ok?'approved':'rejected',reviewedAt:new Date().toISOString()});
-  alert(ok?'✅ Umekubali':'❌ Umekataa');
+  await updTransfer(id, {status:ok?'approved':'rejected', reviewedAt:new Date().toISOString()});
+  alert(ok ? '✅ Umekubali' : '❌ Umekataa');
   await render('chw');
 };
 
@@ -1229,23 +1279,23 @@ window.dAccept = (n,a,p,c) => {
   $('aca') && ($('aca').textContent = a);
   $('acp') && ($('acp').textContent = p);
   $('acc') && ($('acc').textContent = c);
-  $('cbtn') && ($('cbtn').href = 'tel:'+p);
-  alert('✅ Umemkubali '+n);
+  $('cbtn') && ($('cbtn').href = 'tel:' + p);
+  alert('✅ Umemkubali ' + n);
 };
 
 // ============ LABOUR ============
 window.pickMom = (n) => { $('lm1').value = n; $('lm1').scrollIntoView({behavior:'smooth'}); };
-window.labAppRef = async(id) => { await updReferral(id,{status:'approved',reviewedAt:new Date().toISOString()}); alert('✅ Rufaa imethibitishwa'); await render('nurse_labour'); };
+window.labAppRef = async(id) => { await updReferral(id, {status:'approved', reviewedAt:new Date().toISOString()}); alert('✅ Rufaa imethibitishwa'); await render('nurse_labour'); };
 window.labSave = async(e) => {
   e.preventDefault();
-  const m = $('lm1').value, mo = $('lm2').value, no = $('lm3').value.trim(), msg = $('lm4').value, chw = $('lm5')?.value||'';
+  const m = $('lm1').value, mo = $('lm2').value, no = $('lm3').value.trim(), msg = $('lm4').value, chw = $('lm5')?.value || '';
   if(!m){ alert('Chagua mama'); return; }
   const d = await getClient(m);
   d.status = 'postnatal'; d.deliveryDate = new Date().toISOString().split('T')[0];
   d.deliveryMode = mo; d.deliveryNotes = no;
   d.sourceWard = 'Labour'; d.deliveredBy = sessionStorage.getItem('un'); d.deliveredAt = Date.now();
   d.messageToNdugu = msg; d.messageToCHW = chw;
-  await setClient(m,d);
+  await setClient(m, d);
   await set('notifications/postnatal/'+Date.now(), {clientName:m, message:`Mama ${m} amejifungua (${mo}).`, timestamp:Date.now(), from:'Labour Ward'});
   await set('notifications/chw/'+Date.now(), {clientName:m, message:`Mama ${m} amejifungua (${mo}). ${chw}`, timestamp:Date.now(), from:'Labour Ward'});
   alert(`✅ ${m} amejifungua!\nNjia: ${mo}`);
@@ -1257,7 +1307,7 @@ window.labSave = async(e) => {
 window.pnDisc = async(n) => {
   if(!confirm(`Ruhusu ${n}?`)) return;
   const d = await getClient(n); d.status = 'discharged'; d.dischargeDate = new Date().toISOString().split('T')[0];
-  await setClient(n,d);
+  await setClient(n, d);
   await set('notifications/chw/'+Date.now(), {clientName:n, message:`${n} ameruhusiwa.`, timestamp:Date.now(), from:'Postnatal'});
   alert(`✅ ${n} ameruhusiwa.`);
   await render('nurse_postnatal');
@@ -1271,14 +1321,14 @@ window.pnView = async(n) => {
 window.rchReg = async(e) => {
   e.preventDefault();
   const name = $('rn').value.trim(), phone = $('rp').value.trim();
-  if(!name||!phone){ alert('Jaza Jina na Simu'); return; }
-  await setClient(name,{name,phone,partner:$('rm').value.trim(),location:$('rl').value.trim(),gravida:$('rg').value.trim(),para:$('rpa').value.trim(),status:'pregnant',createdAt:new Date().toISOString()});
+  if(!name || !phone){ alert('Jaza Jina na Simu'); return; }
+  await setClient(name, {name, phone, partner:$('rm').value.trim(), location:$('rl').value.trim(), gravida:$('rg').value.trim(), para:$('rpa').value.trim(), status:'pregnant', createdAt:new Date().toISOString()});
   alert(`✅ ${name} amesajiliwa!`);
   e.target.reset(); await render('nurse_rch');
 };
 window.rchApp = async(id,ok) => {
-  await updTransfer(id,{status:ok?'approved':'rejected',reviewedAt:new Date().toISOString()});
-  alert(ok?'✅ Umekubali':'❌ Umekataa');
+  await updTransfer(id, {status:ok?'approved':'rejected', reviewedAt:new Date().toISOString()});
+  alert(ok ? '✅ Umekubali' : '❌ Umekataa');
   await render('nurse_rch');
 };
 
@@ -1286,7 +1336,7 @@ window.rchApp = async(id,ok) => {
 window.coordApp = (id) => { $('hid').value = id; $('hm').classList.add('on'); };
 window.coordRej = async(id) => {
   const r = prompt('Sababu:'); if(!r) return;
-  await updReferral(id,{status:'rejected',coordinatorNote:r,reviewedAt:new Date().toISOString()});
+  await updReferral(id, {status:'rejected', coordinatorNote:r, reviewedAt:new Date().toISOString()});
   alert('❌ Rufaa imekataliwa'); await render('coordinator');
 };
 
@@ -1294,13 +1344,13 @@ window.coordRej = async(id) => {
 window.adminStaff = async(e) => {
   e.preventDefault();
   const dept = $('as1').value, cadre = $('as2').value, name = $('as3').value.trim(), phone = $('as4').value.trim(), pwd = $('as5').value;
-  if(!dept||!name||!phone||!pwd){ alert('Jaza sehemu zote'); return; }
+  if(!dept || !name || !phone || !pwd){ alert('Jaza sehemu zote'); return; }
   let role = 'nurse_rch';
   if(dept === 'Labour Ward') role = 'nurse_labour';
   else if(dept === 'Postnatal Ward') role = 'nurse_postnatal';
   else if(dept === 'Theater') role = 'nurse_theater';
   else if(dept === 'Maabara') role = 'lab_tech';
-  await saveUser(phone,{name,role,cadre,password:pwd,createdAt:new Date().toISOString()});
+  await saveUser(phone, {name, role, cadre, password:pwd, createdAt:new Date().toISOString()});
   alert(`✅ ${name} amesajiliwa! Role: ${role}`);
   e.target.reset();
 };
@@ -1320,7 +1370,8 @@ window.adminStaff = async(e) => {
     }, {once:true});
   });
 })();
-console.log('🌸 MAMA-SAFELIFE — Alarm Loop System tayari! Device: '+DEV+' Session: '+MY_SESSION);
+
+console.log('🌸 MAMA-SAFELIFE — Alarm Loop System tayari! Device: ' + DEV + ' Session: ' + MY_SESSION);
 </script>
 </body>
 </html>
