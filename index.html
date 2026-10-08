@@ -91,7 +91,7 @@ th{background:#f8f9fa}
 .pstep{margin:6px 0;font-size:.9rem;color:#444}
 
 /* ============================================================
-   MFUMO WA DHARURA — LIVE ALERT + SOUND + BELL + REDIRECT
+   MFUMO WA DHARURA
    ============================================================ */
 .alert-ring{
   display:none;position:fixed;inset:0;background:rgba(200,0,0,0.92);z-index:9999;
@@ -176,7 +176,7 @@ th{background:#f8f9fa}
   <div class="wrap" id="content"></div>
 </div>
 
-<!-- ============ EMERGENCY MODAL (kwa Mteja/Dereva) ============ -->
+<!-- ============ EMERGENCY MODAL ============ -->
 <div id="em" class="mod">
   <div class="mc">
     <h2>🚨 DHARURA</h2>
@@ -208,7 +208,7 @@ th{background:#f8f9fa}
   </div>
 </div>
 
-<!-- ============ LIVE EMERGENCY ALERT (INCOMING) ============ -->
+<!-- ============ LIVE EMERGENCY ALERT ============ -->
 <div id="alertRing" class="alert-ring">
   <div class="alert-box">
     <span class="icon">🚨</span>
@@ -265,6 +265,12 @@ const db = firebase.database();
 const DEV='M0005';
 const USER='0674377704', PASS='1234';
 
+// ============ SESSION ID YA KIPEKEE KWA KILA BROWSER ============
+if(!sessionStorage.getItem('msl_session_id')){
+  sessionStorage.setItem('msl_session_id','sess_'+Date.now()+'_'+Math.random().toString(36).slice(2,8));
+}
+const MY_SESSION = sessionStorage.getItem('msl_session_id');
+
 // ============ HELPERS ============
 const $ = id => document.getElementById(id);
 const fmt = (n,d=0) => (n==null||isNaN(n))?'--':Number(n).toFixed(d);
@@ -291,7 +297,7 @@ function login(e){
   sessionStorage.setItem('li','1');sessionStorage.setItem('un',u);sessionStorage.setItem('ro',r);
   showDash(r);
 }
-function logout(){if(!confirm('Toka?'))return;sessionStorage.clear();$('dash').style.display='none';$('login').style.display='flex'}
+function logout(){if(!confirm('Toka?'))return;sessionStorage.clear();location.reload()}
 
 async function showDash(role){
   $('login').style.display='none';$('dash').style.display='flex';
@@ -301,6 +307,7 @@ async function showDash(role){
   myRole=role;
   await render(role);
   startEmergencyListener();
+  console.log('🔔 Emergency listener started for:', role, 'Session:', MY_SESSION);
 }
 
 // ============ LIVE VITALS ============
@@ -414,7 +421,7 @@ function wodiEmgBlock(role){
   </div>`;
 }
 
-// ============ EMERGENCY SENDER (LIVE + FIREBASE) ============
+// ============ EMERGENCY SENDER ============
 let currentEmergency=null,alertPlaying=false,audioCtx=null,alertInterval=null,myRole='';
 
 async function sendEm(type){
@@ -424,13 +431,13 @@ async function sendEm(type){
     nurse_postnatal:'Postnatal Ward',nurse_rch:'RCH Clinic',lab_tech:'Maabara',
     chw:'CHW',admin:'Admin',coordinator:'Mratibu',driver:'Dereva'};
   const srcWard=srcWardMap[role]||role;
-  // Get selected client name if there's a dropdown
   let clientName='Mgonjwa';
   const sel=$('lm1')||$('pnClientSelectCard')||$('labClientSelect')||$('mtejaSelect');
   if(sel&&sel.value)clientName=sel.value;
   try{
     const emg={
       type,sourceWard:srcWard,role,user,clientName,
+      sessionId:MY_SESSION,
       message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}. Timu yote iitikie haraka.`,
       timestamp:Date.now(),status:'active',response:null,redirectedTo:null
     };
@@ -440,7 +447,7 @@ async function sendEm(type){
   }catch(e){alert('Hitilafu: '+e.message)}
 }
 
-// ============ SOUND (Web Audio API) ============
+// ============ SOUND ============
 function playRing(){
   try{
     if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
@@ -469,11 +476,14 @@ function stopRingLoop(){
   if(navigator.vibrate)navigator.vibrate(0);
 }
 
-// ============ EMERGENCY LISTENER (Live from Firebase) ============
+// ============ EMERGENCY LISTENER (KILA MTU ANAONA) ============
 function isEmergencyForMe(emg,role){
-  const responders=['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','lab_tech','chw'];
+  // ROLES ZOTE ZINAZOPOKEA DHARURA (nurse_rch na driver wameongezwa)
+  const responders=['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
   if(!responders.includes(role))return false;
-  if(emg.user===sessionStorage.getItem('un'))return false;
+  // MUHIMU: Tumia SESSION ID, sio user
+  if(emg.sessionId===MY_SESSION)return false;
+  // Kama imeelekezwa kwa mtu mwingine, usiione
   if(emg.redirectedTo){
     const toRole=mapNameToRole(emg.redirectedTo);
     if(toRole&&toRole!==role)return false;
@@ -489,15 +499,18 @@ function mapNameToRole(name){
   if(n.includes('theater')||n.includes('neema'))return 'nurse_theater';
   if(n.includes('postnatal')||n.includes('grace'))return 'nurse_postnatal';
   if(n.includes('labour')||n.includes('labor')||n.includes('zainab'))return 'nurse_labour';
+  if(n.includes('rch'))return 'nurse_rch';
   if(n.includes('dereva')||n.includes('juma ally'))return 'driver';
   if(n.includes('dr.')||n.includes('daktari'))return null;
   return null;
 }
 function startEmergencyListener(){
+  console.log('🔔 Starting emergency listener for role:', myRole);
   db.ref('emergencies').on('value',snap=>{
     const data=snap.val()||{};
     const items=Object.entries(data).map(([id,v])=>({id,...v}))
       .filter(e=>e.status==='active').sort((a,b)=>b.timestamp-a.timestamp);
+    console.log('📢 Dharura zote active:', items.length);
     updateBell(items);
     if(currentEmergency){
       const still=items.find(e=>e.id===currentEmergency.id);
@@ -505,6 +518,7 @@ function startEmergencyListener(){
       return;
     }
     const forMe=items.filter(e=>isEmergencyForMe(e,myRole));
+    console.log('📢 Dharura zinazonihusu:', forMe.length);
     if(forMe.length>0&&!alertPlaying)showEmergencyAlert(forMe[0]);
   });
 }
@@ -542,7 +556,7 @@ async function respondEmergency(action){
   if(!currentEmergency)return;
   stopRingLoop();$('alertRing').classList.remove('on');
   const me=sessionStorage.getItem('un'),role=sessionStorage.getItem('ro');
-  const upd={response:action,respondedBy:me,respondedRole:role,respondedAt:new Date().toISOString()};
+  const upd={response:action,respondedBy:me,respondedRole:role,respondedAt:new Date().toISOString(),respondedSession:MY_SESSION};
   if(action==='coming'){
     upd.status='responding';
     upd.message=`${me} (${role}) anakuja kusaidia.`;
@@ -1077,7 +1091,7 @@ window.adminDriver=async(e)=>{
   await loadHist();await loadLive();
   setInterval(loadLive,5000);
 })();
-console.log('🌸 MAMA-SAFELIFE + DHARURA LIVE tayari! Device: '+DEV);
+console.log('🌸 MAMA-SAFELIFE + DHARURA LIVE tayari! Device: '+DEV+' Session: '+MY_SESSION);
 </script>
 </body>
 </html>
