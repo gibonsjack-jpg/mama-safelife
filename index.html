@@ -6,6 +6,10 @@
 <title>MAMA-SAFELIFE</title>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<!-- ⭐ ONGEZA MAP (LEAFLET) HAPA -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',sans-serif;margin:0;padding:0}
 body{background:#f4f7f6;color:#1e2a3a;min-height:100vh;font-size:15px}
@@ -238,6 +242,10 @@ th{background:#f8f9fa}
   <div class="src" id="alertSource">Kutoka: --</div>
   <div class="amsg" id="alertMessage">--</div>
   <div id="alertClientDetails" class="alert-client-details" style="display:none;"></div>
+  
+  <!-- ⭐ SEHEMU YA RAMANI (MAP) IMEONGezwa HAPA -->
+  <div id="sosMap" style="height: 180px; width: 100%; margin: 10px 0; border-radius: 10px; border: 2px solid #1b5e20; display: none; z-index: 1;"></div>
+
   <div class="atime" id="alertTime">--</div>
 
   <div class="alert-comment-box">
@@ -446,6 +454,7 @@ const alarmState = {
 async function requestWakeLock(){try{if('wakeLock' in navigator && !wakeLockObj){wakeLockObj = await navigator.wakeLock.request('screen');wakeLockObj.addEventListener('release', () => { wakeLockObj = null; });}}catch(e){}}
 function releaseWakeLock(){try{if(wakeLockObj){wakeLockObj.release();wakeLockObj = null;}}catch(e){}}
 
+// ⭐ IMEREKEBISHWA: Sasa inachukua GPS ya kifaa
 async function sendEm(type){
   $('em').classList.remove('on');
   const role=sessionStorage.getItem('ro'),user=sessionStorage.getItem('un');
@@ -453,6 +462,7 @@ async function sendEm(type){
   const srcWard=srcWardMap[role]||role;
   let clientName='Mgonjwa';
   let clientDetails={};
+  
   if(role==='mteja'){
     const d=await getClient(user);
     clientName=d.name||user;
@@ -465,11 +475,30 @@ async function sendEm(type){
       clientDetails={name:clientName,phone:d.phone||'-',partner:d.partner||'-',location:d.location||'-',district:d.district||'-',region:d.region||'-',gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',bp_sys:d.bp_sys||'-',bp_dia:d.bp_dia||'-',temp:d.temp||'-',status:d.status||'pregnant'};
     }
   }
+
+  // ⭐ CHUKUA GPS YA SIMU/COMPUTER HAPA
+  const getGPS = () => {
+    return new Promise((resolve) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          (err) => { console.warn("GPS imeshindikana: ", err); resolve(null); },
+          { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
+      } else { resolve(null); }
+    });
+  };
+  const coords = await getGPS();
+  if (coords) {
+    clientDetails.lat = coords.lat;
+    clientDetails.lng = coords.lng;
+  }
+
   try{
     const emg={type,sourceWard:srcWard,role,user,clientName,clientDetails,sessionId:MY_SESSION,message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,timestamp:Date.now(),status:'active',response:null,redirectedTo:null,comment:null};
     await db.ref('emergencies/emg_'+Date.now()).set(emg);
     playOnce();
-    alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}`);
+    alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}\n\n📍 GPS: ${coords ? 'Imechukuliwa' : 'Haipo'}`);
   }catch(e){alert('Hitilafu: '+e.message)}
 }
 
@@ -529,7 +558,6 @@ function minimizeAlarm(){
   $('alertRing').classList.remove('on');
   $('alarmMini').classList.add('on');
   $('alarmMiniCount').textContent = pendingAlarms.filter(e=>e.status==='active').length || 1;
-  // MLIO UNAENDELEA — ndio maana hatuita stopRingLoop()
 }
 
 function reopenAlarm(){
@@ -544,7 +572,7 @@ function isEmergencyForMe(emg,role){
   if(!responders.includes(role))return false;
   if(emg.sessionId===MY_SESSION)return false;
   if(emg.status!=='active')return false;
-  if(!isAlarmFresh(emg.timestamp))return false; // ⏱️ Alarm za zamani hazilili
+  if(!isAlarmFresh(emg.timestamp))return false;
   if(emg.redirectedTo){
     const toRole=mapNameToRole(emg.redirectedTo);
     if(toRole && toRole!==role)return false;
@@ -575,12 +603,9 @@ function startEmergencyListener(){
     const freshItems=activeItems.filter(e=>isAlarmFresh(e.timestamp));
     const historyItems=allItems.filter(e=>e.status==='responding'||e.status==='resolved');
 
-    // ⏱️ ONDOA alarm za zamani kama hazijajibiwa
     activeItems.forEach(async e => {
       if(!isAlarmFresh(e.timestamp)){
-        try{
-          await db.ref('emergencies/'+e.id).update({status:'expired', expiredAt:Date.now()});
-        }catch(err){}
+        try{ await db.ref('emergencies/'+e.id).update({status:'expired', expiredAt:Date.now()}); }catch(err){}
       }
     });
 
@@ -653,6 +678,7 @@ function showPendingList(){
   });
 }
 
+// ⭐ IMEREKEBISHWA: Sasa inaonyesha Ramani (Map)
 function showEmergencyAlert(emg){
   currentEmergency = emg;
   isMinimized = false;
@@ -668,6 +694,7 @@ function showEmergencyAlert(emg){
   const d=emg.clientDetails||{};
   const name=emg.clientName||d.name||'Mgonjwa (Haijulikani)';
   const hasDetails = (d.name && d.name !== '-') || (d.phone && d.phone !== '-') || (d.location && d.location !== '-');
+  
   if(hasDetails){
     let html=`<div class="hdr">👤 TAARIFA ZA MGONJWA / MTEJA:</div>`;
     html+=`<div><b>👤 Jina:</b> ${d.name||name}</div>`;
@@ -688,13 +715,36 @@ function showEmergencyAlert(emg){
     detailsEl.innerHTML = html;
     detailsEl.style.display = 'block';
   } else {
-    // Fallback — onyesha taarifa za msingi
     detailsEl.innerHTML = `<div class="hdr">👤 TAARIFA ZA DHARURA:</div>
       <div><b>👤 Mgonjwa:</b> ${name}</div>
       <div><b>📋 Aina:</b> ${emg.type}</div>
       <div><b>🏥 Kutoka:</b> ${emg.sourceWard||emg.role||'-'}</div>
       <div><b>👨‍⚕️ Mtumaji:</b> ${emg.user||'-'} (${emg.role||'-'})</div>`;
     detailsEl.style.display = 'block';
+  }
+
+  // ⭐ RAMANI INAONEKANA HAPA
+  const mapDiv = $('sosMap');
+  const lat = (emg.clientDetails && emg.clientDetails.lat) ? emg.clientDetails.lat : -9.3000;
+  const lng = (emg.clientDetails && emg.clientDetails.lng) ? emg.clientDetails.lng : 32.7667;
+
+  if(lat && lng){
+    mapDiv.style.display = 'block';
+    setTimeout(() => {
+      if(window.sosMapObj) { window.sosMapObj.remove(); } 
+      
+      window.sosMapObj = L.map('sosMap').setView([lat, lng], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(window.sosMapObj);
+      
+      L.marker([lat, lng]).addTo(window.sosMapObj)
+        .bindPopup('<b>Dharura Ipo Hapa!</b>').openPopup();
+        
+      setTimeout(() => { window.sosMapObj.invalidateSize(); }, 300);
+    }, 300);
+  } else {
+    mapDiv.style.display = 'none';
   }
 
   $('alertComment').value = '';
