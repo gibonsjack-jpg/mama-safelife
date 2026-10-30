@@ -427,43 +427,6 @@ const alarmState = {
 async function requestWakeLock(){try{if('wakeLock' in navigator && !wakeLockObj){wakeLockObj = await navigator.wakeLock.request('screen');wakeLockObj.addEventListener('release', () => { wakeLockObj = null; });}}catch(e){}}
 function releaseWakeLock(){try{if(wakeLockObj){wakeLockObj.release();wakeLockObj = null;}}catch(e){}}
 
-// ⬅️ MPYA: Pata GPS kutoka kifaa (simu au PC)
-function getGPS(timeoutMs = 6000) {
-  return new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      console.warn('GPS: navigator.geolocation haipatikani');
-      resolve(null);
-      return;
-    }
-    let done = false;
-    const timer = setTimeout(() => {
-      if (!done) { done = true; console.warn('GPS: imechelewa'); resolve(null); }
-    }, timeoutMs + 800);
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (done) return;
-        done = true;
-        clearTimeout(timer);
-        resolve({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy || 0,
-          timestamp: pos.timestamp || Date.now()
-        });
-      },
-      (err) => {
-        if (done) return;
-        done = true;
-        clearTimeout(timer);
-        console.warn('GPS error:', err.code, err.message);
-        resolve(null);
-      },
-      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 30000 }
-    );
-  });
-}
-
 async function sendEm(type){
   $('em').classList.remove('on');
   const role=sessionStorage.getItem('ro'),user=sessionStorage.getItem('un');
@@ -483,47 +446,11 @@ async function sendEm(type){
       clientDetails={name:clientName,phone:d.phone||'-',partner:d.partner||'-',location:d.location||'-',district:d.district||'-',region:d.region||'-',gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',bp_sys:d.bp_sys||'-',bp_dia:d.bp_dia||'-',temp:d.temp||'-',status:d.status||'pregnant'};
     }
   }
-
-  // ⬅️ MPYA: Loader ya GPS
-  const loader = document.createElement('div');
-  loader.id = 'gpsLoader';
-  loader.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#c62828;color:#fff;padding:22px 28px;border-radius:14px;font-weight:bold;z-index:10001;box-shadow:0 10px 40px rgba(0,0,0,0.6);text-align:center;font-size:1rem;max-width:320px;';
-  loader.innerHTML = '📡 Inatafuta mahali (GPS)...<br><small style="font-weight:normal;font-size:0.78rem;opacity:0.9;display:block;margin-top:6px;">Tafadhali ruhusu kifaa chako kutumia eneo lako</small>';
-  document.body.appendChild(loader);
-
-  // ⬅️ MPYA: Pata GPS
-  const gps = await getGPS();
-
-  if (loader.parentNode) loader.remove();
-
   try{
-    const emg={
-      type,
-      sourceWard:srcWard,
-      role,
-      user,
-      clientName,
-      clientDetails,
-      sessionId:MY_SESSION,
-      message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,
-      timestamp:Date.now(),
-      status:'active',
-      response:null,
-      redirectedTo:null,
-      comment:null,
-      gps:gps // ⬅️ MPYA
-    };
+    const emg={type,sourceWard:srcWard,role,user,clientName,clientDetails,sessionId:MY_SESSION,message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,timestamp:Date.now(),status:'active',response:null,redirectedTo:null,comment:null};
     await db.ref('emergencies/emg_'+Date.now()).set(emg);
     playOnce();
-
-    // ⬅️ MPYA: Confirm yenye GPS
-    let gpsMsg = '';
-    if (gps) {
-      gpsMsg = `\n\n📍 GPS: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}\n🎯 Usahihi: ±${Math.round(gps.accuracy)}m\n🗺️ https://www.google.com/maps?q=${gps.lat},${gps.lng}`;
-    } else {
-      gpsMsg = `\n\n⚠️ GPS haijapatikana (kifaa hakina GPS au ruhusa imekataliwa)`;
-    }
-    alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}${gpsMsg}`);
+    alert(`🚨 DHARURA IMETUMWA KUTOKA ${srcWard}!\n\nAina: ${type}\nMgonjwa: ${clientName}`);
   }catch(e){alert('Hitilafu: '+e.message)}
 }
 
@@ -699,13 +626,7 @@ function showPendingList(){
     const data=snap.val()||{};
     const items=Object.entries(data).map(([id,v])=>({id,...v})).filter(e=>e.status==='active'&&isAlarmFresh(e.timestamp)&&isEmergencyForMe(e,myRole));
     if(items.length===0){alert('✅ Hakuna dharura mpya.');return;}
-    const list=items.map((e,i)=>{
-      const c=e.clientDetails||{};
-      const gpsInfo = (e.gps && e.gps.lat)
-        ? `\n   📍 GPS: ${e.gps.lat.toFixed(4)}, ${e.gps.lng.toFixed(4)}\n   🗺️ https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}`
-        : `\n   📍 GPS: Haijapatikana`;
-      return `${i+1}. [${e.type}]\n   Kutoka: ${e.sourceWard||e.role}\n   Mgonjwa: ${e.clientName||c.name||'-'}\n   Muda: ${shortTime(e.timestamp)}${gpsInfo}`;
-    }).join('\n\n');
+    const list=items.map((e,i)=>{const c=e.clientDetails||{};return `${i+1}. [${e.type}]\n   Kutoka: ${e.sourceWard||e.role}\n   Mgonjwa: ${e.clientName||c.name||'-'}\n   Muda: ${shortTime(e.timestamp)}`;}).join('\n\n');
     if(confirm(`🔔 DHARURA ${items.length} MPYA:\n\n${list}\n\nFungua ya kwanza?`)) showEmergencyAlert(items[0]);
   });
 }
@@ -725,11 +646,9 @@ function showEmergencyAlert(emg){
   const d=emg.clientDetails||{};
   const name=emg.clientName||d.name||'Mgonjwa (Haijulikani)';
   const hasDetails = (d.name && d.name !== '-') || (d.phone && d.phone !== '-') || (d.location && d.location !== '-');
-
-  let html = '';
   if(hasDetails){
-    html = `<div class="hdr">👤 TAARIFA ZA MGONJWA / MTEJA:</div>`;
-    html += `<div><b>👤 Jina:</b> ${d.name||name}</div>`;
+    let html=`<div class="hdr">👤 TAARIFA ZA MGONJWA / MTEJA:</div>`;
+    html+=`<div><b>👤 Jina:</b> ${d.name||name}</div>`;
     if(d.phone && d.phone !== '-') html += `<div><b>📞 Simu:</b> ${d.phone}</div>`;
     if(d.partner && d.partner !== '-') html += `<div><b>💑 Mume/Mtegemezi:</b> ${d.partner}</div>`;
     if(d.location && d.location !== '-') html += `<div><b>📍 Kituo/Mtaa:</b> ${d.location}</div>`;
@@ -744,32 +663,16 @@ function showEmergencyAlert(emg){
       if(d.weight && d.weight !== '-') html += ` | Uzito: <b>${d.weight}kg</b>`;
       html += `</div>`;
     }
+    detailsEl.innerHTML = html;
+    detailsEl.style.display = 'block';
   } else {
-    html = `<div class="hdr">👤 TAARIFA ZA DHARURA:</div>
+    detailsEl.innerHTML = `<div class="hdr">👤 TAARIFA ZA DHARURA:</div>
       <div><b>👤 Mgonjwa:</b> ${name}</div>
       <div><b>📋 Aina:</b> ${emg.type}</div>
       <div><b>🏥 Kutoka:</b> ${emg.sourceWard||emg.role||'-'}</div>
       <div><b>👨‍⚕️ Mtumaji:</b> ${emg.user||'-'} (${emg.role||'-'})</div>`;
+    detailsEl.style.display = 'block';
   }
-
-  // ⬅️ MPYA: GPS + RAMANI
-  if (emg.gps && emg.gps.lat && emg.gps.lng) {
-    const mapLink = `https://www.google.com/maps?q=${emg.gps.lat},${emg.gps.lng}`;
-    html += `<div style="margin-top:12px;padding:12px;background:#fff8e1;border-radius:8px;border-left:5px solid #e65100;">
-      <div style="font-weight:800;color:#e65100;font-size:0.92rem;margin-bottom:8px;">📍 MAHALI ILIPO DHARURA (GPS)</div>
-      <a href="${mapLink}" target="_blank" rel="noopener" style="display:inline-block;background:#c62828;color:#fff;padding:12px 18px;border-radius:8px;font-weight:800;text-decoration:none;font-size:0.9rem;">🗺️ FUNGUA RAMANI (Google Maps)</a>
-      <div style="margin-top:8px;font-size:0.78rem;color:#555;">
-        Lat: <b>${emg.gps.lat.toFixed(6)}</b> | Lng: <b>${emg.gps.lng.toFixed(6)}</b> | Usahihi: <b>±${Math.round(emg.gps.accuracy || 0)}m</b>
-      </div>
-    </div>`;
-  } else {
-    html += `<div style="margin-top:12px;padding:10px;background:#f5f5f5;border-radius:8px;border-left:5px solid #999;font-size:0.82rem;color:#666;">
-      <b>📍 GPS:</b> Haijapatikana (kifaa hakina GPS, ruhusa imekataliwa, au mtandao haupo)
-    </div>`;
-  }
-
-  detailsEl.innerHTML = html;
-  detailsEl.style.display = 'block';
 
   $('alertComment').value = '';
 
@@ -855,13 +758,9 @@ function updateHistoryUI(historyItems){
   if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
   el.innerHTML=mine.map(e=>{
     const c=e.clientDetails||{};const name=e.clientName||c.name||'-';
-    // ⬅️ MPYA: GPS link
-    const gpsLink = (e.gps && e.gps.lat)
-      ? `<br><a href="https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}" target="_blank" rel="noopener" style="color:#e65100;font-weight:bold;font-size:0.72rem;text-decoration:none;">📍 Ramani</a>`
-      : '';
     return `<tr>
       <td><b>${e.type}</b><br><small>${e.sourceWard||e.role||'-'}</small></td>
-      <td><b>${name}</b>${gpsLink}<br><small>${c.phone||'-'}</small></td>
+      <td><b>${name}</b><br><small>${c.phone||'-'}</small></td>
       <td>${shortTime(e.timestamp)}<br><small>${fullTime(e.timestamp).split('—')[0].trim()}</small></td>
       <td><b>${e.respondedBy||'-'}</b><br><small>${e.respondedRole||'-'}</small></td>
       <td>${shortTime(e.respondedAt)}<br><small>⏱️ ${e.responseTime||duration(e.timestamp,e.respondedAt)}</small></td>
@@ -1010,12 +909,14 @@ async function render(role){
 
   // ================= CHW DASHBOARD (UPDATE MPYA) =================
   else if(role==='chw'){
+    // 1. Pata wateja wote na referrals
     const clients = await getClients();
     const tr = await getTransfers();
     const pend = tr.filter(t => t.status === 'pending');
     const nt = await get('notifications/chw',{});
     const notes = Object.values(nt||{}).sort((a,b)=>b.timestamp-a.timestamp).slice(0,3);
 
+    // 2. Hesabu takwimu za vipimo (Leo, Wiki, Waliokosa)
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
     const startOfWeek = now.getTime() - (7 * 24 * 60 * 60 * 1000);
@@ -1026,6 +927,7 @@ async function render(role){
 
     Object.keys(clients).forEach(name => {
       const d = clients[name];
+      // Chuja wale ambao sio wajawazito au postnatal (kama wameshadischarge)
       if (d.status !== 'pregnant' && d.status !== 'postnatal') return;
       
       totalC++;
@@ -1051,6 +953,7 @@ async function render(role){
         measuredWeek++;
       }
 
+      // Kama hajapima kwa zaidi ya siku 7 au hajapima kabisa
       if (lastVisitTs < startOfWeek) {
         missedCount++;
         const days = lastVisitTs === 0 ? 'Hajawahi kupima' : `Hajapima siku ${Math.floor((now.getTime() - lastVisitTs) / (1000*60*60*24))}`;
@@ -1058,6 +961,7 @@ async function render(role){
       }
     });
 
+    // 3. Pata Dharura za wateja hawa
     const allEmg = await get('emergencies', {});
     const myPatientsEmg = Object.values(allEmg).filter(e => clients[e.clientName]).sort((a,b)=>b.timestamp-a.timestamp).slice(0, 10);
 
@@ -1074,6 +978,7 @@ async function render(role){
       </tr>`;
     }).join('') : '<tr><td colspan="4" class="empty">Hakuna dharura zilizopigwa.</td></tr>';
 
+    // 4. Orodha ya waliokosa vipimo (Follow up)
     let followUpRows = missedList.length ? missedList.map(m => `
       <tr>
         <td><b>${m.name}</b><br><small>${m.phone}</small></td>
@@ -1083,8 +988,10 @@ async function render(role){
       </tr>
     `).join('') : '<tr><td colspan="4" class="empty">Wateja wote wamepima hivi karibuni.</td></tr>';
 
+    // 5. Dropdown ya kuripoti dharura
     const patientOptions = allValidPatients.map(p => `<option value="${p.name}">${p.name}</option>`).join('');
 
+    // 6. HTML ya CHW
     h = `
       ${liveBlock('🌡️ Hali ya Mteja Anayefuatiliwa (Live)')}
       ${histBlock()}
@@ -1104,6 +1011,7 @@ async function render(role){
       </div>
 
       <div class="grid" style="grid-template-columns: 1fr 1fr;">
+        <!-- Kuripoti Dharura -->
         <div class="card" style="border:2px solid #c62828; background:#fff5f5;">
           <h3 style="color:#c62828;">🚨 Ripoti Dharura kwa Mgonjwa</h3>
           <p style="font-size:0.85rem;">Chagua mgonjwa wako aliyepata dharura nyumbani kwake ili mlio upigwe kwa madaktari.</p>
@@ -1114,6 +1022,7 @@ async function render(role){
           <button class="btn b-red" onclick="sendEm('Dharura ya Nyumbani (CHW)')">PIGA MLIO WA DHARURA</button>
         </div>
 
+        <!-- Chumba cha Uhamisho -->
         <div class="card" style="border:2px solid #1565c0; background:#f0f8ff;">
           <h3 style="color:#1565c0;">🔄 Omba Uhamisho wa Mteja</h3>
           <form onsubmit="chwSubmitTransfer(event)">
@@ -1268,18 +1177,8 @@ async function render(role){
     const allList=Object.values(emg||{}).sort((a,b)=>b.timestamp-a.timestamp);
     const activeList=allList.filter(e=>e.status==='active'&&isAlarmFresh(e.timestamp));
     const histList=allList.filter(e=>e.status==='responding').slice(0,20);
-    const emgRows=activeList.length?activeList.slice(0,10).map(e=>{
-      const gpsLink = (e.gps && e.gps.lat)
-        ? `<br><a href="https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}" target="_blank" rel="noopener" style="color:#e65100;font-weight:bold;font-size:0.72rem;">📍 Ramani</a>`
-        : '';
-      return `<tr><td><b>${e.type||'-'}</b></td><td>${e.sourceWard||e.role||'-'}</td><td>${e.clientName||e.user||'-'}${gpsLink}</td><td>${fullTime(e.timestamp)}</td><td><span class="badge bg-r">⏳</span></td></tr>`;
-    }).join(''):'<tr><td colspan="5" class="empty">Hakuna dharura mpya</td></tr>';
-    const histRows=histList.length?histList.map(e=>{
-      const gpsLink = (e.gps && e.gps.lat)
-        ? `<br><a href="https://www.google.com/maps?q=${e.gps.lat},${e.gps.lng}" target="_blank" rel="noopener" style="color:#e65100;font-weight:bold;font-size:0.72rem;">📍 Ramani</a>`
-        : '';
-      return `<tr><td><b>${e.type}</b></td><td>${e.sourceWard||e.role||'-'}</td><td>${e.clientName||'-'}${gpsLink}</td><td>${shortTime(e.timestamp)}</td><td>${e.respondedBy||'-'}</td><td>${shortTime(e.respondedAt)} <small>(${e.responseTime||duration(e.timestamp,e.respondedAt)})</small></td><td>${e.comment||'-'}</td></tr>`;
-    }).join(''):'<tr><td colspan="7" class="empty">Hakuna</td></tr>';
+    const emgRows=activeList.length?activeList.slice(0,10).map(e=>`<tr><td><b>${e.type||'-'}</b></td><td>${e.sourceWard||e.role||'-'}</td><td>${e.clientName||e.user||'-'}</td><td>${fullTime(e.timestamp)}</td><td><span class="badge bg-r">⏳</span></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Hakuna dharura mpya</td></tr>';
+    const histRows=histList.length?histList.map(e=>`<tr><td><b>${e.type}</b></td><td>${e.sourceWard||e.role||'-'}</td><td>${e.clientName||'-'}</td><td>${shortTime(e.timestamp)}</td><td>${e.respondedBy||'-'}</td><td>${shortTime(e.respondedAt)} <small>(${e.responseTime||duration(e.timestamp,e.respondedAt)})</small></td><td>${e.comment||'-'}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Hakuna</td></tr>';
     const clients=await getClients();
     h=`${liveBlock('⚙️ Data ya Kifaa (Admin)')}${histBlock()}${wodiEmgBlock('admin')}
       <div class="stats"><div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${activeList.length}</h3><p>Dharura Mpya</p></div><div class="sc" style="border-left-color:#2e7d32"><h3>${histList.length}</h3><p>Zilizojibiwa</p></div></div>
