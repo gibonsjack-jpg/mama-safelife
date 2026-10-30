@@ -71,7 +71,7 @@ th{background:#f8f9fa}
 .tc{display:none}.tc.on{display:block}
 .mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;justify-content:center;align-items:center;padding:20px}
 .mod.on{display:flex}
-.mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:550px;max-height:90vh;overflow:auto}
+.mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:700px;max-height:90vh;overflow:auto}
 .mc h2{color:#d32f2f;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ffcdd2;font-size:1.15rem}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .opts button{padding:14px;border-radius:9px;font-weight:bold;cursor:pointer;font-size:.85rem;border:none}
@@ -134,7 +134,26 @@ th{background:#f8f9fa}
 .processed-alarms table{width:100%;font-size:0.78rem}
 .processed-alarms th{background:#c8e6c9;color:#1b5e20}
 .processed-alarms .no-alarms{text-align:center;color:#888;padding:14px;font-style:italic}
-@media(max-width:650px){.wrap{padding:10px}.grid{grid-template-columns:1fr}.live{flex-direction:column}.lm{text-align:center}.opts{grid-template-columns:1fr}table{font-size:.72rem}.alert-box .actions{grid-template-columns:1fr}.alarm-mini{right:10px;bottom:10px;padding:11px 14px;font-size:.8rem}}
+
+/* TRIAGE STYLES */
+.triage-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.triage-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-top: 5px solid #ccc; }
+.triage-card.high-risk { border-top-color: #c62828; }
+.triage-card.monitoring { border-top-color: #ff9800; }
+.triage-card.normal { border-top-color: #2e7d32; }
+.triage-header { padding: 12px 15px; font-weight: bold; font-size: 1rem; color: #333; background: #f8f9fa; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+.triage-header .count { background: #e0e0e0; color: #333; padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; }
+.triage-list { list-style: none; padding: 0; margin: 0; max-height: 300px; overflow-y: auto; }
+.triage-list li { padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+.triage-list li:hover { background: #f0f8ff; }
+.triage-list li:last-child { border-bottom: none; }
+.patient-info { display: flex; flex-direction: column; }
+.patient-name { font-weight: bold; color: #1b5e20; font-size: 0.95rem; }
+.patient-meta { font-size: 0.75rem; color: #666; margin-top: 2px; }
+.btn-view-card { background: #0277bd; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 0.75rem; cursor: pointer; }
+.empty-triage { padding: 15px; text-align: center; color: #888; font-style: italic; font-size: 0.85rem; }
+
+@media(max-width:650px){.wrap{padding:10px}.grid{grid-template-columns:1fr}.live{flex-direction:column}.lm{text-align:center}.opts{grid-template-columns:1fr}table{font-size:.72rem}.alert-box .actions{grid-template-columns:1fr}.alarm-mini{right:10px;bottom:10px;padding:11px 14px;font-size:.8rem}.triage-container{grid-template-columns:1fr}}
 .empty{text-align:center;color:#999;padding:10px}
 </style>
 </head>
@@ -209,7 +228,7 @@ th{background:#f8f9fa}
 </div>
 
 <div id="patientDetailsModal" class="mod">
-  <div class="mc" style="max-width:700px;">
+  <div class="mc" style="max-width:750px;">
     <h2 style="color:#1565c0; border-bottom-color:#90caf9;">📑 Kadi na Vipimo vya Mteja</h2>
     <div id="patientDetailsContent" style="font-size:0.9rem;"></div>
     <button class="btn" style="background:#888; margin-top:15px;" onclick="document.getElementById('patientDetailsModal').classList.remove('on')">FUNGA</button>
@@ -519,11 +538,20 @@ function reopenAlarm(){
 }
 
 function isEmergencyForMe(emg,role){
-  const responders=['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
-  if(!responders.includes(role))return false;
   if(emg.sessionId===MY_SESSION)return false;
   if(emg.status!=='active')return false;
   if(!isAlarmFresh(emg.timestamp))return false;
+
+  const isFromLabourOrPostnatal = (emg.sourceWard === 'Labour Ward' || emg.sourceWard === 'Postnatal Ward');
+  
+  if (isFromLabourOrPostnatal) {
+    const specificResponders = ['chw', 'driver', 'coordinator'];
+    if (!specificResponders.includes(role)) return false;
+  } else {
+    const responders = ['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
+    if (!responders.includes(role)) return false;
+  }
+
   if(emg.redirectedTo){
     const toRole=mapNameToRole(emg.redirectedTo);
     if(toRole && toRole!==role)return false;
@@ -750,12 +778,28 @@ function closeRedirect(){
   setTimeout(checkNextAlarm, 1000);
 }
 
+// =================================================================
+//  UPDATE HISTORY UI (IMEBOBORESHWA)
+// =================================================================
 function updateHistoryUI(historyItems){
   const el=$('processedAlarmsBody');
   if(!el) return;
-  if(!historyItems||historyItems.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
-  const mine=historyItems.filter(e=>e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
-  if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
+
+  let filteredItems = historyItems || [];
+
+  if (myRole === 'coordinator') {
+    // Mratibu anaona zote
+  } else {
+    // Wengine wote (ikiwemo Labour na Postnatal) wanaona walizojibu au kutuma tu
+    filteredItems = filteredItems.filter(e => e.respondedRole === myRole || e.role === myRole);
+  }
+
+  if(!filteredItems || filteredItems.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna historia ya dharura inayokuhusu bado.</td></tr>';return;}
+  
+  const mine=filteredItems.filter(e=>e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
+  
+  if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna historia ya dharura inayokuhusu bado.</td></tr>';return;}
+  
   el.innerHTML=mine.map(e=>{
     const c=e.clientDetails||{};const name=e.clientName||c.name||'-';
     return `<tr>
@@ -773,11 +817,11 @@ function processedAlarmsBlock(){
   return `
   <div class="processed-alarms">
     <h3>✅ DHARURA ZILIZOFANYIWA KAZI (Historia)</h3>
-    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Dharura zote zilizojibiwa — zinaonyesha muda/saa, jina la mteja, na maoni ya mhudumu.</p>
+    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Hapa zinaonekana dharura ulizojibu au kutuma wewe mwenyewe. Mratibu anaona zote.</p>
     <div style="overflow-x:auto;">
       <table>
         <thead><tr><th>Aina</th><th>Mgonjwa</th><th>🕐 Alipopokea</th><th>👤 Aliyetuma</th><th>⏱️ Alipojibu</th><th>📝 Maoni</th></tr></thead>
-        <tbody id="processedAlarmsBody"><tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr></tbody>
+        <tbody id="processedAlarmsBody"><tr><td colspan="6" class="no-alarms">📭 Hakuna historia ya dharura inayokuhusu bado.</td></tr></tbody>
       </table>
     </div>
   </div>`;
@@ -791,17 +835,22 @@ async function confirmRef(){
   await render('coordinator');
 }
 
+// =================================================================
+//  VIEW PATIENT DETAILS (KADI & VIPIMO & HISTORIA YA MAHUDHURIO)
+// =================================================================
 async function viewPatientProfile(patientName) {
   const d = await getClient(patientName);
   const modal = $('patientDetailsModal');
   const content = $('patientDetailsContent');
 
-  let visitsHtml = '<tr><td colspan="5" style="text-align:center;">Hakuna mahudhurio</td></tr>';
+  let visitsHtml = '<tr><td colspan="6" style="text-align:center;">Hakuna mahudhurio</td></tr>';
   if (d.visits && d.visits.length > 0) {
     visitsHtml = d.visits.map((v, i) => `
       <tr>
         <td>${i+1}</td>
         <td>${v.date || '-'}</td>
+        <td><b>${v.hospital || d.location || 'Tunduma TC'}</b></td>
+        <td>${v.servedBy || 'Daktari/Nesi'}</td>
         <td>${v.weight || '-'} kg</td>
         <td>${v.bp || '-'}</td>
         <td>${v.temp || '-'} °C</td>
@@ -843,11 +892,11 @@ async function viewPatientProfile(patientName) {
       <div style="background:#e8f5e9; padding:8px; border-radius:6px;"><strong>Mapigo</strong><br>${d.pulse || '-'} bpm</div>
     </div>
 
-    <h4 style="color:#1b5e20; margin-bottom:8px;">📋 Historia ya Mahudhurio</h4>
+    <h4 style="color:#1b5e20; margin-bottom:8px;">📋 Historia ya Mahudhurio (Alipohudhuria, Hospitali na Aliyemhudumia)</h4>
     <div style="overflow-x:auto;">
       <table style="font-size:0.8rem;">
         <thead>
-          <tr><th>#</th><th>Tarehe</th><th>Uzito</th><th>BP</th><th>Joto</th></tr>
+          <tr><th>#</th><th>Tarehe</th><th>Hospitali</th><th>Aliyemhudumia</th><th>Uzito</th><th>BP</th><th>Joto</th></tr>
         </thead>
         <tbody>${visitsHtml}</tbody>
       </table>
@@ -856,6 +905,101 @@ async function viewPatientProfile(patientName) {
 
   modal.classList.add('on');
 }
+
+// =================================================================
+//  TRIAGE UI BUILDER (Kategoria za Wagonjwa)
+// =================================================================
+function buildTriageView(clients, titlePrefix) {
+  const highRisk = [];
+  const monitoring = [];
+  const normal = [];
+  const now = Date.now();
+
+  Object.keys(clients).forEach(name => {
+    const d = clients[name];
+    if (d.status === 'discharged') return;
+
+    const bpSys = parseInt(d.bp_sys) || 0;
+    const bpDia = parseInt(d.bp_dia) || 0;
+    const temp = parseFloat(d.temp) || 0;
+
+    let lastVisitTs = 0;
+    if (d.visits && d.visits.length > 0) {
+      const lv = d.visits[d.visits.length - 1];
+      if (lv.date) {
+        const parts = lv.date.split('/');
+        if (parts.length === 3) lastVisitTs = new Date(parts[2], parts[1]-1, parts[0]).getTime();
+        else lastVisitTs = new Date(lv.date).getTime();
+      }
+    }
+    const daysSince = lastVisitTs ? Math.floor((now - lastVisitTs) / (1000*60*60*24)) : 999;
+    const patient = { name, ...d, daysSince };
+
+    if (bpSys >= 140 || bpDia >= 90 || temp >= 38) {
+      highRisk.push(patient);
+    } else if (daysSince > 14 || !d.visits || d.visits.length === 0) {
+      monitoring.push(patient);
+    } else {
+      normal.push(patient);
+    }
+  });
+
+  const renderList = (list, badgeColor, emptyMsg) => {
+    if (list.length === 0) return `<li class="empty-triage">${emptyMsg}</li>`;
+    return list.slice(0, 10).map(p => `
+      <li onclick="viewPatientProfile('${p.name}')">
+        <div class="patient-info">
+          <span class="patient-name">${p.name}</span>
+          <span class="patient-meta">${p.location||'-'} | BP: ${p.bp_sys||'-'}/${p.bp_dia||'-'} | Siku: ${p.daysSince===999?'Hajapima':p.daysSince}</span>
+        </div>
+        <button class="btn-view-card">👁️ Kadi</button>
+      </li>
+    `).join('');
+  };
+
+  return `
+    <div class="card">
+      <h3>🏥 ${titlePrefix} - Triage (Uainishaji wa Wagonjwa)</h3>
+      <div class="triage-container">
+        
+        <!-- Category 1: High Risk -->
+        <div class="triage-card high-risk">
+          <div class="triage-header">
+            <span>🔴 Hatari Kubwa (High Risk)</span>
+            <span class="count">${highRisk.length}</span>
+          </div>
+          <ul class="triage-list">
+            ${renderList(highRisk, 'bg-r', 'Hakuna wagonjwa hatarishi kwa sasa.')}
+          </ul>
+        </div>
+
+        <!-- Category 2: Monitoring -->
+        <div class="triage-card monitoring">
+          <div class="triage-header">
+            <span>🟡 Wanaohitaji Ufuatiliaji</span>
+            <span class="count">${monitoring.length}</span>
+          </div>
+          <ul class="triage-list">
+            ${renderList(monitoring, 'bg-y', 'Hakuna wagonjwa wanaohitaji ufuatiliaji.')}
+          </ul>
+        </div>
+
+        <!-- Category 3: Normal -->
+        <div class="triage-card normal">
+          <div class="triage-header">
+            <span>🟢 Salama (Normal)</span>
+            <span class="count">${normal.length}</span>
+          </div>
+          <ul class="triage-list">
+            ${renderList(normal, 'bg-g', 'Hakuna wagonjwa wa kawaida.')}
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
 
 // =================================================================
 //  RENDER
@@ -1084,14 +1228,7 @@ async function render(role){
         <div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Rufaa Zinazoingia</p></div>
       </div>
 
-      <div class="card" style="border:2px solid #1565c0;">
-        <h3 style="color:#1565c0">🤰 Orodha ya Wajawazito Waliopo Nyumbani</h3>
-        <p style="font-size:0.85rem; color:#555; margin-bottom:10px;">Bonyeza kitufe cha "Ona Kadi" kuona vipimo vyote na taarifa za mteja.</p>
-        <table>
-          <thead><tr><th>Jina / Simu</th><th>Kituo</th><th>Gravida/Para</th><th>Kitendo</th></tr></thead>
-          <tbody>${patientListRows}</tbody>
-        </table>
-      </div>
+      ${buildTriageView(clients, 'Labour Ward')}
 
       <div class="card" style="border:2px solid #d32f2f">
         <h3 style="color:#d32f2f">📥 Rufaa Zinazoingia</h3>
@@ -1190,6 +1327,7 @@ async function render(role){
       ${liveBlock('🏠 Joto la Mama Postnatal (Live Device M0005)')}
       ${histBlock()}
       ${wodiEmgBlock('nurse_postnatal')}
+      ${processedAlarmsBlock()}
 
       <div class="stats" style="grid-template-columns: repeat(4, 1fr);">
         <div class="sc" style="border-left-color:#00838f"><h3>${pn.length}</h3><p>Wateja Wote</p></div>
@@ -1197,6 +1335,8 @@ async function render(role){
         <div class="sc" style="border-left-color:#d32f2f"><h3>${monitoringCount}</h3><p>Wanaohitaji Uangalizi</p></div>
         <div class="sc" style="border-left-color:#0277bd"><h3>${progressingCount}</h3><p>Wanaendelea Vizuri</p></div>
       </div>
+
+      ${buildTriageView(all, 'Postnatal Ward')}
 
       <div class="grid" style="grid-template-columns: 2fr 1fr;">
         <div class="card">
@@ -1238,6 +1378,9 @@ async function render(role){
     const cRows=Object.keys(clients).slice(0,20).map(k=>`<tr><td>${k}</td><td>${clients[k].status||'-'}</td><td>${clients[k].phone||k}</td><td><button class="btn2 b-blue" onclick="viewPatientProfile('${k}')">👁️ Ona Kadi</button></td></tr>`).join('')||'<tr><td colspan="4" class="empty">Hakuna wateja</td></tr>';
     h=`${liveBlock('🌡️ Mgonjwa RCH')}${histBlock()}${wodiEmgBlock('nurse_rch')}${processedAlarmsBlock()}
       <div class="stats"><div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja Wote</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${pend.length}</h3><p>Maombi</p></div></div>
+      
+      ${buildTriageView(clients, 'RCH Clinic')}
+
       <div class="card"><h3>📝 Sajili Mteja Mpya</h3>
         <form onsubmit="rchReg(event)"><div class="grid">
           <div><label>Jina</label><input id="rn" required></div>
@@ -1268,7 +1411,6 @@ async function render(role){
       <div class="card"><h3>🧪 Maombi ya Sampuli</h3><p style="color:#888">Hakuna maombi kwa sasa.</p></div>`;
   }
 
-  // ================= MRATIBU (COORDINATOR) =================
   else if(role==='coordinator'){
     const refs = await getReferrals();
     const transfers = await getTransfers();
@@ -1280,7 +1422,6 @@ async function render(role){
     const activeEmgs = Object.values(emg||{}).filter(e => e.status === 'active' && isAlarmFresh(e.timestamp));
     const histEmgs = Object.values(emg||{}).filter(e => e.status === 'responding').sort((a,b) => b.timestamp - a.timestamp).slice(0, 15);
 
-    // 1. Roster (Watumishi)
     let rosterRows = '';
     Object.keys(users).forEach(phone => {
       const u = users[phone];
@@ -1295,7 +1436,6 @@ async function render(role){
       }
     });
 
-    // 2. Maombi ya Uhamisho (CHW & Mama)
     let transferRows = pendTrans.length ? pendTrans.map(t => `
       <tr>
         <td><b>${t.clientName}</b><br><small>${t.clientPhone || '-'}</small></td>
@@ -1309,7 +1449,6 @@ async function render(role){
       </tr>
     `).join('') : '<tr><td colspan="5" class="empty">Hakuna maombi ya uhamisho.</td></tr>';
 
-    // 3. Active Emergencies (Follow up & Direct)
     let activeEmgRows = activeEmgs.length ? activeEmgs.map(e => `
       <tr>
         <td><b>${e.clientName}</b><br><small>${e.sourceWard}</small></td>
@@ -1320,7 +1459,6 @@ async function render(role){
       </tr>
     `).join('') : '<tr><td colspan="5" class="empty">Hakuna dharura mpya inayosubiri.</td></tr>';
 
-    // 4. History ya Dharura & Huduma
     let historyRows = histEmgs.length ? histEmgs.map(e => `
       <tr>
         <td><b>${e.clientName}</b></td>
@@ -1341,7 +1479,6 @@ async function render(role){
       </div>
 
       <div class="grid" style="grid-template-columns: 1fr 1fr;">
-        <!-- Active Emergencies -->
         <div class="card" style="border:2px solid #d32f2f;">
           <h3 style="color:#d32f2f">🚨 Dharura Hai (Follow-up & Direct)</h3>
           <p style="font-size:0.85rem; color:#555;">Dharura hizi bado hazijajibiwa. Unaweza kum-direct mgonjwa kwa daktari mwingine.</p>
@@ -1351,7 +1488,6 @@ async function render(role){
           </table>
         </div>
 
-        <!-- Roster -->
         <div class="card" style="border:2px solid #1565c0;">
           <h3 style="color:#1565c0">👨‍⚕️ Roster ya Watumishi (On Duty)</h3>
           <p style="font-size:0.85rem; color:#555;">Watumishi waliopo mtandaoni na wanaweza kupokea dharura.</p>
@@ -1362,7 +1498,6 @@ async function render(role){
         </div>
       </div>
 
-      <!-- Transfer Requests -->
       <div class="card" style="border:2px solid #0277bd;">
         <h3 style="color:#0277bd">🔄 Maombi ya Uhamisho (CHW & Wamama)</h3>
         <table>
@@ -1371,7 +1506,6 @@ async function render(role){
         </table>
       </div>
 
-      <!-- History -->
       <div class="card" style="border:2px solid #2e7d32;">
         <h3 style="color:#2e7d32">📜 Historia ya Dharura na Huduma</h3>
         <table>
@@ -1392,9 +1526,12 @@ async function render(role){
     const clients=await getClients();
     h=`${liveBlock('⚙️ Data ya Kifaa (Admin)')}${histBlock()}${wodiEmgBlock('admin')}
       <div class="stats"><div class="sc"><h3>${Object.keys(clients).length}</h3><p>Wateja</p></div><div class="sc" style="border-left-color:#d32f2f"><h3>${activeList.length}</h3><p>Dharura Mpya</p></div><div class="sc" style="border-left-color:#2e7d32"><h3>${histList.length}</h3><p>Zilizojibiwa</p></div></div>
+      
+      ${buildTriageView(clients, 'Admin - Wateja Wote')}
+
       <div class="card" style="border:2px solid #d32f2f"><h3 style="color:#d32f2f">🚨 Dharura Mpya</h3><table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>Muda</th><th>Hali</th></tr></thead><tbody>${emgRows}</tbody></table></div>
       <div class="card" style="border:2px solid #2e7d32"><h3 style="color:#2e7d32">✅ Historia</h3><table><thead><tr><th>Aina</th><th>Kutoka</th><th>Mgonjwa</th><th>🕐 Kupokea</th><th>👤 Alijibu</th><th>⏱️</th><th>📝 Maoni</th></tr></thead><tbody>${histRows}</tbody></table></div>
-      <div class="card"><h3>👥 Wateja Wote (${Object.keys(clients).length})</h3><table><thead><tr><th>Jina</th><th>Hali</th></tr></thead><tbody>${Object.keys(clients).map(k=>`<tr><td>${k}</td><td>${clients[k].status||'-'}</td></tr>`).join('')||'<tr><td colspan="2" class="empty">Hakuna</td></tr>'}</tbody></table></div>`;
+    `;
   }
 
   c.innerHTML=h;
