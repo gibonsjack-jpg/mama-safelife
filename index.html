@@ -9,6 +9,8 @@
 <!-- Leaflet Map CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Chart.js kwa ajili ya Graph -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 *{box-sizing:border-box;font-family:'Segoe UI',sans-serif;margin:0;padding:0}
@@ -76,7 +78,7 @@ th{background:#f8f9fa}
 .tc{display:none}.tc.on{display:block}
 .mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:999;justify-content:center;align-items:center;padding:20px}
 .mod.on{display:flex}
-.mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:600px;max-height:90vh;overflow:auto}
+.mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:650px;max-height:90vh;overflow:auto}
 .mc h2{color:#d32f2f;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ffcdd2;font-size:1.15rem}
 .opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .opts button{padding:14px;border-radius:9px;font-weight:bold;cursor:pointer;font-size:.85rem}
@@ -147,7 +149,6 @@ th{background:#f8f9fa}
 .high-risk-card table{width:100%;font-size:0.78rem;}
 .high-risk-card th{background:#ffcdd2;color:#b71c1c;}
 
-/* Patient List Grid */
 .patient-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:12px;margin-bottom:20px;}
 .patient-card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;box-shadow:0 2px 5px rgba(0,0,0,0.05);cursor:pointer;transition:0.2s;position:relative;}
 .patient-card:hover{border-color:#1b5e20;transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,0.1);}
@@ -156,11 +157,12 @@ th{background:#f8f9fa}
 .patient-card .p-status{position:absolute;top:10px;right:10px;font-size:0.7rem;padding:3px 6px;border-radius:4px;}
 .p-home{background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;}
 .p-hosp{background:#fff3cd;color:#856404;border:1px solid #ffe082;}
-.p-card-modal{max-width:800px!important;}
+.p-card-modal{max-width:850px!important;}
 
-/* Ramani */
+/* Ramani & Umbali */
 #sosMapContainer{display:none; margin: 10px 0; border-radius: 10px; border: 2px solid #1b5e20; overflow: hidden; position: relative; text-align:left;}
-#sosMap{height: 200px; width: 100%; z-index: 1;}
+#sosMap{height: 250px; width: 100%; z-index: 1;} /* Nimeongeza urefu hapa */
+#distanceInfo{background:#fff3e0; color:#e65100; font-weight:bold; font-size:0.85rem; padding:8px; text-align:center; border-bottom:1px solid #ffcc80;}
 #gmapsLink{display:block; background:#0277bd; color:#fff; text-align:center; padding:10px; font-weight:bold; text-decoration:none; font-size:0.9rem;}
 #gmapsLink:hover{background:#01579b;}
 
@@ -219,18 +221,28 @@ th{background:#f8f9fa}
       <button class="btn2 b-red" onclick="document.getElementById('patientCardModal').classList.remove('on')">FUNGA</button>
     </div>
     
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px; background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd;">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:15px; background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd; font-size:0.85rem;">
       <div><b>Simu:</b> <span id="pc_phone">-</span></div>
       <div><b>Mume:</b> <span id="pc_partner">-</span></div>
       <div><b>Kituo:</b> <span id="pc_location">-</span></div>
+      <div><b>Mtaa:</b> <span id="pc_mtaa">-</span></div>
+      <div><b>Mwenye Kiti:</b> <span id="pc_mwenyekiti">-</span></div>
+      <div><b>Nyumba Na:</b> <span id="pc_nyumba">-</span></div>
+      <div><b>CHW:</b> <span id="pc_chw">-</span></div>
       <div><b>EDD:</b> <span id="pc_edd" style="color:#c62828; font-weight:bold;">-</span></div>
+      <div><b>Hali:</b> <span id="pc_status">-</span></div>
       <div><b>Gravida:</b> <span id="pc_gravida">-</span></div>
       <div><b>Para:</b> <span id="pc_para">-</span></div>
-      <div style="grid-column:1/-1"><b>Hali:</b> <span id="pc_status">-</span></div>
+    </div>
+
+    <h3 style="color:#e65100; border-bottom:2px solid #e65100; padding-bottom:5px; margin-bottom:10px;">📈 Mwenendo wa Afya (BP & Joto)</h3>
+    <div style="background:#fff; padding:10px; border-radius:8px; border:1px solid #ddd; margin-bottom:15px;">
+       <canvas id="vitalsChart" height="150"></canvas>
+       <p id="noChartData" style="display:none; text-align:center; color:#888; font-size:0.85rem;">Hakuna data ya kutosha kuonyesha graph.</p>
     </div>
 
     <h3 style="color:#1565c0; border-bottom:2px solid #1565c0; padding-bottom:5px; margin-bottom:10px;">📋 Rekodi za Mahudhurio (Visits)</h3>
-    <div style="max-height: 250px; overflow-y:auto; margin-bottom:15px;">
+    <div style="max-height: 200px; overflow-y:auto; margin-bottom:15px;">
       <table>
         <thead>
           <tr>
@@ -243,7 +255,6 @@ th{background:#f8f9fa}
           </tr>
         </thead>
         <tbody id="pc_visits_body">
-          <!-- Visits data itaingia hapa -->
         </tbody>
       </table>
     </div>
@@ -266,7 +277,7 @@ th{background:#f8f9fa}
   </div>
 </div>
 
-<!-- MODAL YA Kuingiza Vipimo Manual (Manual Vitals) -->
+<!-- MODAL YA Kuingiza Vipimo Manual -->
 <div id="manualVitalsModal" class="mod">
   <div class="mc">
     <h2>📝 Ingiza Vipimo (Manual)</h2>
@@ -324,10 +335,11 @@ th{background:#f8f9fa}
   <div class="amsg" id="alertMessage">--</div>
   <div id="alertClientDetails" class="alert-client-details" style="display:none;"></div>
   
-  <!-- ⭐ SEHEMU YA RAMANI (MAP) NA KITUFE CHA GOOGLE MAPS ⭐ -->
+  <!-- RAMANI NA SATELLITE (NYUMBA HALISI) -->
   <div id="sosMapContainer">
+    <div id="distanceInfo">Inahesabu umbali...</div>
     <div id="sosMap"></div>
-    <a id="gmapsLink" href="#" target="_blank">📍 Fungua kwenye Google Maps (Njia)</a>
+    <a id="gmapsLink" href="#" target="_blank">📍 Fungua Google Maps (Njia ya Kufika)</a>
   </div>
 
   <div class="atime" id="alertTime">--</div>
@@ -548,7 +560,8 @@ async function highRiskBlock() {
   const highRisk = [];
   for(const name in clients){
     const c = clients[name];
-    if(c.status === 'pregnant' || c.status === 'postnatal'){
+    const mType = c.monitorType || 'home';
+    if(mType === 'home' && (c.status === 'pregnant' || c.status === 'postnatal')){
        if(isClientHighRisk(c)) highRisk.push({name, ...c});
     }
   }
@@ -562,8 +575,8 @@ async function highRiskBlock() {
 
   return `
   <div class="high-risk-card">
-    <h3>🚨 Wagonjwa Walio Hatarini (Nyumbani)</h3>
-    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Hawa ni wagonjwa wenye vipimo hatarishi (BP, Joto, au Shock Index) wanahitaji kuangaliwa haraka.</p>
+    <h3>🚨 Wagonjwa Walio Hatarini (Wanaotakiwa Kuja Hospitali)</h3>
+    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Hawa ni wagonjwa wa nyumbani wenye vipimo hatarishi (BP, Joto, au Shock Index) wanahitaji kuangaliwa haraka.</p>
     <div style="overflow-x:auto;">
       <table>
         <thead><tr><th>Jina</th><th>Simu</th><th>Hali</th><th>Vipimo vya Mwisho</th><th>Kitendo</th></tr></thead>
@@ -618,8 +631,8 @@ async function patientListView() {
     `;
   };
 
-  let html = `<div class="card"><h3>👥 Orodha ya Wagonjwa (8)</h3>
-    <p style="font-size:0.85rem; color:#555; margin-bottom:10px;">Bonyeza jina la mgonjwa kuona kadi yake kamili na kuongeza hudhurio.</p>
+  let html = `<div class="card"><h3>👥 Orodha ya Wagonjwa</h3>
+    <p style="font-size:0.85rem; color:#555; margin-bottom:10px;">Bonyeza jina la mgonjwa kuona kadi yake kamili.</p>
     
     <h4 style="color:#0d47a1; margin-bottom:10px;">🏠 Wanaofuatiliwa Nyumbani (${homePatients.length})</h4>
     <div class="patient-grid">
@@ -643,6 +656,10 @@ window.openPatientCard = async (name) => {
   $('pc_phone').textContent = d.phone || '-';
   $('pc_partner').textContent = d.partner || '-';
   $('pc_location').textContent = d.location || '-';
+  $('pc_mtaa').textContent = d.mtaa || '-';
+  $('pc_mwenyekiti').textContent = d.mwenyekiti || '-';
+  $('pc_nyumba').textContent = d.nyumba || '-';
+  $('pc_chw').textContent = d.chw || '-';
   $('pc_edd').textContent = d.edd ? new Date(d.edd).toLocaleDateString('sw-TZ', {day:'numeric', month:'short', year:'numeric'}) : 'Haijawekwa';
   $('pc_gravida').textContent = d.gravida || '-';
   $('pc_para').textContent = d.para || '-';
@@ -665,6 +682,42 @@ window.openPatientCard = async (name) => {
         <td>${v.advice || '-'}</td>
       </tr>
     `).join('');
+  }
+
+  // CHART JS GRAPH RENDER
+  if(window.myChart) window.myChart.destroy();
+  if(visits.length > 0) {
+      $('vitalsChart').style.display = 'block';
+      $('noChartData').style.display = 'none';
+      
+      const labels = visits.map(v => v.date);
+      const sysData = visits.map(v => v.bp ? parseInt(v.bp.split('/')[0]) : null);
+      const diaData = visits.map(v => v.bp ? parseInt(v.bp.split('/')[1]) : null);
+      const tempData = visits.map(v => v.temp ? parseFloat(v.temp) : null);
+
+      const ctx = document.getElementById('vitalsChart').getContext('2d');
+      window.myChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+              labels: labels,
+              datasets: [
+                  { label: 'BP Systolic', data: sysData, borderColor: '#c62828', backgroundColor: 'rgba(198,40,40,0.1)', tension: 0.3, spanGaps: true },
+                  { label: 'BP Diastolic', data: diaData, borderColor: '#1565c0', backgroundColor: 'rgba(21,101,192,0.1)', tension: 0.3, spanGaps: true },
+                  { label: 'Joto (°C)', data: tempData, borderColor: '#2e7d32', backgroundColor: 'rgba(46,125,50,0.1)', tension: 0.3, yAxisID: 'y1', spanGaps: true }
+              ]
+          },
+          options: {
+              responsive: true,
+              interaction: { mode: 'index', intersect: false },
+              scales: {
+                  y: { type: 'linear', display: true, position: 'left', title: {display: true, text: 'BP (mmHg)'} },
+                  y1: { type: 'linear', display: true, position: 'right', title: {display: true, text: 'Joto (°C)'}, grid: { drawOnChartArea: false } }
+              }
+          }
+      });
+  } else {
+      $('vitalsChart').style.display = 'none';
+      $('noChartData').style.display = 'block';
   }
 
   $('av_date').value = new Date().toISOString().split('T')[0];
@@ -989,6 +1042,7 @@ function showPendingList(){
   });
 }
 
+// ⭐ RAMANI, UMBALI NA NJIA YA GOOGLE MAPS (SATELLITE VIEW)
 function showEmergencyAlert(emg){
   currentEmergency = emg;
   isMinimized = false;
@@ -1033,29 +1087,87 @@ function showEmergencyAlert(emg){
     detailsEl.style.display = 'block';
   }
 
-  // ⭐ RAMANI NA GOOGLE MAPS LINK
+  // ⭐⭐⭐ RAMANI YA SATELLITE (NYUMBA HALISI) ⭐⭐⭐
   const mapContainer = $('sosMapContainer');
   const mapDiv = $('sosMap');
   const gmapsLink = $('gmapsLink');
-  const lat = (emg.clientDetails && emg.clientDetails.lat) ? parseFloat(emg.clientDetails.lat) : -9.3000;
-  const lng = (emg.clientDetails && emg.clientDetails.lng) ? parseFloat(emg.clientDetails.lng) : 32.7667;
+  const distanceInfo = $('distanceInfo');
 
-  if(lat && lng){
+  const patientLat = (emg.clientDetails && emg.clientDetails.lat) ? parseFloat(emg.clientDetails.lat) : -9.3000;
+  const patientLng = (emg.clientDetails && emg.clientDetails.lng) ? parseFloat(emg.clientDetails.lng) : 32.7667;
+
+  if(patientLat && patientLng){
     mapContainer.style.display = 'block';
-    gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    distanceInfo.innerHTML = `⏳ Inatafuta eneo lako (GPS) ili kuhesabu umbali...`;
     
     setTimeout(() => {
       if(window.sosMapObj) { window.sosMapObj.remove(); } 
       
-      window.sosMapObj = L.map('sosMap').setView([lat, lng], 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      // Hapa tunatengeneza tabaka mbili za ramani (Michoro na Satellite)
+      const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
-      }).addTo(window.sosMapObj);
+      });
       
-      L.marker([lat, lng]).addTo(window.sosMapObj)
+      // Hii ni Satellite (Picha halisi za anga)
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: '© Esri'
+      });
+
+      // Tunaweka Satellite kuwa ya kwanza (Default)
+      window.sosMapObj = L.map('sosMap', {
+          center: [patientLat, patientLng],
+          zoom: 18, // Zoom kubwa sana kuona nyumba vizuri
+          layers: [satelliteLayer] 
+      });
+      
+      // Kitufe cha kubadilisha kati ya Michoro na Satellite
+      const baseMaps = {
+          "Michoro (Street)": streetLayer,
+          "Nyumba Halisi (Satellite)": satelliteLayer
+      };
+      L.control.layers(baseMaps).addTo(window.sosMapObj);
+
+      // Weka alama ya mgonjwa
+      L.marker([patientLat, patientLng]).addTo(window.sosMapObj)
         .bindPopup(`<b>Mgonjwa Yupo Hapa!</b>`).openPopup();
-        
+
       setTimeout(() => { window.sosMapObj.invalidateSize(); }, 400);
+
+      // ⭐ PATA GPS YA MHUDUMU NA UHESABU UMBALI ⭐
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const userLat = pos.coords.latitude;
+            const userLng = pos.coords.longitude;
+            
+            const distMeters = L.latLng(userLat, userLng).distanceTo(L.latLng(patientLat, patientLng));
+            const distKm = (distMeters / 1000).toFixed(1);
+
+            distanceInfo.innerHTML = `📍 Umbali wako na mgonjwa ni: <b>${distKm} km</b>`;
+            
+            // Link ya Google Maps iende moja kwa moja kwenye njia (Directions)
+            gmapsLink.href = `https://www.google.com/maps/dir/?api=1&origin=${userLat},${userLng}&destination=${patientLat},${patientLng}`;
+
+            // Chora mstari mwekundu kuunganisha wewe na mgonjwa
+            L.polyline([[userLat, userLng], [patientLat, patientLng]], {color: '#c62828', weight: 3, dashArray: '5, 5'}).addTo(window.sosMapObj);
+            
+            // Weka alama yako pia kwenye ramani
+            L.circleMarker([userLat, userLng], {color: '#1565c0', radius: 8}).addTo(window.sosMapObj)
+                .bindPopup('Upo Hapa').openPopup();
+
+            // Kuza ramani ionyeshe wewe na mgonjwa wote wawili
+            window.sosMapObj.fitBounds([[userLat, userLng], [patientLat, patientLng]], {padding: [30, 30]});
+          },
+          (err) => {
+            distanceInfo.innerHTML = `⚠️ Imeshindwa kupata eneo lako. Bonyeza kitufe cha Google Maps kupata njia.`;
+            gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${patientLat},${patientLng}`;
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+         distanceInfo.innerHTML = `⚠️ Kifaa chako hakitumii GPS.`;
+         gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${patientLat},${patientLng}`;
+      }
     }, 300);
   } else {
     mapContainer.style.display = 'none';
@@ -1138,10 +1250,25 @@ function closeRedirect(){
 function updateHistoryUI(historyItems){
   const el=$('processedAlarmsBody');
   if(!el) return;
-  if(!historyItems||historyItems.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
-  const mine=historyItems.filter(e=>e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
-  if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
-  el.innerHTML=mine.map(e=>{
+
+  let filtered = historyItems.filter(e => e.status === 'responding' || e.status === 'resolved');
+
+  // Filter by role
+  if(myRole === 'nurse_labour') {
+      filtered = filtered.filter(e => e.sourceWard === 'Labour Ward' || e.redirectedTo?.includes('Labour') || e.sourceWard === 'Mteja (Nyumbani)' || e.type === 'SOS (Kitufe cha Kifaa)');
+  } else if(myRole === 'nurse_postnatal') {
+      filtered = filtered.filter(e => e.sourceWard === 'Postnatal Ward' || e.redirectedTo?.includes('Postnatal') || e.sourceWard === 'Mteja (Nyumbani)' || e.type === 'SOS (Kitufe cha Kifaa)');
+  } else if(myRole === 'nurse_rch') {
+      filtered = filtered.filter(e => e.sourceWard === 'RCH Clinic' || e.redirectedTo?.includes('RCH') || e.sourceWard === 'Mteja (Nyumbani)' || e.type === 'SOS (Kitufe cha Kifaa)');
+  } else if(myRole === 'nurse_theater') {
+      filtered = filtered.filter(e => e.sourceWard === 'Theater / Upasuaji' || e.redirectedTo?.includes('Theater') || e.sourceWard === 'Mteja (Nyumbani)' || e.type === 'SOS (Kitufe cha Kifaa)');
+  }
+
+  filtered = filtered.sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0, 20);
+
+  if(!filtered || filtered.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
+  
+  el.innerHTML=filtered.map(e=>{
     const c=e.clientDetails||{};const name=e.clientName||c.name||'-';
     return `<tr>
       <td><b>${e.type}</b><br><small>${e.sourceWard||e.role||'-'}</small></td>
