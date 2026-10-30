@@ -519,20 +519,11 @@ function reopenAlarm(){
 }
 
 function isEmergencyForMe(emg,role){
+  const responders=['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
+  if(!responders.includes(role))return false;
   if(emg.sessionId===MY_SESSION)return false;
   if(emg.status!=='active')return false;
   if(!isAlarmFresh(emg.timestamp))return false;
-
-  const isFromLabourOrPostnatal = (emg.sourceWard === 'Labour Ward' || emg.sourceWard === 'Postnatal Ward');
-  
-  if (isFromLabourOrPostnatal) {
-    const specificResponders = ['chw', 'driver', 'coordinator'];
-    if (!specificResponders.includes(role)) return false;
-  } else {
-    const responders = ['admin','coordinator','nurse_labour','nurse_postnatal','nurse_theater','nurse_rch','lab_tech','chw','driver'];
-    if (!responders.includes(role)) return false;
-  }
-
   if(emg.redirectedTo){
     const toRole=mapNameToRole(emg.redirectedTo);
     if(toRole && toRole!==role)return false;
@@ -759,28 +750,12 @@ function closeRedirect(){
   setTimeout(checkNextAlarm, 1000);
 }
 
-// =================================================================
-//  UPDATE HISTORY UI (IMEBOBORESHWA)
-// =================================================================
 function updateHistoryUI(historyItems){
   const el=$('processedAlarmsBody');
   if(!el) return;
-
-  let filteredItems = historyItems || [];
-
-  if (myRole === 'coordinator') {
-    // Mratibu anaona zote
-  } else {
-    // Wengine wote (ikiwemo Labour na Postnatal) wanaona walizojibu au kutuma tu
-    filteredItems = filteredItems.filter(e => e.respondedRole === myRole || e.role === myRole);
-  }
-
-  if(!filteredItems || filteredItems.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna historia ya dharura inayokuhusu bado.</td></tr>';return;}
-  
-  const mine=filteredItems.filter(e=>e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
-  
-  if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna historia ya dharura inayokuhusu bado.</td></tr>';return;}
-  
+  if(!historyItems||historyItems.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
+  const mine=historyItems.filter(e=>e.status==='responding').sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
+  if(mine.length===0){el.innerHTML='<tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr>';return;}
   el.innerHTML=mine.map(e=>{
     const c=e.clientDetails||{};const name=e.clientName||c.name||'-';
     return `<tr>
@@ -798,11 +773,11 @@ function processedAlarmsBlock(){
   return `
   <div class="processed-alarms">
     <h3>✅ DHARURA ZILIZOFANYIWA KAZI (Historia)</h3>
-    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Hapa zinaonekana dharura ulizojibu au kutuma wewe mwenyewe. Mratibu anaona zote.</p>
+    <p style="font-size:0.8rem;color:#555;margin:0 0 8px;">Dharura zote zilizojibiwa — zinaonyesha muda/saa, jina la mteja, na maoni ya mhudumu.</p>
     <div style="overflow-x:auto;">
       <table>
         <thead><tr><th>Aina</th><th>Mgonjwa</th><th>🕐 Alipopokea</th><th>👤 Aliyetuma</th><th>⏱️ Alipojibu</th><th>📝 Maoni</th></tr></thead>
-        <tbody id="processedAlarmsBody"><tr><td colspan="6" class="no-alarms">📭 Hakuna historia ya dharura inayokuhusu bado.</td></tr></tbody>
+        <tbody id="processedAlarmsBody"><tr><td colspan="6" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi bado.</td></tr></tbody>
       </table>
     </div>
   </div>`;
@@ -1215,7 +1190,6 @@ async function render(role){
       ${liveBlock('🏠 Joto la Mama Postnatal (Live Device M0005)')}
       ${histBlock()}
       ${wodiEmgBlock('nurse_postnatal')}
-      ${processedAlarmsBlock()}
 
       <div class="stats" style="grid-template-columns: repeat(4, 1fr);">
         <div class="sc" style="border-left-color:#00838f"><h3>${pn.length}</h3><p>Wateja Wote</p></div>
@@ -1294,6 +1268,7 @@ async function render(role){
       <div class="card"><h3>🧪 Maombi ya Sampuli</h3><p style="color:#888">Hakuna maombi kwa sasa.</p></div>`;
   }
 
+  // ================= MRATIBU (COORDINATOR) =================
   else if(role==='coordinator'){
     const refs = await getReferrals();
     const transfers = await getTransfers();
