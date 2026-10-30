@@ -147,7 +147,7 @@ th{background:#f8f9fa}
 .high-risk-card table{width:100%;font-size:0.78rem;}
 .high-risk-card th{background:#ffcdd2;color:#b71c1c;}
 
-/* MPYA: Patient List Grid */
+/* Patient List Grid */
 .patient-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:12px;margin-bottom:20px;}
 .patient-card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:12px;box-shadow:0 2px 5px rgba(0,0,0,0.05);cursor:pointer;transition:0.2s;position:relative;}
 .patient-card:hover{border-color:#1b5e20;transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,0.1);}
@@ -157,6 +157,12 @@ th{background:#f8f9fa}
 .p-home{background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;}
 .p-hosp{background:#fff3cd;color:#856404;border:1px solid #ffe082;}
 .p-card-modal{max-width:800px!important;}
+
+/* Ramani */
+#sosMapContainer{display:none; margin: 10px 0; border-radius: 10px; border: 2px solid #1b5e20; overflow: hidden; position: relative; text-align:left;}
+#sosMap{height: 200px; width: 100%; z-index: 1;}
+#gmapsLink{display:block; background:#0277bd; color:#fff; text-align:center; padding:10px; font-weight:bold; text-decoration:none; font-size:0.9rem;}
+#gmapsLink:hover{background:#01579b;}
 
 @media(max-width:650px){.wrap{padding:10px}.grid{grid-template-columns:1fr}.live{flex-direction:column}.lm{text-align:center}.opts{grid-template-columns:1fr}table{font-size:.72rem}.alert-box .actions{grid-template-columns:1fr}.alarm-mini{right:10px;bottom:10px;padding:11px 14px;font-size:.8rem}}
 .empty{text-align:center;color:#999;padding:10px}
@@ -205,7 +211,7 @@ th{background:#f8f9fa}
   <div class="wrap" id="content"></div>
 </div>
 
-<!-- MODAL YA Kadi ya Mgonjwa (Patient Card) -->
+<!-- MODAL YA Kadi ya Mgonjwa -->
 <div id="patientCardModal" class="mod">
   <div class="mc p-card-modal">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -260,8 +266,7 @@ th{background:#f8f9fa}
   </div>
 </div>
 
-<!-- MODAL YA Kuingiza Vipimo Manual (Manual Vitals) - Imeondolewa kwenye navbar, sasa ipo kwenye kadi -->
-<!-- Inabaki hapa kama fallback -->
+<!-- MODAL YA Kuingiza Vipimo Manual (Manual Vitals) -->
 <div id="manualVitalsModal" class="mod">
   <div class="mc">
     <h2>📝 Ingiza Vipimo (Manual)</h2>
@@ -319,7 +324,11 @@ th{background:#f8f9fa}
   <div class="amsg" id="alertMessage">--</div>
   <div id="alertClientDetails" class="alert-client-details" style="display:none;"></div>
   
-  <div id="sosMap" style="height: 180px; width: 100%; margin: 10px 0; border-radius: 10px; border: 2px solid #1b5e20; display: none; z-index: 1;"></div>
+  <!-- ⭐ SEHEMU YA RAMANI (MAP) NA KITUFE CHA GOOGLE MAPS ⭐ -->
+  <div id="sosMapContainer">
+    <div id="sosMap"></div>
+    <a id="gmapsLink" href="#" target="_blank">📍 Fungua kwenye Google Maps (Njia)</a>
+  </div>
 
   <div class="atime" id="alertTime">--</div>
 
@@ -428,7 +437,6 @@ async function showDash(role){
   $('dr').textContent=RL[role]||role;
   myRole=role;
 
-  // Onyesha kitufe cha Manual Vitals kwa Watumishi
   if(['admin','chw','nurse_labour','nurse_postnatal','nurse_rch','nurse_theater','coordinator','lab_tech'].includes(role)){
     $('btnManualVitals').style.display='inline-block';
   } else {
@@ -521,7 +529,6 @@ function wodiEmgBlock(role){
   </div>`;
 }
 
-// ⭐ MPYA: Kuangalia kama Mgonjwa yupo Hatarini (High Risk)
 function isClientHighRisk(c) {
   if (!c.vitals) return false;
   const v = c.vitals;
@@ -536,7 +543,6 @@ function isClientHighRisk(c) {
   return false;
 }
 
-// ⭐ MPYA: Kuonyesha Wagonjwa Hatari Nyumbani
 async function highRiskBlock() {
   const clients = await getClients();
   const highRisk = [];
@@ -581,7 +587,6 @@ async function highRiskBlock() {
   </div>`;
 }
 
-// ⭐ MPYA: Patient List Grid (Kutenganisha Home na Hospital)
 async function patientListView() {
   const clients = await getClients();
   const homePatients = [];
@@ -591,7 +596,6 @@ async function patientListView() {
     const c = clients[name];
     if(c.status === 'discharged') continue;
     
-    // Tunatumia 'monitorType' kutenganisha, kama haipo tunaweka default
     const mType = c.monitorType || 'home'; 
     if(mType === 'home') homePatients.push({name, ...c});
     else hospPatients.push({name, ...c});
@@ -631,7 +635,6 @@ async function patientListView() {
   return html;
 }
 
-// ⭐ MPYA: Kufungua Kadi ya Mgonjwa (Patient Card)
 window.openPatientCard = async (name) => {
   const d = await getClient(name);
   if(!d.name) return alert('Mgonjwa hakupatikana.');
@@ -647,7 +650,6 @@ window.openPatientCard = async (name) => {
   
   $('av_patient_name').value = name;
   
-  // Visits
   const visits = d.visits || [];
   const tbody = $('pc_visits_body');
   if(visits.length === 0) {
@@ -665,7 +667,6 @@ window.openPatientCard = async (name) => {
     `).join('');
   }
 
-  // Set default date to today
   $('av_date').value = new Date().toISOString().split('T')[0];
   $('av_weight').value = '';
   $('av_bp').value = '';
@@ -675,7 +676,6 @@ window.openPatientCard = async (name) => {
   $('patientCardModal').classList.add('on');
 };
 
-// ⭐ MPYA: Kuhifadhi Hudhurio (Visit)
 window.saveVisit = async (e) => {
   e.preventDefault();
   const name = $('av_patient_name').value;
@@ -690,7 +690,6 @@ window.saveVisit = async (e) => {
   
   d.visits.push({ date, weight, bp, temp, advice });
   
-  // Update Live Vitals if BP and Temp are provided
   if(bp || temp) {
     if(!d.vitals) d.vitals = {};
     if(bp) {
@@ -704,11 +703,10 @@ window.saveVisit = async (e) => {
   await setClient(name, d);
   alert('✅ Hudhurio limehifadhiwa kwenye kadi!');
   
-  await openPatientCard(name); // Reload the card
-  await render(myRole); // Reload the background list
+  await openPatientCard(name); 
+  await render(myRole); 
 };
 
-// ⭐ MPYA: Kufungua fomu ya Vipimo Manual
 window.openManualVitals = async (preselect='') => {
   const clients = await getClients();
   const names = Object.keys(clients).filter(k => clients[k].status !== 'discharged');
@@ -760,9 +758,6 @@ window.saveManualVitals = async () => {
   await render(myRole);
 };
 
-// =================================================================
-//  ALARM STATE
-// =================================================================
 let currentEmergency = null;
 let audioCtx = null;
 let myRole = '';
@@ -1038,20 +1033,33 @@ function showEmergencyAlert(emg){
     detailsEl.style.display = 'block';
   }
 
+  // ⭐ RAMANI NA GOOGLE MAPS LINK
+  const mapContainer = $('sosMapContainer');
   const mapDiv = $('sosMap');
-  const lat = (emg.clientDetails && emg.clientDetails.lat) ? emg.clientDetails.lat : -9.3000;
-  const lng = (emg.clientDetails && emg.clientDetails.lng) ? emg.clientDetails.lng : 32.7667;
+  const gmapsLink = $('gmapsLink');
+  const lat = (emg.clientDetails && emg.clientDetails.lat) ? parseFloat(emg.clientDetails.lat) : -9.3000;
+  const lng = (emg.clientDetails && emg.clientDetails.lng) ? parseFloat(emg.clientDetails.lng) : 32.7667;
 
   if(lat && lng){
-    mapDiv.style.display = 'block';
+    mapContainer.style.display = 'block';
+    gmapsLink.href = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+    
     setTimeout(() => {
       if(window.sosMapObj) { window.sosMapObj.remove(); } 
+      
       window.sosMapObj = L.map('sosMap').setView([lat, lng], 15);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(window.sosMapObj);
-      L.marker([lat, lng]).addTo(window.sosMapObj).bindPopup('<b>Dharura Ipo Hapa!</b>').openPopup();
-      setTimeout(() => { window.sosMapObj.invalidateSize(); }, 300);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+      }).addTo(window.sosMapObj);
+      
+      L.marker([lat, lng]).addTo(window.sosMapObj)
+        .bindPopup(`<b>Mgonjwa Yupo Hapa!</b>`).openPopup();
+        
+      setTimeout(() => { window.sosMapObj.invalidateSize(); }, 400);
     }, 300);
-  } else { mapDiv.style.display = 'none'; }
+  } else {
+    mapContainer.style.display = 'none';
+  }
 
   $('alertComment').value = '';
 
@@ -1234,7 +1242,6 @@ async function render(role){
     const tr=await getTransfers();const pend=tr.filter(t=>t.status==='pending');
     const nt=await get('notifications/chw',{});const notes=Object.values(nt||{}).sort((a,b)=>b.timestamp-a.timestamp).slice(0,5);
     
-    // ⭐ High Risk & Patient List
     const hrBlock = await highRiskBlock();
     const pList = await patientListView();
 
@@ -1252,7 +1259,6 @@ async function render(role){
   }
 
   else if(role==='nurse_labour' || role==='nurse_postnatal' || role==='nurse_rch'){
-    // ⭐ High Risk & Patient List for Nurses
     const hrBlock = await highRiskBlock();
     const pList = await patientListView();
 
