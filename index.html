@@ -42,10 +42,12 @@ th{background:#f8f9fa}
 .b-green{background:#2e7d32!important}.b-red{background:#c62828!important}.b-blue{background:#0277bd!important}.b-orange{background:#e65100!important}.b-purple{background:#6a1b9a!important}
 .badge{padding:3px 7px;border-radius:4px;font-size:.7rem;font-weight:bold}
 .bg-g{background:#d4edda;color:#155724}.bg-y{background:#fff3cd;color:#856404}.bg-r{background:#f8d7da;color:#721c24}.bg-b{background:#e3f2fd;color:#0d47a1}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.sc{background:#fff;padding:14px;border-radius:11px;border-left:5px solid #1b5e20;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.sc h3{margin:0;font-size:1.5rem;color:#1b5e20;border:none;padding:0}
-.sc p{margin:4px 0 0;font-size:.78rem;color:#666;font-weight:bold}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-bottom:14px}
+.sc{background:#fff;padding:12px;border-radius:11px;border-left:5px solid #0277bd;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center}
+.sc h3{margin:0;font-size:1.5rem;color:#0277bd;border:none;padding:0}
+.sc p{margin:4px 0 0;font-size:.75rem;color:#666;font-weight:bold}
+.sc.orange{border-left-color:#e65100;}.sc.orange h3{color:#e65100;}
+.sc.green{border-left-color:#2e7d32;}.sc.green h3{color:#2e7d32;}
 .live{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);padding:14px;border-radius:13px;display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;border:2px solid #1b5e20}
 .live .vg{display:flex;gap:12px;flex-wrap:wrap;flex:1}
 .vi{background:#fff;padding:9px 14px;border-radius:9px;min-width:85px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -57,7 +59,7 @@ th{background:#f8f9fa}
 .lm{font-size:.78rem;color:#444;text-align:right}
 .lm strong{color:#1b5e20}
 .em{background:#fff5f5;border:2px solid #d32f2f;border-radius:13px;padding:18px;text-align:center;margin-bottom:14px}
-.pulse{width:120px;height:120px;background:#d32f2f;color:#fff;border:none;border-radius:50%;font-size:.95rem;font-weight:800;cursor:pointer;margin:14px auto;animation:p 2s infinite;display:flex;align-items:center;justify-content:center}
+.pulse{width:120px;height:120px;background:#d32f2f;color:#fff;border:none;border-radius:50%;font-size:.95rem;font-weight:800;cursor:pointer;margin:14px auto;animation:p 2s infinite;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(211,47,47,.6)}
 @keyframes p{0%{transform:scale(.95);box-shadow:0 0 0 0 rgba(211,47,47,.7)}70%{transform:scale(1);box-shadow:0 0 0 20px rgba(211,47,47,0)}100%{transform:scale(.95);box-shadow:0 0 0 0 rgba(211,47,47,0)}}
 .msg{background:#fff3cd;border-left:4px solid #ff9800;padding:9px 13px;border-radius:6px;margin:9px 0;font-size:.88rem;color:#856404}
 .msg.s{background:#d4edda;border-left-color:#28a745;color:#155724}
@@ -70,7 +72,10 @@ th{background:#f8f9fa}
 .mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(3px)}
 .mod.on{display:flex}
 .mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto}
-.mc h2{color:#d32f2f;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ffcdd2;font-size:1.15rem}
+.mc-head{background:#0277bd;color:#fff;padding:15px;display:flex;justify-content:space-between;align-items:center}
+.mc-head h2{margin:0;font-size:1.2rem;color:#fff}
+.mc-body{padding:20px}
+#mapContainer,#hospMapContainer,#labourTrackMap,#fixMap{height:250px;width:100%;border-radius:10px;border:2px solid #0277bd;margin-bottom:15px;z-index:1}
 .alert-ring{display:none;position:fixed;inset:0;background:rgba(200,0,0,0.45);z-index:9998;pointer-events:none}
 .alert-ring.on{display:block}
 .alert-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:22px 20px;max-width:540px;width:calc(100% - 40px);text-align:center;box-shadow:0 0 60px rgba(0,0,0,.7);z-index:9999;max-height:92vh;overflow-y:auto}
@@ -89,12 +94,10 @@ th{background:#f8f9fa}
 .alarm-mini.on{display:flex}
 @keyframes shakeMini{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .alarm-mini .mcount{background:#fff;color:#c62828;padding:2px 8px;border-radius:20px;font-size:.75rem;font-weight:bold}
-.sound-wave{display:inline-flex;gap:3px;align-items:flex-end;height:24px;margin-left:8px;vertical-align:middle}
-.sound-wave span{width:3px;background:#c62828;animation:wave 0.6s infinite ease-in-out}
-.sound-wave span:nth-child(2){animation-delay:0.1s}.sound-wave span:nth-child(3){animation-delay:0.2s}.sound-wave span:nth-child(4){animation-delay:0.3s}.sound-wave span:nth-child(5){animation-delay:0.4s}
-@keyframes wave{0%,100%{height:6px}50%{height:24px}}
 .bell{position:relative;background:#fcd116!important;color:#1b5e20!important;font-weight:800;padding:8px 14px;border-radius:20px;cursor:pointer;border:none;font-size:.85rem}
 .bell .count{position:absolute;top:-6px;right:-6px;background:#c62828;color:#fff;font-size:.7rem;font-weight:bold;padding:2px 7px;border-radius:20px}
+@keyframes bellshake{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.bell.shake{animation:bellshake 0.4s infinite}
 .processed-alarms{background:#f0f8f0;border:2px solid #2e7d32;border-radius:12px;padding:14px;margin-bottom:14px}
 .processed-alarms h3{color:#2e7d32;border-bottom:2px solid #2e7d32;padding-bottom:6px;margin:0 0 10px;font-size:1rem}
 .processed-alarms th{background:#c8e6c9;color:#1b5e20}
@@ -177,27 +180,7 @@ th{background:#f8f9fa}
   <div class="wrap" id="content"></div>
 </div>
 
-<!-- DRIVER FOCUS MODE -->
-<div id="driverFocusModal" class="mod" style="z-index:10002; background:rgba(0,0,0,0.9);">
-  <div class="mc" style="max-width:750px; padding:0; overflow:hidden; border:4px solid #0277bd;">
-    <div style="background:#0277bd; color:#fff; padding:15px; text-align:center;">
-      <h2 style="color:#fff; margin:0; border:none; padding:0;">🚑 UPO KWENYE SAFARI</h2>
-      <p style="font-size:0.85rem; margin-top:5px; opacity:0.9;">Ukimaliza zoezi hili, utarudi kwenye orodha.</p>
-    </div>
-    <div id="driverFocusBody" style="padding:20px;"></div>
-  </div>
-</div>
-
-<!-- LABOUR WARD INCOMING PATIENT -->
-<div id="incomingPatientModal" class="mod" style="z-index:10002;">
-  <div class="mc" style="max-width:850px; padding:0; overflow:hidden;">
-    <div style="background:#c62828; color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center;">
-      <h2 style="color:#fff; margin:0; border:none; padding:0;">🚨 MGONJWA ANAKUA (LIVE)</h2>
-      <button class="btn2" style="background:#fff; color:#c62828; font-weight:bold;" onclick="closeIncomingPatient()">FUNGA</button>
-    </div>
-    <div id="incomingPatientBody" style="padding:20px;"></div>
-  </div>
-</div>
+<!-- MODALS ZOTE ZIPO HAPA CHINI -->
 
 <div id="patientCardModal" class="mod"><div class="mc p-card-modal">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px">
@@ -241,11 +224,32 @@ th{background:#f8f9fa}
   </div>
 </div></div>
 
+<div id="driverFocusModal" class="mod" style="z-index:10002; background:rgba(0,0,0,0.9);">
+  <div class="mc" style="max-width:750px; padding:0; overflow:hidden; border:4px solid #0277bd;">
+    <div style="background:#0277bd; color:#fff; padding:15px; text-align:center;">
+      <h2 style="color:#fff; margin:0; border:none; padding:0;">🚑 UPO KWENYE SAFARI</h2>
+      <p style="font-size:0.85rem; margin-top:5px; opacity:0.9;">Ukimaliza zoezi hili, utarudi kwenye orodha.</p>
+    </div>
+    <div id="driverFocusBody" style="padding:20px;"></div>
+  </div>
+</div>
+
+<div id="incomingPatientModal" class="mod" style="z-index:10002;">
+  <div class="mc" style="max-width:850px; padding:0; overflow:hidden;">
+    <div style="background:#c62828; color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+      <h2 style="color:#fff; margin:0; border:none; padding:0;">🚨 MGONJWA ANAKUA (LIVE)</h2>
+      <button class="btn2" style="background:#fff; color:#c62828; font-weight:bold;" onclick="closeIncomingPatient()">FUNGA</button>
+    </div>
+    <div id="incomingPatientBody" style="padding:20px;"></div>
+  </div>
+</div>
+
 <div id="driverHospitalModal" class="mod"><div class="mc">
   <h2>🏥 Chagua Hospitali / Wodi</h2>
-  <p style="font-size:.9rem;margin-bottom:10px;color:#555">Mgonjwa amechukuliwa. Chagua mahali unapompeleka ili Labour Ward wajue mnakuja.</p>
+  <p style="font-size:.9rem;margin-bottom:10px;color:#555">Mgonjwa amechukuliwa. Chagua mahali unapompeleka ili Wodi husika ijue mnakuja.</p>
   <select id="driverDestHospital" style="font-size:1.1rem; padding:15px; border-color:#0277bd;">
     <option value="Labour Ward">Labour Ward (Wodi ya Wazazi)</option>
+    <option value="Postnatal Ward">Postnatal Ward</option>
     <option value="Tunduma District Hospital">Tunduma District Hospital</option>
     <option value="Mbeya Zonal Referral Hospital">Mbeya Zonal Referral Hospital</option>
     <option value="Vwawa District Hospital">Vwawa District Hospital</option>
@@ -329,8 +333,7 @@ th{background:#f8f9fa}
     <button style="flex:1;background:#c62828;padding:12px;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer" onclick="confirmRedirect()">TUMA</button>
     <button style="flex:1;background:#0277bd;padding:12px;color:#fff;border:none;border-radius:8px;font-weight:bold;cursor:pointer" onclick="closeRedirect()">GHAIRI</button>
   </div>
-</div></div>
-<script>
+</div></div><script>
 // ================= FIREBASE SETUP =================
 firebase.initializeApp({
   apiKey:"AIzaSyAC2cXvXcYqr_gzDkD18jYmdeUQskI4k",
@@ -371,7 +374,6 @@ async function setClient(n,d){const a=await getClients();a[n]={...a[n],...d};awa
 async function getTransportRequests(){return await get('transportRequests',{})}
 async function addTransportRequest(r){const k='trq_'+Date.now();r.id=k;r.createdAt=Date.now();r.status='pending';await set('transportRequests/'+k,r);return k}
 async function updTransportRequest(id,u){await db.ref('transportRequests/'+id).update(u)}
-
 async function updateTracking(id, data){ await set('tracking/'+id, data); }
 
 async function getSmsLogs(){return await get('smsLogs',{})}
@@ -581,250 +583,28 @@ function showPendingList(){
     if(confirm(`🔔 DHARURA ${items.length} MPYA:\n\n${list}\n\nFungua ya kwanza?`)) showEmergencyAlert(items[0]);
   });
 }
+</script><script>
+// ================= DRIVER LOGIC (FOCUS MODE) =================
+let activeDriverJob = null;
+let driverTrackInterval = null;
 
-async function showEmergencyAlert(emg){
-  currentEmergency=emg;isMinimized=false;
-  $('alarmMini').classList.remove('on');$('alertBox').style.display='block';$('alertRing').classList.add('on');
-  $('alertSource').textContent=`Kutoka: ${emg.sourceWard||emg.role||'Haijulikani'}`;
-  $('alertMessage').textContent=`${emg.type}`;
-  $('alertTime').textContent=`🕐 ${fullTime(emg.timestamp)} (${ago(emg.timestamp)})`;
-  
-  const escEl=$('alertEscalation');
-  const lvl=emg.escalationLevel||0;
-  if(lvl>0){
-    const step=ESCALATION_STEPS.find(s=>s.level===lvl);
-    escEl.innerHTML=`<div class="sms-alert">
-      <div class="hdr">🚨 ESCALATION NGZI ${lvl} — ${step.target}</div>
-      <div>Dharura imepitwa na wakati. SMS zimetumwa kwa:</div>
-      <div style="margin-top:6px">${(Object.values(emg.escalationHistory?.['level'+lvl]?.contacts||{}).map(c=>`<a class="sms-contact" href="tel:${c.phone}">${c.role}: ${c.name} — ${c.phone}</a>`).join(''))}</div>
-    </div>`;
-  } else {
-    const ageMin=Math.floor((Date.now()-emg.timestamp)/60000);
-    escEl.innerHTML=`<div class="msg" style="background:#fff3cd">⏱️ Imepita: <b>${ago(emg.timestamp)}</b> · Ngazi: 0/3${ageMin<1?' — ita escalate kwa Kituo baada ya dakika 1':''}</div>`;
-  }
-  
-  const detailsEl=$('alertClientDetails');
-  const d=emg.clientDetails||{};
-  const name=emg.clientName||d.name||'Mgonjwa';
-  const hasDetails=(d.name&&d.name!=='-')||(d.phone&&d.phone!=='-')||(d.location&&d.location!=='-');
-  if(hasDetails){
-    let html=`<div class="hdr">👤 TAARIFA ZA MGONJWA:</div>
-      <div><b>👤 Jina:</b> ${d.name||name}</div>`;
-    if(d.phone&&d.phone!=='-') html+=`<div><b>📞 Simu:</b> ${d.phone}</div>`;
-    if(d.partner&&d.partner!=='-') html+=`<div><b>💑 Mume:</b> ${d.partner}</div>`;
-    if(d.location&&d.location!=='-') html+=`<div><b>📍 Kituo/Mtaa:</b> ${d.location}</div>`;
-    if(d.status) html+=`<div><b>📋 Hali:</b> ${d.status==='postnatal'?'👶 Postnatal':'🤰 Mjamzito'}</div>`;
-    const contacts=[];
-    if(d.phone&&d.phone!=='-') contacts.push({role:'Mteja',name:d.name||name,phone:d.phone});
-    (d.emergencyContacts||[]).forEach(c=>contacts.push({role:'Ndugu',name:c.name,phone:c.phone}));
-    if(d.chwPhone&&d.chwPhone!=='-') contacts.push({role:'CHW',name:'CHW',phone:d.chwPhone});
-    if(d.mwenyekitiPhone&&d.mwenyekitiPhone!=='-') contacts.push({role:'Mwenyekiti',name:d.mwenyekiti,phone:d.mwenyekitiPhone});
-    if(contacts.length>0){
-      html+=`<div style="margin-top:8px;padding-top:8px;border-top:1px dashed #1b5e20"><b>📱 SMS Zitakazotumwa (${contacts.length}):</b><div style="margin-top:4px">${contacts.map(c=>`<a class="sms-contact" href="tel:${c.phone}">${c.role}: ${c.name} — ${c.phone}</a>`).join('')}</div></div>`;
-    }
-    detailsEl.innerHTML=html;detailsEl.style.display='block';
-  } else {detailsEl.innerHTML=`<div class="hdr">👤 TAARIFA:</div><div><b>Mgonjwa:</b> ${name}</div><div><b>Aina:</b> ${emg.type}</div>`;detailsEl.style.display='block'}
-
-  const mapContainer=$('sosMapContainer'),gmapsLink=$('gmapsLink'),distanceInfo=$('distanceInfo');
-  let patientLat=(emg.clientDetails&&emg.clientDetails.lat)?parseFloat(emg.clientDetails.lat):null;
-  let patientLng=(emg.clientDetails&&emg.clientDetails.lng)?parseFloat(emg.clientDetails.lng):null;
-  const isDefault=(patientLat===-9.3000&&patientLng===32.7667)||(!patientLat&&!patientLng);
-  if(isDefault){
-    distanceInfo.innerHTML=`⏳ Kifaa hakina GPS. Inatafuta...`;
-    const cp=await getClient(emg.clientName||emg.user||'M0005');
-    if(cp.lastLat&&cp.lastLng){patientLat=cp.lastLat;patientLng=cp.lastLng}else{patientLat=-9.3;patientLng=32.7667}
-  }
-  if(patientLat&&patientLng){
-    mapContainer.style.display='block';
-    distanceInfo.innerHTML=`⏳ Inahesabu umbali...`;
-    setTimeout(()=>{
-      if(window.sosMapObj){window.sosMapObj.remove()}
-      const street=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'});
-      const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'© Esri'});
-      window.sosMapObj=L.map('sosMap',{center:[patientLat,patientLng],zoom:18,layers:[sat]});
-      L.control.layers({"Street":street,"Satellite":sat}).addTo(window.sosMapObj);
-      L.marker([patientLat,patientLng]).addTo(window.sosMapObj).bindPopup(`<b>📍 Mgonjwa</b>`).openPopup();
-      setTimeout(()=>window.sosMapObj.invalidateSize(),400);
-      if(navigator.geolocation){
-        navigator.geolocation.getCurrentPosition(pos=>{
-          const uLat=pos.coords.latitude,uLng=pos.coords.longitude;
-          const distM=L.latLng(uLat,uLng).distanceTo(L.latLng(patientLat,patientLng));
-          const distKm=(distM/1000).toFixed(1);
-          distanceInfo.innerHTML=`📍 Umbali wako: <b>${distKm} km</b>`;
-          gmapsLink.href=`https://www.google.com/maps/dir/?api=1&origin=${uLat},${uLng}&destination=${patientLat},${patientLng}`;
-          L.polyline([[uLat,uLng],[patientLat,patientLng]],{color:'#c62828',weight:3,dashArray:'5,5'}).addTo(window.sosMapObj);
-          L.circleMarker([uLat,uLng],{color:'#1565c0',radius:8}).addTo(window.sosMapObj).bindPopup('🧑‍⚕️ Wewe').openPopup();
-          window.sosMapObj.fitBounds([[uLat,uLng],[patientLat,patientLng]],{padding:[30,30]});
-        },()=>{distanceInfo.innerHTML=`⚠️ Haikupata GPS yako.`;gmapsLink.href=`https://www.google.com/maps/search/?api=1&query=${patientLat},${patientLng}`},{enableHighAccuracy:true,timeout:5000});
-      } else {distanceInfo.innerHTML=`⚠️ GPS haipo`;gmapsLink.href=`https://www.google.com/maps/search/?api=1&query=${patientLat},${patientLng}`}
-    },300);
-  } else {mapContainer.style.display='none'}
-  
-  $('alertComment').value='';
-  alarmState.shownIds.add(emg.id);startRingLoop(emg.id);
-}
-
-async function respondEmergency(action){
-  if(!currentEmergency)return;
-  const comment=($('alertComment')?.value||'').trim();
-  const me=sessionStorage.getItem('un'),role=sessionStorage.getItem('ro');
-  if(action==='coming'&&!comment){if(!confirm('Hujaandika maoni. Kuendelea?'))return}
-  stopRingLoop();$('alertBox').style.display='none';$('alertRing').classList.remove('on');$('alarmMini').classList.remove('on');
-  const emgId=currentEmergency.id;const emgCopy={...currentEmergency};currentEmergency=null;
-  const upd={response:action,respondedBy:me,respondedRole:role,respondedAt:Date.now(),respondedSession:MY_SESSION,comment:comment||'(Hakuna maoni)'};
-  if(action==='coming'){
-    upd.status='responding';
-    upd.message=`✅ ${me} (${role}) amekubali. ${comment?'Maoni: "'+comment+'"':''}`;
-    upd.responseTime=duration(emgCopy.timestamp,Date.now());
-    await db.ref('emergencies/'+emgId).update(upd);
-    alert(`✅ UMEKUBALI!\n\nDharura: ${emgCopy.type}\nMgonjwa: ${emgCopy.clientName||'-'}\n\n📝 Maoni: "${comment||'(Hakuna)'}"\n⏱️ Muda: ${upd.responseTime}`);
-    
-    // Convert to transport job if driver
-    if(myRole==='driver'){
-       await addTransportRequest({
-         clientName: emgCopy.clientName, clientPhone: emgCopy.clientDetails?.phone || '-',
-         location: emgCopy.clientDetails?.location || 'Nyumbani',
-         reason: 'Dharura: ' + emgCopy.type,
-         lat: emgCopy.clientDetails?.lat || -9.3, lng: emgCopy.clientDetails?.lng || 32.7,
-         chairmanPhone: emgCopy.clientDetails?.mwenyekitiPhone,
-         chwPhone: emgCopy.clientDetails?.chwPhone,
-         requestedAt: Date.now(), status: 'pending'
-       });
-       render('driver');
-    }
-    
-    setTimeout(checkNextAlarm,1000);
-  } else if(action==='busy'){
-    $('redirectEmgId').value=emgId;if(comment)$('redirectNote').value=comment;
-    $('redirectModal').classList.add('on');currentEmergency=emgCopy;return;
-  }
-}
-async function confirmRedirect(){
-  const id=$('redirectEmgId').value,to=$('redirectTo').value,note=$('redirectNote').value.trim();
-  if(!to)return alert('Chagua mtu');if(!note)return alert('Andika ujumbe');
-  const me=sessionStorage.getItem('un');
-  await db.ref('emergencies/'+id).update({status:'active',redirectedTo:to,redirectedBy:me,redirectedAt:Date.now(),redirectNote:note,comment:note});
-  $('redirectModal').classList.remove('on');$('alertBox').style.display='none';$('alertRing').classList.remove('on');stopRingLoop();currentEmergency=null;
-  alert(`✅ Imeelekezwa kwa ${to}`);setTimeout(checkNextAlarm,1000);
-}
-function closeRedirect(){stopRingLoop();$('alertBox').style.display='none';$('alertRing').classList.remove('on');$('redirectModal').classList.remove('on');currentEmergency=null;setTimeout(checkNextAlarm,1000)}
-
-function updateHistoryUI(historyItems){
-  const el=$('processedAlarmsBody');if(!el)return;
-  let filtered=historyItems.filter(e=>e.status==='responding'||e.status==='resolved');
-  filtered=filtered.sort((a,b)=>(b.respondedAt||0)-(a.respondedAt||0)).slice(0,20);
-  if(!filtered||filtered.length===0){el.innerHTML='<tr><td colspan="7" class="no-alarms">📭 Hakuna dharura zilizofanyiwa kazi.</td></tr>';return}
-  el.innerHTML=filtered.map(e=>{
-    const c=e.clientDetails||{};const name=e.clientName||c.name||'-';
-    return `<tr>
-      <td><b>${e.type}</b></td><td><b>${name}</b></td>
-      <td>${shortTime(e.respondedAt)}</td><td>${e.respondedBy||'-'}</td>
-      <td><span class="escalation-badge lvl${e.escalationLevel||0}">Nga ${e.escalationLevel||0}</span></td>
-      <td>${e.comment?e.comment.substring(0,20):'-'}</td>
-    </tr>`;
-  }).join('');
-}
-function processedAlarmsBlock(){
-  return `<div class="processed-alarms"><h3>✅ DHARURA ZILIZOFANYIWA KAZI</h3>
-    <table><thead><tr><th>Aina</th><th>Mgonjwa</th><th>Muda</th><th>Aliyechukua</th><th>Ngazi</th><th>Maoni</th></tr></thead>
-    <tbody id="processedAlarmsBody"><tr><td colspan="6" class="empty">Hakuna.</td></tr></tbody></table></div>`;
-}
-
-function liveBlock(title, edd=''){
-  return `<div class="live"><div class="vg">
-    <div class="vi"><div class="l">🌡️ Joto</div><div class="v"><span class="lt">--</span><span class="u"> °C</span></div></div>
-    <div class="vi"><div class="l">❤️ BP</div><div class="v"><span class="lb">--/--</span><span class="u"> mmHg</span></div></div>
-    <div class="vi"><div class="l">💓 Pulse</div><div class="v"><span class="lp">--</span><span class="u"> bpm</span></div></div>
-    <div class="vi"><div class="l">👶 FHR</div><div class="v"><span class="lf">--</span><span class="u"> bpm</span></div></div>
-    <div class="vi" style="min-width:110px"><div class="l">Hali</div><div class="sb normal">--</div></div>
-  </div><div class="lm">
-    <div><strong>${title}</strong></div>
-    ${edd?`<div style="color:#c62828;font-weight:bold">📅 EDD: ${edd}</div>`:''}
-    <div>Kifaa: <b>${DEV}</b></div>
-    <div>📅 <span class="ld">--</span></div><div>🕐 <span class="lt2">--</span></div>
-  </div></div>`;
-}
-function histBlock(){
-  return `<div class="card"><h3>📋 Vipimo 5 vya Mwisho</h3>
-    <table><thead><tr><th>#</th><th>Joto</th><th>BP</th><th>Pulse</th><th>FHR</th><th>Muda</th></tr></thead>
-    <tbody id="sh"><tr><td colspan="6" class="empty">Inapakia...</td></tr></tbody></table></div>`;
-}
-
-function isClientHighRisk(c){if(!c.vitals)return false;const v=c.vitals;const sys=parseInt(v.systolic)||0;const dia=parseInt(v.diastolic)||0;const pulse=parseInt(v.pulse)||0;const temp=parseFloat(v.temperature)||0;if(sys>=140||dia>=90)return true;if(temp>=38||(temp>0&&temp<=35))return true;if(sys>0&&(pulse/sys)>=0.9)return true;return false;}
-
-async function highRiskBlock() {
-  const clients = await getClients(); const highRisk = [];
-  for(const name in clients){const c=clients[name];if((c.status==='pregnant'||c.status==='postnatal')&&isClientHighRisk(c))highRisk.push({name,...c})}
-  if(highRisk.length===0) return `<div class="high-risk-card" style="background:#e8f5e9;border-color:#2e7d32"><h3 style="color:#2e7d32;border-color:#2e7d32">🛡️ Hakuna Mgonjwa Hatarini</h3></div>`;
-  return `<div class="high-risk-card"><h3>🚨 Wagonjwa Walio Hatarini</h3><table><thead><tr><th>Jina</th><th>Simu</th><th>Vipimo</th><th>Kitendo</th></tr></thead><tbody>
-    ${highRisk.map(c=>`<tr><td><b>${c.name}</b></td><td>${c.phone||'-'}</td><td>BP: <b>${c.vitals.systolic}/${c.vitals.diastolic}</b><br>Joto: <b>${c.vitals.temperature}</b></td><td><button class="btn2 b-blue" onclick="openPatientCard('${c.name}')">📋 Kadi</button></td></tr>`).join('')}
-  </tbody></table></div>`;
-}
-
-async function patientListView() {
-  const clients = await getClients(); const home=[], hosp=[];
-  for(const name in clients){const c=clients[name];if(c.status==='discharged')continue;if(c.monitorType==='hospital')hosp.push({name,...c});else home.push({name,...c})}
-  const card=(p)=>{const hr=isClientHighRisk(p);return `<div class="patient-card ${hr?'p-red':'p-green'}" onclick="openPatientCard('${p.name}')"><div class="p-name">${p.name} ${hr?'🚨':'✅'}</div><div class="p-info">Simu: ${p.phone||'-'}</div><div class="p-info">EDD: ${p.edd?new Date(p.edd).toLocaleDateString('sw-TZ'):'-'}</div></div>`};
-  return `<div class="card"><h3>👥 Wagonjwa</h3><div class="patient-grid">${home.map(card).join('')||'<p class="empty">Hakuna.</p>'}</div></div>`;
-}
-
-window.openPatientCard = async (name) => {
-  const d = await getClient(name); if(!d.name) return;
-  $('pc_name').textContent = `📋 Kadi ya ${name}`;
-  $('pc_phone').textContent = d.phone||'-'; $('pc_partner').textContent = d.partner||'-';
-  $('pc_location').textContent = d.location||'-'; $('pc_mtaa').textContent = d.mtaa||'-';
-  $('pc_edd').textContent = d.edd?new Date(d.edd).toLocaleDateString('sw-TZ'):'-';
-  $('pc_gravida').textContent = d.gravida||'-'; $('pc_para').textContent = d.para||'-';
-  const vs=d.visits||[];
-  $('pc_visits_body').innerHTML = vs.map((v,i)=>`<tr><td>${i+1}</td><td>${v.date||'-'}</td><td>${v.weight||'-'}</td><td>${v.bp||'-'}</td><td>${v.temp||'-'}</td><td>${v.advice||'-'}</td></tr>`).join('')||'<tr><td colspan="6">Hakuna</td></tr>';
-  $('patientCardModal').classList.add('on');
-};
-
-// ================= DRIVER MOCK DATA & STATS =================
 async function seedMockRequests() {
   const mockReqs = {
-    'trq_mock1': {
-      id: 'trq_mock1', clientName: 'Mama Asha (Mock)', clientPhone: '0711111111',
-      location: 'Nyumbani - Kijiji cha Sogea', reason: 'Dharura: Kuvuja damu (PPH)',
-      lat: -9.315, lng: 32.755, chairmanPhone: '0765432101', chwPhone: '0789012345',
-      requestedAt: Date.now() - 120000, status: 'pending'
-    },
-    'trq_mock2': {
-      id: 'trq_mock2', clientName: 'Mama Neema (Mock)', clientPhone: '0722222222',
-      location: 'Nyumbani - Mtaa wa Sokoni', reason: 'Dharura: Maumivu makali ya tumboni',
-      lat: -9.290, lng: 32.780, chairmanPhone: '0765432102', chwPhone: '0789012346',
-      requestedAt: Date.now() - 180000, status: 'pending'
-    },
-    'trq_mock3': {
-      id: 'trq_mock3', clientName: 'Mama Zawadi (Mock)', clientPhone: '0733333333',
-      location: 'Nyumbani - Karibu na Kanisa', reason: 'Dharura: Shida ya kupumua',
-      lat: -9.325, lng: 32.770, chairmanPhone: '0765432103', chwPhone: '0789012347',
-      requestedAt: Date.now() - 60000, status: 'pending'
-    },
-    'trq_mock4': {
-      id: 'trq_mock4', clientName: 'Mama Rehema (Mock)', clientPhone: '0744444444',
-      location: 'Nyumbani - Mtaa wa Shule', reason: 'Dharura: Kichwa kinauma (Eclampsia)',
-      lat: -9.300, lng: 32.760, chairmanPhone: '0765432104', chwPhone: '0789012348',
-      requestedAt: Date.now() - 300000, status: 'pending'
-    }
+    'trq_mock1': { id: 'trq_mock1', clientName: 'Mama Asha (Mock)', clientPhone: '0711111111', location: 'Kijiji cha Sogea', reason: 'Dharura: Kuvuja damu (PPH)', lat: -9.315, lng: 32.755, chairmanPhone: '0765432101', chwPhone: '0789012345', requestedAt: Date.now() - 120000, status: 'pending' },
+    'trq_mock2': { id: 'trq_mock2', clientName: 'Mama Neema (Mock)', clientPhone: '0722222222', location: 'Mtaa wa Sokoni', reason: 'Dharura: Maumivu makali ya tumboni', lat: -9.290, lng: 32.780, chairmanPhone: '0765432102', chwPhone: '0789012346', requestedAt: Date.now() - 180000, status: 'pending' },
+    'trq_mock3': { id: 'trq_mock3', clientName: 'Mama Zawadi (Mock)', clientPhone: '0733333333', location: 'Karibu na Kanisa', reason: 'Dharura: Shida ya kupumua', lat: -9.325, lng: 32.770, chairmanPhone: '0765432103', chwPhone: '0789012347', requestedAt: Date.now() - 60000, status: 'pending' },
+    'trq_mock4': { id: 'trq_mock4', clientName: 'Mama Rehema (Mock)', clientPhone: '0744444444', location: 'Mtaa wa Shule', reason: 'Dharura: Kichwa kinauma (Eclampsia)', lat: -9.300, lng: 32.760, chairmanPhone: '0765432104', chwPhone: '0789012348', requestedAt: Date.now() - 300000, status: 'pending' }
   };
-  for (const [k, v] of Object.entries(mockReqs)) {
-    await set('transportRequests/' + k, v);
-  }
-  alert('✅ Maombi 4 ya mfano yamezalishwa kwa ajili ya majaribio.');
-  render('driver');
+  for (const [k, v] of Object.entries(mockReqs)) { await set('transportRequests/' + k, v); }
+  alert('✅ Maombi 4 ya mfano yamezalishwa kwa ajili ya majaribio.'); render('driver');
 }
 
 async function calculateDriverStats() {
   const user = sessionStorage.getItem('un');
   const reqs = await getTransportRequests();
   const myJobs = Object.values(reqs||{}).filter(r => r.driverName === user);
-  
   const today = new Date().toDateString();
-  let servedToday = 0;
-  let servedWeek = 0;
-  let totalCompleted = 0;
-  let totalSpeedMins = 0;
+  let servedToday = 0, servedWeek = 0, totalCompleted = 0, totalSpeedMins = 0;
   
   myJobs.forEach(j => {
     if (j.status === 'completed') {
@@ -832,120 +612,70 @@ async function calculateDriverStats() {
       const completedDate = new Date(j.completedAt || j.createdAt);
       if (completedDate.toDateString() === today) servedToday++;
       if ((Date.now() - completedDate.getTime()) < 7 * 24 * 60 * 60 * 1000) servedWeek++;
-      
-      if (j.assignedAt && j.completedAt) {
-        totalSpeedMins += (j.completedAt - j.assignedAt) / 60000;
-      }
+      if (j.assignedAt && j.completedAt) { totalSpeedMins += (j.completedAt - j.assignedAt) / 60000; }
     }
   });
-  
   const avgSpeed = totalCompleted > 0 ? Math.round(totalSpeedMins / totalCompleted) : 0;
-  const responsibility = totalCompleted > 0 ? 100 : 0; // Simple mock logic
-  
+  const responsibility = totalCompleted > 0 ? 100 : 0;
   return { servedToday, servedWeek, totalCompleted, avgSpeed, responsibility };
 }
 
-// ================= DRIVER LOGIC (FOCUS MODE) =================
-let activeDriverJob = null;
-let driverTrackInterval = null;
-
 async function driverAcceptJob(reqId){
-  const req = await get('transportRequests/'+reqId);
-  if(!req) return;
+  const req = await get('transportRequests/'+reqId); if(!req) return;
   await updTransportRequest(reqId, {status: 'assigned', driverName: sessionStorage.getItem('un'), driverPhone: sessionStorage.getItem('un'), assignedAt: Date.now()});
   activeDriverJob = { id: reqId, ...req, status: 'assigned' };
-  $('driverFocusModal').classList.add('on');
-  renderDriverFocus();
+  $('driverFocusModal').classList.add('on'); renderDriverFocus();
 }
 
 async function renderDriverFocus(){
   if(!activeDriverJob) { $('driverFocusModal').classList.remove('on'); return; }
+  const body = $('driverFocusBody'); const client = await getClient(activeDriverJob.clientName);
+  const myLat = activeDriverJob.lat || -9.3; const myLng = activeDriverJob.lng || 32.7;
+  let stepHtml = ''; let mapId = 'driverMap_' + Date.now();
   
-  const body = $('driverFocusBody');
-  const client = await getClient(activeDriverJob.clientName);
-  const myLat = activeDriverJob.lat || -9.3;
-  const myLng = activeDriverJob.lng || 32.7;
-  
-  let stepHtml = '';
-  let mapId = 'driverMap_' + Date.now();
-  
-  if(activeDriverJob.status === 'assigned' || activeDriverJob.status === 'enroute_patient') {
-    stepHtml = `
-      <div class="focus-task-card">
-        <h2>📍 Nenda Kumchukua: ${activeDriverJob.clientName}</h2>
+  if(activeDriverJob.status === 'assigned') {
+    stepHtml = `<div class="focus-task-card"><h2>📍 Nenda Kumchukua: ${activeDriverJob.clientName}</h2>
         <div style="text-align:center; font-size:1.1rem; margin-bottom:15px;">
           <b>Mahali:</b> ${activeDriverJob.location || 'Nyumbani'}<br>
           <b>Simu:</b> <a href="tel:${client.phone || activeDriverJob.clientPhone}">${client.phone || activeDriverJob.clientPhone}</a><br>
-          <b>Namba ya Mwenyekiti:</b> <a href="tel:${activeDriverJob.chairmanPhone || '-'}">${activeDriverJob.chairmanPhone || '-'}</a><br>
-          <b>Namba ya CHW:</b> <a href="tel:${activeDriverJob.chwPhone || '-'}">${activeDriverJob.chwPhone || '-'}</a>
+          <b>Mwenyekiti:</b> <a href="tel:${activeDriverJob.chairmanPhone || '-'}">${activeDriverJob.chairmanPhone || '-'}</a> | <b>CHW:</b> <a href="tel:${activeDriverJob.chwPhone || '-'}">${activeDriverJob.chwPhone || '-'}</a>
         </div>
         <div id="${mapId}" style="height:250px; border-radius:10px; border:2px solid #0277bd; margin-bottom:15px; z-index:1;"></div>
-        
         <div class="focus-action-grid">
-          <button class="focus-btn b-green" onclick="driverArrivedAtPatient('${activeDriverJob.id}')">
-            ✅ Nimefika Nyumbani
-          </button>
-          <button class="focus-btn b-red" onclick="sendDriverEmergency('${activeDriverJob.id}')">
-            🚨 Omba Dharura (Nimekwama)
-          </button>
-        </div>
-      </div>
-    `;
-  } 
-  else if(activeDriverJob.status === 'arrived_patient') {
-    stepHtml = `
-      <div class="focus-task-card" style="border-color:#2e7d32;">
-        <h2 style="color:#2e7d32;">🚑 Mgonjwa Amepakiwa</h2>
+          <button class="focus-btn b-green" onclick="driverArrivedAtPatient('${activeDriverJob.id}')">✅ Nimefika Nyumbani</button>
+          <button class="focus-btn b-red" onclick="sendDriverEmergency('${activeDriverJob.id}')">🚨 Omba Dharura</button>
+        </div></div>`;
+  } else if(activeDriverJob.status === 'arrived_patient') {
+    stepHtml = `<div class="focus-task-card" style="border-color:#2e7d32;"><h2 style="color:#2e7d32;">🚑 Mgonjwa Amepakiwa</h2>
         <div class="msg s" style="text-align:center;">Bonyeza kitufe hapa chini kuchagua kituo unapompeleka.</div>
         <div class="focus-action-grid" style="grid-template-columns:1fr;">
-          <button class="focus-btn b-blue" onclick="$('driverHospitalModal').classList.add('on')">
-            🏥 Anza Safari (Chagua Kituo)
-          </button>
-          <button class="focus-btn b-red" onclick="sendDriverEmergency('${activeDriverJob.id}')">
-            🚨 Omba Dharura (Nimekwama)
-          </button>
-        </div>
-      </div>
-    `;
-  }
-  else if(activeDriverJob.status === 'enroute_hospital') {
-    const hName = activeDriverJob.hospital || 'Hospitali Kuu';
-    stepHtml = `
-      <div class="focus-task-card" style="border-color:#2e7d32;">
-        <h2 style="color:#2e7d32;">🏥 Nenda Hospitalini: ${hName}</h2>
+          <button class="focus-btn b-blue" onclick="$('driverHospitalModal').classList.add('on')">🏥 Anza Safari (Chagua Kituo)</button>
+          <button class="focus-btn b-red" onclick="sendDriverEmergency('${activeDriverJob.id}')">🚨 Omba Dharura</button>
+        </div></div>`;
+  } else if(activeDriverJob.status === 'enroute_hospital') {
+    stepHtml = `<div class="focus-task-card" style="border-color:#2e7d32;"><h2 style="color:#2e7d32;">🏥 Nenda: ${activeDriverJob.hospital || 'Hospitali'}</h2>
         <div class="msg s" style="text-align:center;">Mgonjwa amechukuliwa. Nenda haraka!</div>
         <div id="${mapId}" style="height:250px; border-radius:10px; border:2px solid #2e7d32; margin-bottom:15px; z-index:1;"></div>
-        
         <div class="focus-action-grid" style="grid-template-columns:1fr;">
-          <button class="focus-btn b-blue" onclick="driverArrivedAtHospital('${activeDriverJob.id}')">
-            🏁 Nimefika Hospitali (Maliza Zoezi)
-          </button>
-          <button class="focus-btn b-red" onclick="sendDriverEmergency('${activeDriverJob.id}')">
-            🚨 Omba Dharura (Nimekwama)
-          </button>
-        </div>
-      </div>
-    `;
+          <button class="focus-btn b-blue" onclick="driverArrivedAtHospital('${activeDriverJob.id}')">🏁 Nimefika Hospitali (Maliza)</button>
+          <button class="focus-btn b-red" onclick="sendDriverEmergency('${activeDriverJob.id}')">🚨 Omba Msaada Njia</button>
+        </div></div>`;
   }
-
   body.innerHTML = stepHtml;
-
+  
   if (activeDriverJob.status !== 'arrived_patient') {
     setTimeout(() => {
       if(window.driverMapInst) window.driverMapInst.remove();
       window.driverMapInst = L.map(mapId).setView([myLat, myLng], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.driverMapInst);
-      
       L.marker([myLat, myLng], {icon: L.divIcon({html:'🚑', className:'', iconSize:[30,30]})}).addTo(window.driverMapInst).bindPopup('Wewe Upo Hapa').openPopup();
       L.marker([activeDriverJob.lat || -9.3, activeDriverJob.lng || 32.7]).addTo(window.driverMapInst).bindPopup(activeDriverJob.status === 'enroute_hospital' ? 'Hospitali' : 'Mgonjwa Yupo Hapa');
-      
       if(navigator.geolocation) {
         if(driverTrackInterval) clearInterval(driverTrackInterval);
         driverTrackInterval = setInterval(() => {
           navigator.geolocation.getCurrentPosition(pos => {
-            const lat = pos.coords.latitude, lng = pos.coords.longitude;
-            updateTracking(activeDriverJob.id, {lat, lng, updatedAt: Date.now()});
-            if(window.driverMapInst) window.driverMapInst.setView([lat, lng]);
+            updateTracking(activeDriverJob.id, {lat: pos.coords.latitude, lng: pos.coords.longitude, updatedAt: Date.now()});
+            if(window.driverMapInst) window.driverMapInst.setView([pos.coords.latitude, pos.coords.longitude]);
           }, {enableHighAccuracy:true});
         }, 5000);
       }
@@ -954,302 +684,247 @@ async function renderDriverFocus(){
 }
 
 async function driverArrivedAtPatient(reqId) {
-  await updTransportRequest(reqId, {status: 'arrived_patient'});
-  activeDriverJob.status = 'arrived_patient';
-  if(driverTrackInterval) clearInterval(driverTrackInterval);
-  renderDriverFocus();
+  await updTransportRequest(reqId, {status: 'arrived_patient'}); activeDriverJob.status = 'arrived_patient';
+  if(driverTrackInterval) clearInterval(driverTrackInterval); renderDriverFocus();
 }
 
 async function confirmHospitalSelection(){
-  const hospital = $('driverDestHospital').value;
-  if(!hospital) return alert('Chagua hospitali/wodi!');
+  const hospital = $('driverDestHospital').value; if(!hospital) return;
   $('driverHospitalModal').classList.remove('on');
-  
   await updTransportRequest(activeDriverJob.id, {status: 'enroute_hospital', hospital: hospital});
-  activeDriverJob.status = 'enroute_hospital';
-  activeDriverJob.hospital = hospital;
-  
-  await db.ref('incoming_patients/'+activeDriverJob.id).set({
-    id: activeDriverJob.id,
-    clientName: activeDriverJob.clientName,
-    driverName: sessionStorage.getItem('un'),
-    driverPhone: sessionStorage.getItem('un'),
-    from: activeDriverJob.location || 'Nyumbani',
-    hospital: hospital,
-    time: Date.now()
-  });
-
-  renderDriverFocus();
-  alert(`✅ Taarifa imetumwa ${hospital} kwamba unakuja na mgonjwa!`);
+  activeDriverJob.status = 'enroute_hospital'; activeDriverJob.hospital = hospital;
+  await db.ref('incoming_patients/'+activeDriverJob.id).set({ id: activeDriverJob.id, clientName: activeDriverJob.clientName, driverName: sessionStorage.getItem('un'), driverPhone: sessionStorage.getItem('un'), from: activeDriverJob.location || 'Nyumbani', hospital: hospital, time: Date.now() });
+  renderDriverFocus(); alert(`✅ Taarifa imetumwa ${hospital} kwamba unakuja na mgonjwa!`);
 }
 
 async function driverArrivedAtHospital(reqId){
   if(!confirm("Umefika hospitali na mgonjwa? Zoezi litaisha.")) return;
   await updTransportRequest(reqId, {status: 'completed', completedAt: Date.now()});
   await db.ref('incoming_patients/'+reqId).remove();
-  
   if(driverTrackInterval) clearInterval(driverTrackInterval);
   if(window.driverMapInst) { window.driverMapInst.remove(); window.driverMapInst=null; }
-  
-  activeDriverJob = null;
-  $('driverFocusModal').classList.remove('on');
-  alert('✅ Zoezi limekamilika. Asante!');
-  render('driver');
+  activeDriverJob = null; $('driverFocusModal').classList.remove('on'); alert('✅ Zoezi limekamilika!'); render('driver');
 }
 
 async function sendDriverEmergency(reqId){
-  const type = prompt("Umepata shida gani? (Mf. Gari imeharibika, Nimekwama njia, n.k.)", "Nimekwama njiani");
-  if(!type) return;
-  
-  const emg = {
-    type: 'Safari: ' + type,
-    sourceWard: 'Dereva wa Ambulance',
-    role: 'driver',
-    user: sessionStorage.getItem('un'),
-    clientName: activeDriverJob ? activeDriverJob.clientName : 'Mgonjwa',
-    sessionId: MY_SESSION,
-    message: `🚑 TAARIFA YA SAFARI (Dereva): ${type}. Mgonjwa: ${activeDriverJob?.clientName}`,
-    timestamp: Date.now(), status: 'active'
-  };
-  await db.ref('emergencies/emg_'+Date.now()).set(emg);
+  const type = prompt("Umepata shida gani?", "Nimekwama njiani"); if(!type) return;
+  await db.ref('emergencies/emg_'+Date.now()).set({ type: 'Safari: ' + type, sourceWard: 'Dereva', role: 'driver', user: sessionStorage.getItem('un'), clientName: activeDriverJob ? activeDriverJob.clientName : 'Mgonjwa', sessionId: MY_SESSION, timestamp: Date.now(), status: 'active' });
   alert('🚨 Dharura imetumwa kwa wote!');
 }
 
-// ================= LABOUR WARD TRACKING =================
-let trackingMapObj = null;
-let activeTrackingId = null;
+// ================= LABOUR WARD / RCH / POSTNATAL TRACKING =================
+let trackingMapObj = null; let activeTrackingId = null;
 
 async function showIncomingPatient(reqId){
   activeTrackingId = reqId;
-  const req = await get('transportRequests/'+reqId);
-  if(!req) return alert('Ombi halipo.');
-  
+  const req = await get('transportRequests/'+reqId); if(!req) return;
   const client = await getClient(req.clientName);
-  const hName = req.hospital || 'Hospitali';
-  
   $('incomingPatientModal').classList.add('on');
   $('incomingPatientBody').innerHTML = `
-    <div class="msg d" style="font-size:1rem; font-weight:bold;">
-      🚑 Dereva ${req.driverName} amechukua mgonjwa ${req.clientName} kutoka ${req.location || 'Nyumbani'} anakuja ${hName}.
-    </div>
+    <div class="msg d" style="font-size:1rem; font-weight:bold;">🚑 Dereva ${req.driverName} amechukua mgonjwa ${req.clientName} anakuja ${req.hospital}.</div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:15px;">
-      <div style="background:#f8f9fa; padding:12px; border-radius:8px; border:1px solid #ddd; font-size:0.85rem;">
-        <h4 style="color:#1b5e20; margin-bottom:8px;">👤 Taarifa za Mgonjwa</h4>
-        <div><b>Jina:</b> ${req.clientName}</div>
-        <div><b>Simu:</b> <a href="tel:${client.phone}">${client.phone || '-'}</a></div>
-        <div><b>Gravida:</b> ${client.gravida || '-'} | <b>Para:</b> ${client.para || '-'}</div>
-        <div><b>Vipimo vya Mwisho:</b> BP ${client.vitals?.systolic || '-'}/${client.vitals?.diastolic || '-'}, Joto ${client.vitals?.temperature || '-'}°C</div>
-      </div>
-      <div style="background:#e3f2fd; padding:12px; border-radius:8px; border:1px solid #90caf9; font-size:0.85rem;">
-        <h4 style="color:#0d47a1; margin-bottom:8px;">🚑 Taarifa za Dereva</h4>
-        <div><b>Jina:</b> ${req.driverName}</div>
-        <div><b>Simu:</b> <a href="tel:${req.driverPhone}">${req.driverPhone}</a></div>
-        <div><b>Gari:</b> ${req.vehicleNo || '-'}</div>
-        <div><b>Hali:</b> <span class="badge bg-y">Njiani</span></div>
-      </div>
+      <div style="background:#f8f9fa; padding:12px; border-radius:8px; font-size:0.85rem;"><h4>👤 Mgonjwa</h4><div><b>Jina:</b> ${req.clientName}</div><div><b>Simu:</b> <a href="tel:${client.phone}">${client.phone || '-'}</a></div><div><b>Vipimo:</b> BP ${client.vitals?.systolic || '-'}/${client.vitals?.diastolic || '-'}, Joto ${client.vitals?.temperature || '-'}</div></div>
+      <div style="background:#e3f2fd; padding:12px; border-radius:8px; font-size:0.85rem;"><h4>🚑 Dereva</h4><div><b>Jina:</b> ${req.driverName}</div><div><b>Simu:</b> <a href="tel:${req.driverPhone}">${req.driverPhone}</a></div></div>
     </div>
-    <div id="labourDistance" style="background:#fff3e0; color:#e65100; font-weight:bold; padding:10px; border-radius:8px; text-align:center; margin-bottom:10px;">
-      ⏳ Inahesabu umbali wa dereva...
-    </div>
-    <div id="labourTrackMap" style="height:300px; width:100%; border-radius:10px; border:2px solid #1565c0; z-index:1;"></div>
-  `;
-
+    <div id="labourDistance" style="background:#fff3e0; color:#e65100; font-weight:bold; padding:10px; border-radius:8px; text-align:center; margin-bottom:10px;">⏳ Inahesabu umbali...</div>
+    <div id="labourTrackMap" style="height:300px; width:100%; border-radius:10px; border:2px solid #1565c0; z-index:1;"></div>`;
   if(trackingMapObj) { trackingMapObj.remove(); }
-  
   setTimeout(async () => {
     trackingMapObj = L.map('labourTrackMap').setView([-9.3, 32.7], 13);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(trackingMapObj);
-    
     db.ref('tracking/'+reqId).on('value', snap => {
-      const trk = snap.val();
-      if(!trk || !trk.lat) return;
-      
+      const trk = snap.val(); if(!trk || !trk.lat) return;
       if(window.labourDriverMarker) window.labourDriverMarker.setLatLng([trk.lat, trk.lng]);
       else window.labourDriverMarker = L.marker([trk.lat, trk.lng], {icon: L.divIcon({html:'🚑', className:'', iconSize:[30,30]})}).addTo(trackingMapObj).bindPopup('Dereva Yupo Hapa');
-      
-      const hLat = -9.3000, hLng = 32.7667; 
-      const distMeters = L.latLng(trk.lat, trk.lng).distanceTo(L.latLng(hLat, hLng));
-      const distKm = (distMeters / 1000).toFixed(1);
-      $('labourDistance').innerHTML = `📍 Umbali wa Dereva kufika Hospitali: <b>${distKm} km</b>`;
-      
+      const distMeters = L.latLng(trk.lat, trk.lng).distanceTo(L.latLng(-9.3000, 32.7667));
+      $('labourDistance').innerHTML = `📍 Umbali wa Dereva kufika: <b>${(distMeters / 1000).toFixed(1)} km</b>`;
       trackingMapObj.setView([trk.lat, trk.lng], 15);
     });
   }, 300);
 }
-
 function closeIncomingPatient(){
   $('incomingPatientModal').classList.remove('on');
   if(activeTrackingId) { db.ref('tracking/'+activeTrackingId).off(); activeTrackingId=null; }
   if(trackingMapObj) { trackingMapObj.remove(); trackingMapObj=null; }
 }
 
-// ================= CLIENT TRANSPORT REQUEST =================
+// ================= MTEJA LOGIC =================
+async function sendSOS() {
+  if(!confirm('Una uhakika unataka kuomba msaada wa dharura sasa hivi?')) return;
+  const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  const coords = await getGPS();
+  const clientDetails = { name: d.name || user, phone: d.phone || user, partner: d.partner || '-', location: d.location || '-', district: d.district || '-', region: d.region || '-', gravida: d.gravida || '-', para: d.para || '-', weight: d.weight || '-', bp_sys: LV.systolic || '-', bp_dia: LV.diastolic || '-', temp: LV.temperature || '-', status: d.status || 'pregnant', emergencyContacts: d.emergencyContacts || [], chwPhone: d.chwPhone || '-', mwenyekiti: d.mwenyekiti || '-', mwenyekitiPhone: d.mwenyekitiPhone || '-' };
+  if(coords) { clientDetails.lat = coords.lat; clientDetails.lng = coords.lng; }
+  await db.ref('emergencies/emg_'+Date.now()).set({ type: 'Dharura ya Mteja (SOS)', sourceWard: 'Mteja (Nyumbani)', role: 'mteja', user: user, clientName: clientDetails.name, clientDetails: clientDetails, sessionId: MY_SESSION, timestamp: Date.now(), status: 'active', escalationLevel: 0, response: null });
+  alert('🚨 DHARURA IMETUMWA!\n\nMadaktari na Ndugu zako wataarifiwa mara moja.');
+}
 async function requestTransport(){
-  const user = sessionStorage.getItem('un');
-  const d = await getClient(user);
-  const reason = prompt('Sababu ya kuomba usafiri:', 'Dharura - nahitaji kwenda hospitali');
-  if(!reason) return;
-  
+  const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  const reason = prompt('Sababu ya kuomba usafiri:', 'Dharura - nahitaji kwenda hospitali'); if(!reason) return;
   const coords = await getGPS();
-  
-  await addTransportRequest({
-    clientName: user, clientPhone: d.phone||user,
-    location: d.location||'-', mtaa: d.mtaa||'-',
-    transportType: d.transport?.type || 'Ambulance',
-    notes: d.transport?.notes || '-', reason,
-    lat: coords?.lat || -9.3, lng: coords?.lng || 32.7,
-    requestedAt: Date.now(),
-    chairmanPhone: d.mwenyekitiPhone, chwPhone: d.chwPhone
+  await addTransportRequest({ clientName: user, clientPhone: d.phone||user, location: d.location||'-', mtaa: d.mtaa||'-', transportType: d.transport?.type || 'Ambulance', notes: d.transport?.notes || '-', reason, lat: coords?.lat || -9.3, lng: coords?.lng || 32.7, requestedAt: Date.now(), chairmanPhone: d.mwenyekitiPhone, chwPhone: d.chwPhone });
+  alert('✅ Ombi la usafiri limetumwa! Dereva atakuja.'); render('mteja');
+}<script>
+// ================= MTEJA FUNCTIONS =================
+async function saveProfile(e) {
+  e.preventDefault(); const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  d.name = user; d.phone = $('pr_phone').value; d.partner = $('pr_partner').value; d.location = $('pr_location').value; d.mtaa = $('pr_mtaa').value; d.mwenyekiti = $('pr_mwenyekiti').value; d.mwenyekitiPhone = $('pr_mwenyekiti_phone').value; d.chwPhone = $('pr_chw_phone').value; d.nyumba = $('pr_nyumba').value; d.gravida = $('pr_gravida').value; d.para = $('pr_para').value; d.edd = $('pr_edd').value; d.status = $('pr_status').value;
+  await setClient(user, d); alert('✅ Taarifa zako zimehifadhiwa!'); render(myRole);
+}
+
+async function addContact(e) {
+  e.preventDefault(); const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  if(!d.emergencyContacts) d.emergencyContacts = [];
+  if(d.emergencyContacts.length >= 5) return alert('Unaweza kuweka hadi watu 5 pekee.');
+  d.emergencyContacts.push({ name: $('ec_name').value, phone: $('ec_phone').value, relation: $('ec_relation').value });
+  await setClient(user, d); alert('✅ Namba imeongezwa!'); render(myRole);
+}
+
+async function removeContact(index) {
+  if(!confirm('Futa namba hii?')) return; const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  if(d.emergencyContacts) { d.emergencyContacts.splice(index, 1); await setClient(user, d); alert('✅ Imefutwa!'); render(myRole); }
+}
+
+async function saveTransport(e) {
+  e.preventDefault(); const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  d.transport = { type: $('tr_type').value, location: $('tr_location').value, notes: $('tr_notes').value };
+  await setClient(user, d); alert('✅ Mpangilio wa usafiri umehifadhiwa!'); render(myRole);
+}
+
+async function requestTransfer(e) {
+  e.preventDefault(); const user = sessionStorage.getItem('un'); const d = await getClient(user);
+  const req = { id: Date.now() + Math.random(), clientName: user, fromFacility: d.location || 'Tunduma TC', toFacility: $('tt').value, reason: $('tr_reason').value, status: 'pending', requestedBy: 'Mteja', createdAt: new Date().toISOString() };
+  const transfers = await get('transferRequests', []); transfers.push(req); await set('transferRequests', transfers);
+  alert('✅ Ombi la kuhamia kituo kingine limetumwa!'); render(myRole);
+}
+
+// ================= HELPER FUNCTIONS =================
+function tab(id,btn){document.querySelectorAll('.tc').forEach(t=>t.classList.remove('on'));document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));$(id).classList.add('on');btn.classList.add('on');}
+
+let myChartObj = null;
+function drawChart(visits) {
+  if(myChartObj) { myChartObj.destroy(); } if(!$('vitalsChart')) return;
+  const ctx = $('vitalsChart').getContext('2d');
+  myChartObj = new Chart(ctx, { 
+    type: 'line', 
+    data: { 
+      labels: visits.map(v=>v.date), 
+      datasets: [ 
+        { label: 'BP Systolic', data: visits.map(v=>v.bp?parseInt(v.bp.split('/')[0]):null), borderColor: '#c62828', backgroundColor:'rgba(198,40,40,0.1)', tension: 0.3 }, 
+        { label: 'BP Diastolic', data: visits.map(v=>v.bp?parseInt(v.bp.split('/')[1]):null), borderColor: '#1565c0', backgroundColor:'rgba(21,101,192,0.1)', tension: 0.3 }, 
+        { label: 'Joto (°C)', data: visits.map(v=>v.temp?parseFloat(v.temp):null), borderColor: '#2e7d32', backgroundColor:'rgba(46,125,50,0.1)', tension: 0.3, yAxisID: 'y1' } 
+      ] 
+    }, 
+    options: { responsive: true, interaction: { mode: 'index', intersect: false }, scales: { y: { position: 'left', title: {display:true, text:'BP'} }, y1: { position: 'right', title: {display:true, text:'Joto'}, grid: { drawOnChartArea: false } } } } 
   });
-  
-  alert('✅ Ombi la usafiri limetumwa! Dereva atakuja.');
-  render('mteja');
 }
 
-// ================= SEND EMERGENCY (SOS) =================
-async function sendEm(type){
-  $('em').classList.remove('on');
-  const role=sessionStorage.getItem('ro'),user=sessionStorage.getItem('un');
-  const srcWardMap={nurse_labour:'Labour Ward',nurse_theater:'Theater',nurse_postnatal:'Postnatal Ward',nurse_rch:'RCH Clinic',lab_tech:'Maabara',chw:'CHW',admin:'Admin',coordinator:'Mratibu',driver:'Dereva',mteja:'Mteja (Nyumbani)'};
-  const srcWard=srcWardMap[role]||role;
-  
-  let clientName='Mgonjwa', clientDetails={};
-  if(role==='mteja'){
-    const d=await getClient(user);clientName=d.name||user;
-    clientDetails={name:d.name||user,phone:d.phone||user,partner:d.partner||'-',location:d.location||'-',district:d.district||'-',region:d.region||'-',gravida:d.gravida||'-',para:d.para||'-',weight:d.weight||'-',bp_sys:(d.vitals&&d.vitals.systolic)||'-',bp_dia:(d.vitals&&d.vitals.diastolic)||'-',temp:(d.vitals&&d.vitals.temperature)||'-',status:d.status||'pregnant',emergencyContacts:d.emergencyContacts||[],chwPhone:d.chwPhone||'-',mwenyekiti:d.mwenyekiti||'-',mwenyekitiPhone:d.mwenyekitiPhone||'-'};
-  }
-  
-  const coords = await getGPS();
-  if(coords){clientDetails.lat=coords.lat;clientDetails.lng=coords.lng}
-  
-  try{
-    const emg={type,sourceWard:srcWard,role,user,clientName,clientDetails,sessionId:MY_SESSION,message:`DHARURA ya ${type} kutoka ${srcWard} — Mgonjwa: ${clientName}.`,timestamp:Date.now(),status:'active',escalationLevel:0,response:null};
-    await db.ref('emergencies/emg_'+Date.now()).set(emg);
-    playOnce();
-    alert(`🚨 DHARURA IMETUMWA!\n\nAina: ${type}\nMgonjwa: ${clientName}\n\n⏱️ Ukikosa kujibiwa kwa dakika 1, itapelekwa Kituo cha Afya.`);
-  }catch(e){alert('Hitilafu: '+e.message)}
-}
-
-// ================= RENDER LOGIC =================
-async function render(role){
-  myRole=role;
-  const user=sessionStorage.getItem('un')||'Mtumiaji';
-  const c=$('content');let h='';
-  
+// ================= MAIN RENDER =================
+async function render(role) {
+  myRole=role; const user=sessionStorage.getItem('un')||'Mtumiaji'; const c=$('content'); let h='';
   await loadLive(); await loadHist();
 
   if(role==='mteja'){
-    const d=await getClient(user);
-    const trs = await getTransportRequests();
-    const activeTr = Object.values(trs||{}).find(t=>t.clientName===user && t.status!=='completed');
-    
-    let transportUI = '';
-    if(activeTr){
-      transportUI = `<div class="driver-info-card"><h4>🚑 Dereva Anakuja</h4>
-        <div><b>Jina:</b> ${activeTr.driverName || 'Inasubiri...'}</div>
-        <div><b>Simu:</b> ${activeTr.driverPhone ? `<a href="tel:${activeTr.driverPhone}">${activeTr.driverPhone}</a>` : '-'}</div>
-        <div><b>Hali:</b> <span class="badge bg-y">${activeTr.status}</span></div>
-      </div>`;
-    } else {
-      transportUI = `<button class="btn b-blue" onclick="requestTransport()">🚑 Omba Usafiri (Ambulance)</button>`;
-    }
+    const d=await getClient(user); const st=d.status||'pregnant'; const isPN = st === 'postnatal';
+    const badge = $('cb'); badge.style.display = 'inline-block'; badge.textContent = isPN ? '👶 Postnatal' : '🤰 Mjamzito'; badge.className = isPN ? 'badge bg-y' : 'badge bg-g';
+    const vs = d.visits || [];
+    const vRows = vs.length ? vs.map((v,i)=>`<tr><td>${i+1}</td><td>${v.date||'-'}</td><td>${v.weight||'-'}</td><td>${v.bp||'-'}</td><td>${v.temp||'-'}</td><td>${v.advice||'-'}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">Hakuna mahudhurio bado.</td></tr>';
+    const eddDisplay = d.edd ? new Date(d.edd).toLocaleDateString('sw-TZ', {day:'numeric', month:'short', year:'numeric'}) : 'Haijawekwa';
+    const contacts = d.emergencyContacts || [];
+    const contactRows = contacts.length ? contacts.map((c, i) => `<div class="contact-item"><div><b>${c.name}</b> (${c.relation || 'Ndugu'})<br>📞 ${c.phone}</div><button class="btn2 b-red" style="padding:5px 10px; border-radius:5px; border:none; color:#fff; cursor:pointer;" onclick="removeContact(${i})">Futa</button></div>`).join('') : '<p class="empty">Hakuna namba za dharura bado.</p>';
+    const tr = d.transport || {};
 
     h=`
-      ${liveBlock('📡 Data Yako')}
-      ${histBlock()}
-      <div class="em">
-        <h3 style="color:#d32f2f;border:none;padding:0">🚨 KITUFE CHA DHARURA</h3>
-        <button class="pulse" onclick="sendEm('Dharura ya Mteja (SOS)')">OMBA<br>MSAADA</button>
+      ${liveBlock('📡 Vipimo Vyako (Live)', eddDisplay)}
+      <div class="tabs">
+        <button class="tab on" onclick="tab('t1',this)">🏠 Nyumbani</button>
+        <button class="tab" onclick="tab('t2',this)">📋 Kadi & Hudhurio</button>
+        <button class="tab" onclick="tab('t3',this)">🚑 Usafiri & Uhamisho</button>
+        <button class="tab" onclick="tab('t4',this)">⚙️ Mipangilio</button>
+        ${isPN ? `<button class="tab" onclick="tab('t5',this)">👶 Postnatal</button>` : ''}
       </div>
-      <div class="card"><h3>🚑 Usafiri</h3>${transportUI}</div>
-      <div class="card"><h3>📑 Kadi Yako</h3>
-        <div><b>Jina:</b> ${user} | <b>Simu:</b> ${d.phone||'-'}</div>
-        <div><b>EDD:</b> ${d.edd||'-'} | <b>Gravida:</b> ${d.gravida||'-'}</div>
+      <div id="t1" class="tc on">
+        <div class="card" style="background:#f0f8ff; border-color:#1565c0;"><h3 style="color:#1565c0; border-color:#1565c0;">📊 Muhtasari wa Afya Yako</h3><div id="healthSummary" style="font-size: 3rem; text-align:center; margin-bottom:10px;">🟢<div style="font-weight:bold; font-size:1.1rem; color:#2e7d32">Afya yako ipo salama.</div></div></div>
+        <div class="em"><h3 style="color:#d32f2f;border:none;padding:0">🚨 KITUFE CHA DHARURA</h3><p style="font-size:.85rem; margin-bottom:10px;">Bonyeza kitufe hiki ikiwa unahisi maumivu makali au dharura yoyote.</p><button class="pulse" onclick="sendSOS()">OMBA<br>MSAADA</button></div>
+        <div class="card"><h3>📈 Mwenendo wa Afya (Graph)</h3><canvas id="vitalsChart" height="150"></canvas></div>
       </div>
+      <div id="t2" class="tc">
+        <div class="card"><h3>📑 Kadi Yako ya Kliniki</h3>
+          <div style="border:2px solid #1565c0;border-radius:10px;padding:15px;background:#fff">
+            <div style="text-align:center;border-bottom:2px solid #1565c0;padding-bottom:10px;margin-bottom:12px"><div style="font-size:.7rem;font-weight:700;color:#c62828">KADI HII HAIUZWI</div><div style="color:#1565c0;font-weight:700">JAMHURI YA MUUNGANO WA TANZANIA</div></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.85rem">
+              <div><b>Jina:</b> ${user}</div><div><b>Simu:</b> ${d.phone||'-'}</div><div><b>Mume:</b> ${d.partner||'-'}</div><div><b>Kituo:</b> ${d.location||'-'}</div><div><b>Gravida:</b> ${d.gravida||'-'}</div><div><b>Para:</b> ${d.para||'-'}</div>
+              <div style="grid-column:1/-1;color:#c62828;font-weight:bold;font-size:1rem">📅 EDD (Kujifungua): ${eddDisplay}</div>
+            </div>
+            <h4 style="color:#1b5e20;margin-top:15px; border-bottom:1px solid #ddd; padding-bottom:5px;">📋 Rekodi za Mahudhurio</h4>
+            <div style="overflow-x:auto"><table style="font-size:.75rem"><thead><tr><th>#</th><th>Tarehe</th><th>Uzito</th><th>BP</th><th>Joto</th><th>Ushauri</th></tr></thead><tbody>${vRows}</tbody></table></div>
+          </div>
+          <button class="btn b-green" onclick="window.print()" style="margin-top:10px">🖨️ PRINT KADI</button>
+        </div>
+      </div>
+      <div id="t3" class="tc">
+        <div class="card"><h3>🚑 Mpangilio wa Usafiri</h3>
+          <form onsubmit="saveTransport(event)">
+            <label>Aina ya Usafiri</label><select id="tr_type"><option value="Ambulance" ${tr.type==='Ambulance'?'selected':''}>Ambulance</option><option value="Gari la Mtaa" ${tr.type==='Gari la Mtaa'?'selected':''}>Gari la Mtaa</option></select>
+            <label>Eneo la Kuchukua</label><input type="text" id="tr_location" value="${tr.location||''}" placeholder="Mf. Nyumbani Kijiji cha Sogea">
+            <label>Maelezo ya Ziada</label><textarea id="tr_notes" rows="2" placeholder="Mf. Nyumba ya bluu...">${tr.notes||''}</textarea>
+            <button class="btn b-green" style="margin-top:5px">HIFADHI MPANGILIO</button>
+          </form>
+        </div>
+        <div class="card"><h3>🔄 Omba Kuhamia Kituo Kingine</h3>${isPN ? '<div class="msg d">❌ Umeshajifungua.</div>' : `<form onsubmit="requestTransfer(event)"><label>Kituo</label><select id="tt"><option>Chapwa HC</option><option>Tunduma HC</option></select><label>Sababu</label><textarea id="tr_reason" rows="2" required></textarea><button class="btn b-blue" style="margin-top:5px">TUMA OMBI</button></form>`}</div>
+      </div>
+      <div id="t4" class="tc">
+        <div class="card"><h3>✏️ Wasifu Wako</h3>
+          <form onsubmit="saveProfile(event)"><div class="grid">
+              <div><label>Simu Yako</label><input type="tel" id="pr_phone" value="${d.phone||user}" required></div><div><label>Jina la Mume</label><input type="text" id="pr_partner" value="${d.partner||''}"></div>
+              <div><label>Kituo/Mtaa</label><input type="text" id="pr_location" value="${d.location||''}"></div><div><label>Mtaa</label><input type="text" id="pr_mtaa" value="${d.mtaa||''}"></div>
+              <div><label>Mwenyekiti</label><input type="text" id="pr_mwenyekiti" value="${d.mwenyekiti||''}"></div><div><label>Simu ya Mwenyekiti</label><input type="tel" id="pr_mwenyekiti_phone" value="${d.mwenyekitiPhone||''}"></div>
+              <div><label>Simu ya CHW</label><input type="tel" id="pr_chw_phone" value="${d.chwPhone||''}"></div><div><label>Gravida</label><input type="text" id="pr_gravida" value="${d.gravida||''}"></div>
+              <div><label>Para</label><input type="text" id="pr_para" value="${d.para||''}"></div><div><label>EDD</label><input type="date" id="pr_edd" value="${d.edd||''}"></div>
+              <div><label>Hali</label><select id="pr_status"><option value="pregnant" ${st==='pregnant'?'selected':''}>Mjamzito</option><option value="postnatal" ${st==='postnatal'?'selected':''}>Postnatal</option></select></div>
+          </div><button class="btn b-blue" style="margin-top:8px">💾 HIFADHI WASIFU</button></form>
+        </div>
+        <div class="card"><h3>📞 Namba za Watu wa Karibu (${contacts.length}/5)</h3>${contactRows}${contacts.length < 5 ? `<form onsubmit="addContact(event)" style="margin-top:15px; border-top:1px solid #eee; padding-top:15px;"><div class="grid" style="grid-template-columns:1fr 1fr;"><div><label>Jina</label><input type="text" id="ec_name" required></div><div><label>Simu</label><input type="tel" id="ec_phone" required></div></div><div><label>Uhusiano</label><input type="text" id="ec_relation" required></div><button class="btn b-green" style="margin-top:5px">➕ ONGEZA NAMBA</button></form>` : '<div class="msg s">✅ Umefikia kikomo cha watu 5.</div>'}</div>
+      </div>
+      <div id="t5" class="tc">${isPN ? `<div class="card"><h3>👶 Huduma ya Postnatal</h3><div class="msg s"><b>Hongera!</b><br>Tarehe: <b>${d.deliveryDate || '-'}</b><br>Njia: <b>${d.deliveryMode || '-'}</b></div></div>` : '<div class="card"><div class="msg d">Bado hujajifungua.</div></div>'}</div>
     `;
+    setTimeout(()=>drawChart(vs), 100);
   }
-
+  
   else if(role==='driver'){
     if(activeDriverJob) { renderDriverFocus(); }
     else {
-      const reqs = await getTransportRequests();
-      const pending = Object.values(reqs||{}).filter(r=>r.status==='pending').slice(0,4);
-      
-      let jobList = pending.map(r=>`
-        <div class="patient-card p-red" style="cursor:pointer" onclick="driverAcceptJob('${r.id}')">
-          <div class="p-name">🚨 ${r.clientName}</div>
-          <div class="p-info">Kutoka: ${r.location || 'Nyumbani'}</div>
-          <div class="p-info">Sababu: ${r.reason}</div>
-          <div class="p-info" style="margin-top:8px; color:#0277bd; font-weight:bold;">👉 Bonyeza Kuchukua Zoezi</div>
-        </div>
-      `).join('');
-      
+      const reqs = await getTransportRequests(); const pending = Object.values(reqs||{}).filter(r=>r.status==='pending').slice(0,4);
+      let jobList = pending.map(r=>`<div class="patient-card p-red" style="cursor:pointer" onclick="driverAcceptJob('${r.id}')"><div class="p-name">🚨 ${r.clientName}</div><div class="p-info">Kutoka: ${r.location || 'Nyumbani'}</div><div class="p-info">Sababu: ${r.reason}</div><div class="p-info" style="margin-top:8px; color:#0277bd; font-weight:bold;">👉 Bonyeza Kuchukua Zoezi</div></div>`).join('');
       if(pending.length===0) jobList = '<p class="empty">Hakuna maombi ya usafiri kwa sasa.</p>';
-
       const stats = await calculateDriverStats();
-
-      h=`
-        ${liveBlock('🚑 Hali ya Mgonjwa')}
-        
-        <div class="stats">
-          <div class="sc" style="border-left-color:#0277bd"><h3>${stats.servedToday}</h3><p>Wateja Leo</p></div>
-          <div class="sc" style="border-left-color:#0277bd"><h3>${stats.servedWeek}</h3><p>Wateja Wiki Hii</p></div>
-          <div class="sc" style="border-left-color:#2e7d32"><h3>${stats.responsibility}%</h3><p>Uwajibikaji</p></div>
-          <div class="sc" style="border-left-color:#e65100"><h3>${stats.avgSpeed} dak</h3><p>Wastani wa Kasi</p></div>
-        </div>
-
-        <div class="card" style="border:3px solid #0277bd;">
-          <h3 style="color:#0277bd;">🚑 Maombi ya Usafiri (Wateja 4 wa Karibu)</h3>
-          <p style="font-size:.85rem;color:#555;margin-bottom:10px;">Chagua mmoja. Ukichagua, mfumo utakufunga mpaka ukamilishe zoezi (Focus Mode).</p>
-          <div class="patient-grid">${jobList}</div>
-          <button class="btn b-blue" style="margin-top:10px;" onclick="seedMockRequests()">📥 Pakia Maombi 4 ya Mfano</button>
-        </div>
-      `;
+      h=`${liveBlock('🚑 Hali ya Mgonjwa')}
+        <div class="stats"><div class="sc" style="border-left-color:#0277bd"><h3>${stats.servedToday}</h3><p>Wateja Leo</p></div><div class="sc" style="border-left-color:#0277bd"><h3>${stats.servedWeek}</h3><p>Wateja Wiki Hii</p></div><div class="sc" style="border-left-color:#2e7d32"><h3>${stats.responsibility}%</h3><p>Uwajibikaji</p></div><div class="sc" style="border-left-color:#e65100"><h3>${stats.avgSpeed} dak</h3><p>Wastani wa Kasi</p></div></div>
+        <div class="card" style="border:3px solid #0277bd;"><h3 style="color:#0277bd;">🚑 Maombi ya Usafiri (Wateja 4 wa Karibu)</h3><p style="font-size:.85rem;color:#555;margin-bottom:10px;">Chagua mmoja. Ukichagua, mfumo utakufunga mpaka ukamilishe zoezi (Focus Mode).</p><div class="patient-grid">${jobList}</div><button class="btn b-blue" style="margin-top:10px;" onclick="seedMockRequests()">📥 Pakia Maombi 4 ya Mfano</button></div>`;
     }
   }
-
-  else if(role==='nurse_labour'){
-    const incoming = await get('incoming_patients',{});
-    const list = Object.values(incoming||{});
-    
-    let inRows = list.map(p=>`
-      <tr>
-        <td><b>${p.clientName}</b></td>
-        <td>${p.from}</td>
-        <td>${p.driverName}</td>
-        <td><button class="btn2 b-red" onclick="showIncomingPatient('${p.id}')">📍 Fuatilia Live</button></td>
-      </tr>
-    `).join('');
+  
+  else if(role==='nurse_labour' || role==='nurse_postnatal' || role==='nurse_rch'){
+    const incoming = await get('incoming_patients',{}); const list = Object.values(incoming||{});
+    let inRows = list.map(p=>`<tr><td><b>${p.clientName}</b></td><td>${p.from}</td><td>${p.driverName}</td><td><button class="btn2 b-red" onclick="showIncomingPatient('${p.id}')">📍 Fuatilia Live</button></td></tr>`).join('');
     if(list.length===0) inRows = '<tr><td colspan="4" class="empty">Hakuna wagonjwa wanakuja kwa sasa.</td></tr>';
-
+    
     const hrBlock=await highRiskBlock(); const pList=await patientListView();
-    h=`
-      ${liveBlock('🌡️ Hali ya Mgonjwa (Live)')}
+    h=`${liveBlock('🌡️ Hali ya Mgonjwa (Live)')}
       <div class="card" style="border:3px solid #c62828;">
         <h3 style="color:#c62828;">🚨 Wagonjwa Wanakuja (Kutoka kwa Dereva)</h3>
         <table><thead><tr><th>Mgonjwa</th><th>Kutoka</th><th>Dereva</th><th>Kitendo</th></tr></thead><tbody>${inRows}</tbody></table>
       </div>
-      ${hrBlock}${pList}${processedAlarmsBlock()}
-    `;
+      ${hrBlock}${pList}${processedAlarmsBlock()}`;
   }
-
-  else if(role==='chw'){
-    const clients = await getClients();
-    const hrBlock=await highRiskBlock(); const pList=await patientListView();
-    h=`${liveBlock('🌡️ Mteja')}${histBlock()}${hrBlock}${pList}${processedAlarmsBlock()}`;
-  }
-
-  else if(role==='admin' || role==='coordinator'){
-    const hrBlock=await highRiskBlock(); const pList=await patientListView();
-    h=`${liveBlock('⚙️ Admin')}${hrBlock}${pList}${processedAlarmsBlock()}`;
-  }
-
+  
   else {
-    h = `<div class="card"><h3>Karibu ${role}</h3><p>Mfumo unapakia...</p></div>`;
+    // Admin, Coordinator, CHW
+    const hrBlock=await highRiskBlock(); const pList=await patientListView();
+    h=`${liveBlock('⚙️ Admin / Wodi Nyingine')}${hrBlock}${pList}${processedAlarmsBlock()}`;
   }
 
-  c.innerHTML=h;
-  loadLive();
+  c.innerHTML=h; loadLive();
 }
 
 // ================= INITIALIZATION =================
@@ -1259,7 +934,7 @@ async function render(role){
   setInterval(loadLive,5000);
   ['click','touchstart','keydown'].forEach(evt=>document.addEventListener(evt,()=>{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume()},{once:true}));
 })();
-console.log('🌸 MAMA-SAFELIFE tayari! Session: '+MY_SESSION);
+console.log('🌸 MAMA-SAFELIFE tayari!');
 </script>
 </body>
 </html>
