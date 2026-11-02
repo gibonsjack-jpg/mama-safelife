@@ -67,14 +67,28 @@ th{background:#f8f9fa}
 .tab{padding:9px 14px;border:none;background:#e0e0e0;font-weight:bold;border-radius:7px;cursor:pointer;font-size:.82rem;flex:1 0 auto;color:#333}
 .tab.on{background:#1565c0;color:#fff}
 .tc{display:none}.tc.on{display:block}
-.mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(3px)}
+
+/* ================= MODAL Z-INDEX FIX ================= */
+.mod{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:10000;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(3px)}
 .mod.on{display:flex}
+#driverFocusModal{z-index:10002;}
+#incomingPatientModal{z-index:10002;}
+#driverHospitalModal{z-index:10005;}
+#patientCardModal{z-index:10005;}
+#manualVitalsModal{z-index:10005;}
+#em{z-index:10005;}
+#hm{z-index:10005;}
+#redirectModal{z-index:10005;}
+.alert-ring{display:none;position:fixed;inset:0;background:rgba(200,0,0,0.45);z-index:10010;pointer-events:none}
+.alert-ring.on{display:block}
+.alert-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:22px 20px;max-width:540px;width:calc(100% - 40px);text-align:center;box-shadow:0 0 60px rgba(0,0,0,.7);z-index:10011;max-height:92vh;overflow-y:auto;display:none}
+.alert-box.on{display:block}
+.alarm-mini{display:none;position:fixed;bottom:20px;right:20px;z-index:10011;background:#c62828;color:#fff;padding:14px 18px;border-radius:50px;box-shadow:0 8px 30px rgba(200,0,0,.6);cursor:pointer;font-weight:bold;font-size:.9rem;animation:shakeMini 0.8s infinite;border:3px solid #fff;align-items:center;gap:8px}
+.alarm-mini.on{display:flex}
+/* ===================================================== */
+
 .mc{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:700px;max-height:92vh;overflow-y:auto}
 .mc h2{color:#d32f2f;margin-bottom:10px;padding-bottom:10px;border-bottom:2px solid #ffcdd2;font-size:1.15rem}
-.alert-ring{display:none;position:fixed;inset:0;background:rgba(200,0,0,0.45);z-index:9998;pointer-events:none}
-.alert-ring.on{display:block}
-.alert-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:22px 20px;max-width:540px;width:calc(100% - 40px);text-align:center;box-shadow:0 0 60px rgba(0,0,0,.7);z-index:9999;max-height:92vh;overflow-y:auto;display:none}
-.alert-box.on{display:block}
 .alert-box .icon{font-size:60px;animation:pulseicon 0.8s infinite;display:block;margin-bottom:4px}
 @keyframes pulseicon{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
 .alert-box h2{color:#c62828;font-size:1.4rem;margin:8px 0;font-weight:800}
@@ -90,8 +104,6 @@ th{background:#f8f9fa}
 .btn-yes{background:#2e7d32;color:#fff;padding:12px;border:none;border-radius:8px;font-weight:800;cursor:pointer;font-size:.9rem}
 .btn-busy{background:#e65100;color:#fff;padding:12px;border:none;border-radius:8px;font-weight:800;cursor:pointer;font-size:.9rem}
 .btn-min{grid-column:1/-1;background:#0277bd;color:#fff;padding:10px;border:none;border-radius:8px;font-weight:700;cursor:pointer;font-size:.82rem}
-.alarm-mini{display:none;position:fixed;bottom:20px;right:20px;z-index:9999;background:#c62828;color:#fff;padding:14px 18px;border-radius:50px;box-shadow:0 8px 30px rgba(200,0,0,.6);cursor:pointer;font-weight:bold;font-size:.9rem;animation:shakeMini 0.8s infinite;border:3px solid #fff;align-items:center;gap:8px}
-.alarm-mini.on{display:flex}
 @keyframes shakeMini{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .alarm-mini .mcount{background:#fff;color:#c62828;padding:2px 8px;border-radius:20px;font-size:.75rem;font-weight:bold}
 .sound-wave{display:inline-flex;gap:3px;align-items:flex-end;height:24px;margin-left:8px;vertical-align:middle}
@@ -186,7 +198,7 @@ th{background:#f8f9fa}
 </div>
 
 <!-- ================= DRIVER FOCUS MODE ================= -->
-<div id="driverFocusModal" class="mod" style="z-index:10002; background:rgba(0,0,0,0.9);">
+<div id="driverFocusModal" class="mod" style="background:rgba(0,0,0,0.9);">
   <div class="mc" style="max-width:750px; padding:0; overflow:hidden; border:4px solid #0277bd;">
     <div style="background:#0277bd; color:#fff; padding:15px; text-align:center;">
       <h2 style="color:#fff; margin:0; border:none; padding:0;">🚑 UPO KWENYE SAFARI</h2>
@@ -197,7 +209,7 @@ th{background:#f8f9fa}
 </div>
 
 <!-- ================= LABOUR INCOMING ================= -->
-<div id="incomingPatientModal" class="mod" style="z-index:10002;">
+<div id="incomingPatientModal" class="mod">
   <div class="mc" style="max-width:850px; padding:0; overflow:hidden;">
     <div style="background:#c62828; color:#fff; padding:15px; display:flex; justify-content:space-between; align-items:center;">
       <h2 style="color:#fff; margin:0; border:none; padding:0;">🚨 MGONJWA ANAKUA (LIVE)</h2>
@@ -252,6 +264,7 @@ th{background:#f8f9fa}
     <option value="Theater / Upasuaji">Theater / Upasuaji</option>
   </select>
   <button class="btn b-blue" onclick="confirmHospitalSelection()">✅ THIBITISHA NA ANZA SAFARI</button>
+  <button class="btn b-gray" style="margin-top:10px" onclick="document.getElementById('driverHospitalModal').classList.remove('on')">GHAIRI</button>
 </div></div>
 
 <!-- ================= EMERGENCY TYPE PICKER ================= -->
@@ -791,7 +804,7 @@ async function saveManualVitals(){
   render(myRole);
 }
 
-/* ================= CLIENT FUNCTIONS (merged from MTEJA.html) ================= */
+/* ================= CLIENT FUNCTIONS ================= */
 let myChartObj = null;
 
 async function saveProfile(e){
@@ -1043,14 +1056,25 @@ async function confirmHospitalSelection(){
   const hospital = $('driverDestHospital').value;
   if(!hospital) return alert('Chagua hospitali/wodi!');
   $('driverHospitalModal').classList.remove('on');
-  await updTransportRequest(activeDriverJob.id, {status: 'enroute_hospital', hospital: hospital});
+  
+  // Onyesha loading kwenye dirisha la dereva
+  $('driverFocusBody').innerHTML = `<div style="text-align:center; padding:50px;"><h2>⏳ Inatuma taarifa kwa hospitali...</h2></div>`;
+
+  try {
+    await updTransportRequest(activeDriverJob.id, {status: 'enroute_hospital', hospital: hospital});
+    await db.ref('incoming_patients/'+activeDriverJob.id).set({
+      id: activeDriverJob.id, clientName: activeDriverJob.clientName,
+      driverName: sessionStorage.getItem('un'), driverPhone: sessionStorage.getItem('un'),
+      from: activeDriverJob.location || 'Nyumbani', hospital: hospital, time: Date.now()
+    });
+  } catch(e) {
+    console.error("Firebase Error: ", e);
+    alert('⚠️ Mtandao umegoma kidogo lakini tunaendelea...');
+  }
+  
   activeDriverJob.status = 'enroute_hospital';
   activeDriverJob.hospital = hospital;
-  await db.ref('incoming_patients/'+activeDriverJob.id).set({
-    id: activeDriverJob.id, clientName: activeDriverJob.clientName,
-    driverName: sessionStorage.getItem('un'), driverPhone: sessionStorage.getItem('un'),
-    from: activeDriverJob.location || 'Nyumbani', hospital: hospital, time: Date.now()
-  });
+  
   renderDriverFocus();
   alert(`✅ Taarifa imetumwa ${hospital} kwamba unakuja na mgonjwa!`);
 }
@@ -1130,7 +1154,7 @@ function closeIncomingPatient(){
   if(trackingMapObj) { trackingMapObj.remove(); trackingMapObj=null; }
 }
 
-/* ================= CLIENT RENDER (merged) ================= */
+/* ================= CLIENT RENDER ================= */
 async function renderClient(user){
   const d = await getClient(user);
   const st = d.status || 'pregnant';
