@@ -937,19 +937,31 @@ async function checkEscalations(){
 let LV={temperature:0,systolic:0,diastolic:0,pulse:0,fhr:0,timestamp:null};
 let hist=[];
 
-// DEMO: Simulation function to generate random vitals every 30 seconds
-function simulateDeviceVitals() {
-  const temp = (36 + Math.random() * 2).toFixed(1);
-  const sys = Math.floor(100 + Math.random() * 40);
-  const dia = Math.floor(60 + Math.random() * 20);
-  const pulse = Math.floor(60 + Math.random() * 40);
-  const fhr = Math.floor(110 + Math.random() * 50);
-  const vitals = { temperature: parseFloat(temp), systolic: sys, diastolic: dia, pulse: pulse, fhr: fhr, timestamp: Date.now() };
-  db.ref('vitals/' + DEV).set(vitals);
+// Update FHR Summary dynamically
+function updateFHRSummary() {
+    if (typeof hist === 'undefined') return;
+    
+    // Chukua vipimo 5 vya mwisho kutoka kwenye array ya hist (ambayo inapangwa kuanzia mpya zaidi)
+    const recentFHR = hist.slice(0, 5).map(v => v.fhr).filter(f => f !== 0 && f != null && !isNaN(f));
+    
+    // Hesabu wastani
+    const avgFHR = recentFHR.length > 0 ? Math.round(recentFHR.reduce((a,b) => a+b, 0) / recentFHR.length) : null;
+    const lastFHR = (hist.length > 0 && hist[0].fhr && hist[0].fhr !== 0) ? hist[0].fhr : null;
+    
+    // Tathmini hali
+    const fhrStatus = lastFHR ? (lastFHR < 110 ? 'Pole sana, wasiliana na daktari' : lastFHR > 160 ? 'Juu sana, wasiliana na daktari' : 'Ni kawaida') : 'Hakuna data';
+    
+    // Sasisha DOM (Kama vipengele vipo kwenye ukurasa)
+    if(document.getElementById('fhr_last')) {
+        document.getElementById('fhr_last').innerHTML = `${lastFHR || '--'} <span style="font-size:.8rem;">bpm</span>`;
+    }
+    if(document.getElementById('fhr_avg')) {
+        document.getElementById('fhr_avg').innerHTML = `${avgFHR || '--'} <span style="font-size:.8rem;">bpm</span>`;
+    }
+    if(document.getElementById('fhr_status')) {
+        document.getElementById('fhr_status').textContent = fhrStatus;
+    }
 }
-
-// Start simulation automatically for demo
-setInterval(simulateDeviceVitals, 30000); // 30 seconds
 
 async function loadLive(){
   try{
@@ -963,6 +975,10 @@ async function loadLive(){
         hist.unshift({...LV,date:new Date(LV.timestamp).toISOString()});if(hist.length>10)hist=hist.slice(0,10);
         try{await set('sensorHistory/'+DEV,hist.slice(0,5))}catch(e){}
         paintHist();
+        
+        // Sasisha FHR summary
+        updateFHRSummary();
+        
         // Auto-push to LCG if open
         if(window.currentLCGPatientId) {
             pushVitalsToLCG(window.currentLCGPatientId, LV);
@@ -2088,7 +2104,13 @@ async function renderClient(user){
   badge.className = isPN ? 'badge bg-y' : 'badge bg-g';
 
   const vs = d.visits || [];
-  const vitalsHistory = d.vitalsHistory || [];
+  
+  // Tumia hist (live data) kwa summary, sio vitalsHistory
+  const recentFHR = hist.slice(0, 5).map(v => v.fhr).filter(f => f !== 0 && f != null && !isNaN(f));
+  const avgFHR = recentFHR.length > 0 ? Math.round(recentFHR.reduce((a,b) => a+b, 0) / recentFHR.length) : null;
+  const lastFHR = (hist.length > 0 && hist[0].fhr && hist[0].fhr !== 0) ? hist[0].fhr : null;
+  const fhrStatus = lastFHR ? (lastFHR < 110 ? 'Pole sana, wasiliana na daktari' : lastFHR > 160 ? 'Juu sana, wasiliana na daktari' : 'Ni kawaida') : 'Hakuna data';
+
   const vRows = vs.length ? vs.map((v,i)=>`<tr><td>${i+1}</td><td>${v.date||'-'}</td><td>${v.weight||'-'}</td><td>${v.bp||'-'}</td><td>${v.temp||'-'}</td><td>${v.advice||'-'}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">Hakuna mahudhurio bado.</td></tr>';
   const eddDisplay = d.edd ? new Date(d.edd).toLocaleDateString('sw-TZ', {day:'numeric', month:'short', year:'numeric'}) : 'Haijawekwa';
   const contacts = d.emergencyContacts || [];
@@ -2116,12 +2138,6 @@ async function renderClient(user){
   const healthIcon = LV.systolic >= 140 || LV.diastolic >= 90 || LV.temperature > 38 ? '🔴' : (LV.temperature > 37.5 || LV.temperature < 36 ? '🟡' : '🟢');
   const healthText = LV.systolic >= 140 || LV.diastolic >= 90 || LV.temperature > 38 ? 'Vipimo vyako vinaonyesha hatari. Tafadhali nenda hospitali haraka!' : (LV.temperature > 37.5 || LV.temperature < 36 ? 'Joto lako haliko sawa. Pumzika na fuatilia.' : 'Afya yako ipo salama.');
 
-  // FHR summary
-  const recentFHR = vitalsHistory.slice(-5).map(v => v.fhr).filter(f => f != null);
-  const avgFHR = recentFHR.length > 0 ? Math.round(recentFHR.reduce((a,b) => a+b, 0) / recentFHR.length) : null;
-  const lastFHR = vitalsHistory.length > 0 ? vitalsHistory[vitalsHistory.length-1].fhr : null;
-  const fhrStatus = lastFHR ? (lastFHR < 110 ? 'Pole sana, wasiliana na daktari' : lastFHR > 160 ? 'Juu sana, wasiliana na daktari' : 'Ni kawaida') : 'Hakuna data';
-
   $('content').innerHTML = `
     ${liveBlock('📡 Vipimo Vyako (Live)', eddDisplay)}
     ${histBlock()}
@@ -2145,14 +2161,14 @@ async function renderClient(user){
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div style="background:#fff3e0;padding:10px;border-radius:8px;text-align:center;">
             <div style="font-size:.8rem;color:#e65100;font-weight:bold;">FHR ya Sasa</div>
-            <div style="font-size:1.8rem;font-weight:800;color:#e65100;">${lastFHR || '--'} <span style="font-size:.8rem;">bpm</span></div>
+            <div style="font-size:1.8rem;font-weight:800;color:#e65100;" id="fhr_last">${lastFHR || '--'} <span style="font-size:.8rem;">bpm</span></div>
           </div>
           <div style="background:#fff3e0;padding:10px;border-radius:8px;text-align:center;">
             <div style="font-size:.8rem;color:#e65100;font-weight:bold;">Wastani (vipimo 5)</div>
-            <div style="font-size:1.8rem;font-weight:800;color:#e65100;">${avgFHR || '--'} <span style="font-size:.8rem;">bpm</span></div>
+            <div style="font-size:1.8rem;font-weight:800;color:#e65100;" id="fhr_avg">${avgFHR || '--'} <span style="font-size:.8rem;">bpm</span></div>
           </div>
         </div>
-        <div style="text-align:center;margin-top:8px;font-size:.85rem;color:#555;">${fhrStatus}</div>
+        <div style="text-align:center;margin-top:8px;font-size:.85rem;color:#555;" id="fhr_status">${fhrStatus}</div>
       </div>
       <div class="em">
         <h3 style="color:#d32f2f;border:none;padding:0">🚨 KITUFE CHA DHARURA</h3>
@@ -2285,12 +2301,11 @@ async function renderClient(user){
     </div>`;
 
   setTimeout(() => { 
-    drawChart(vs, vitalsHistory); 
+    drawChart(vs, hist); // Use live data for chart
     paintLive(); 
+    window._vitalsHistory = hist; // Use live data for history table
     filterVitalsHistory();
-    // Populate history table initially
-    window._vitalsHistory = vitalsHistory;
-    filterVitalsHistory();
+    updateFHRSummary();
   }, 100);
 }
 
@@ -3203,17 +3218,34 @@ function renderLCGTable() {
 
 async function pushVitalsToLCG(patientId, vitals) {
     if (!lcgState.patient || lcgState.patient.id !== patientId) return;
-    const adm = $('lcgAdmTime').value;
-    if (!adm) return; // Need admission time to calculate columns
+    
+    let adm = $('lcgAdmTime').value;
+    if (!adm) {
+        adm = nowHM(); // Kama muda haujawekwa, tumia muda wa sasa
+        $('lcgAdmTime').value = adm;
+    }
 
     const now = nowHM();
-    const hours = getHoursFrom(adm, now);
+    let hours = getHoursFrom(adm, now);
     if (hours === null || hours < 0 || hours >= COLSPAN) return;
 
-    const colIdx = Math.floor(hours);
+    let colIdx = Math.floor(hours);
     
-    // Check if we already have a device observation for this hour
+    // Angalia kama column ya sasa imeshajazwa na kifaa
     let existing = lcgState.observations.find(o => Math.floor(o.hours) === colIdx && o.autoDevice);
+
+    // Kama imejazwa, nenda kwenye column inayofuata iliyo wazi
+    if (existing) {
+        let nextCol = colIdx + 1;
+        while (nextCol < COLSPAN && lcgState.observations.find(o => Math.floor(o.hours) === nextCol)) {
+            nextCol++;
+        }
+        if (nextCol < COLSPAN) {
+            colIdx = nextCol;
+            hours = colIdx; 
+            existing = null; // Lazimisha kuunda observation mpya kwenye column mpya
+        }
+    }
 
     if (existing) {
         existing.time = now;
@@ -3222,6 +3254,7 @@ async function pushVitalsToLCG(patientId, vitals) {
         existing.sys = vitals.systolic ? Math.round(vitals.systolic) : existing.sys;
         existing.dia = vitals.diastolic ? Math.round(vitals.diastolic) : existing.dia;
         existing.temp = vitals.temperature ? vitals.temperature : existing.temp;
+        existing.fhr = vitals.fhr ? Math.round(vitals.fhr) : existing.fhr;
     } else {
         const newObs = {
             id: Date.now(),
@@ -3231,7 +3264,8 @@ async function pushVitalsToLCG(patientId, vitals) {
             pulse: vitals.pulse ? Math.round(vitals.pulse) : null,
             sys: vitals.systolic ? Math.round(vitals.systolic) : null,
             dia: vitals.diastolic ? Math.round(vitals.diastolic) : null,
-            temp: vitals.temperature || null
+            temp: vitals.temperature || null,
+            fhr: vitals.fhr ? Math.round(vitals.fhr) : null
         };
         lcgState.observations.push(newObs);
     }
