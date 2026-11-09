@@ -101,6 +101,7 @@ th{background:#f8f9fa}
 #approveTransferModal {z-index:10008;}
 #rejectTransferModal {z-index:10008;}
 #requestExternalModal {z-index:10008;}
+#eddUpdateModal {z-index:10009;}
 .alert-ring{display:none;position:fixed;inset:0;background:rgba(200,0,0,0.45);z-index:10010;pointer-events:none}
 .alert-ring.on{display:block}
 .alert-box{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:20px;padding:22px 20px;max-width:540px;width:calc(100% - 40px);text-align:center;box-shadow:0 0 60px rgba(0,0,0,.7);z-index:10011;max-height:92vh;overflow-y:auto;display:none}
@@ -342,6 +343,16 @@ table.lcg td.stage-sep, table.lcg th.stage-sep { border-left: 3px solid #333; }
   <label>Ushauri / Maelezo:</label><textarea id="visit_advice" rows="2"></textarea>
   <button class="btn b-green" onclick="saveVisit()">💾 HIFADHI</button>
   <button class="btn b-gray" onclick="document.getElementById('addVisitModal').classList.remove('on')">GHAIRI</button>
+</div></div>
+
+<!-- ================= EDD UPDATE MODAL (LABOUR/NURSE) ================= -->
+<div id="eddUpdateModal" class="mod"><div class="mc" style="max-width:400px;">
+  <h2>📅 Weka EDD (Expected Date of Delivery)</h2>
+  <input type="hidden" id="edd_patient_name">
+  <label>Chagua Tarehe:</label>
+  <input type="date" id="edd_date" required>
+  <button class="btn b-green" onclick="saveEDD()">💾 HIFADHI EDD</button>
+  <button class="btn b-gray" onclick="document.getElementById('eddUpdateModal').classList.remove('on')">GHAIRI</button>
 </div></div>
 
 <!-- ================= LAB UPLOAD MODAL (LAB TECH) ================= -->
@@ -2756,30 +2767,58 @@ async function render(role){
     // Active Labour Monitoring
     const activeLabour = await get('labour_patients', {});
     const activeList = Object.values(activeLabour || {}).filter(p => p.status === 'in_labour');
-    let activeRows = activeList.map(p => `
-      <div class="patient-card p-red" style="cursor:pointer" onclick="openLCG('${p.id}')">
-        <div class="p-name">🤰 ${p.name}</div>
-        <div class="p-info">IP: ${p.ip || '-'} | Para: ${p.para || '-'}</div>
-        <div class="p-info" style="margin-top:8px; color:#0277bd; font-weight:bold;">👉 Bofya Kufungua Labour Guide</div>
-      </div>
-    `).join('');
+    let activeRows = activeList.map(p => {
+      const cl = p.clientData || {};
+      const risk = calculateRiskAssessment(cl.vitals || {});
+      return `
+        <div class="patient-card p-red" style="cursor:pointer" onclick="openLCG('${p.id}')">
+          <div class="p-name">🤰 ${p.name} ${risk.pph==='HIGH'?'🚨 PPH':''} ${risk.ecl==='HIGH'?'🚨 Ecl':''}</div>
+          <div class="p-info">IP: ${p.ip || '-'} | Para: ${p.para || '-'}</div>
+          <div class="p-info">EDD: ${cl.edd || 'Haijawekwa'}</div>
+          <div class="p-info" style="margin-top:8px; color:#0277bd; font-weight:bold;">👉 Bofya Kufungua Labour Guide</div>
+          <button class="btn2 b-blue" style="margin-top:8px; width:100%;" onclick="event.stopPropagation(); openEddModal('${p.name}')">➕ Weka EDD</button>
+        </div>
+      `;
+    }).join('');
     if(activeList.length === 0) activeRows = '<p class="empty">Hakuna mgonjwa kwenye Active Labour kwa sasa.</p>';
 
     const hrBlock=await highRiskBlock(); const pList=await patientListView();
     const vitalSubs = await renderVitalSubmissions();
     const msgBlock = await renderMessages();
     
-    // NEW: Referral Room & Blood Requests
-    const today = new Date();
-    today.setHours(0,0,0,0);
-    const prepList = Object.values(await getClients()).filter(c => c.status === 'pregnant' && isClientHighRisk(c)).slice(0,5);
-    let prepRows = prepList.map(p => `<tr><td><b>${p.name}</b></td><td>${p.edd || '-'}</td><td>BP: ${p.vitals?.systolic||'-'}/${p.vitals?.diastolic||'-'}</td><td><span class="badge bg-r">🚨 High Risk</span></td></tr>`).join('');
-    if(prepList.length===0) prepRows = '<tr><td colspan="4">Hakuna mgonjwa wa referral leo.</td></tr>';
+    // NEW: At Risk Dashboard (Eclampsia & PPH)
+    const allClients = Object.values(await getClients());
+    const atRiskPPH = allClients.filter(c => calculateRiskAssessment(c.vitals || {}).pph === 'HIGH');
+    const atRiskEclampsia = allClients.filter(c => calculateRiskAssessment(c.vitals || {}).ecl === 'HIGH');
+    
+    let riskRows = [...atRiskPPH, ...atRiskEclampsia].filter((v,i,a)=>a.findIndex(t=>t.name===v.name)===i).map(p => {
+        const r = calculateRiskAssessment(p.vitals || {});
+        return `<tr>
+            <td><b>${p.name}</b></td>
+            <td>BP: ${p.vitals?.systolic||'-'}/${p.vitals?.diastolic||'-'}</td>
+            <td>Shock Index: <b style="color:${r.si>=0.9?'#c62828':'#2e7d32'}">${r.si}</b></td>
+            <td>${r.pph==='HIGH'?'🚨 PPH':''} ${r.ecl==='HIGH'?'🚨 Eclampsia':''}</td>
+            <td><button class="btn2 b-blue" onclick="openPatientCard('${p.name}')">Kadi</button></td>
+        </tr>`;
+    }).join('');
+    if(!riskRows) riskRows = '<tr><td colspan="5" class="empty">Hakuna mgonjwa hatarini kwa sasa.</td></tr>';
+
+    // Mock Patient Seeder Button
+    const mockSeedBtn = `<button class="btn b-purple" style="margin-bottom:10px;" onclick="seedLabourMockPatients()">📥 Pakia Wagonjwa 4 wa Mfano (Risk)</button>`;
 
     h=`
       ${liveBlock('🌡️ Hali ya Mgonjwa (Live)')}
       ${histBlock()}
       
+      <!-- AT RISK DASHBOARD -->
+      <div class="card" style="border:3px solid #c62828;">
+        <h3 style="color:#c62828; border:none; margin:0;">🚨 At Risk to Develop PPH / Eclampsia</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            ${mockSeedBtn}
+        </div>
+        <table><thead><tr><th>Mgonjwa</th><th>BP</th><th>Shock Index</th><th>Risk</th><th>Kitendo</th></tr></thead><tbody>${riskRows}</tbody></table>
+      </div>
+
       <div class="card" style="border:3px solid #e65100;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
           <h3 style="color:#e65100; border:none; margin:0;">🤰 Active Labour Monitoring (Wodi ya Wazazi)</h3>
@@ -2790,15 +2829,12 @@ async function render(role){
         <div class="patient-grid">${activeRows}</div>
       </div>
 
-      <!-- NEW: Request Blood & Referral Room -->
       <div class="card" style="border:3px solid #0277bd;">
         <h3 style="color:#0277bd;">🚨 Maombi ya Dharura & Referral</h3>
         <div style="display:flex; gap:10px; margin-bottom:10px;">
             <button class="btn b-red" style="flex:1;" onclick="openBloodRequestModal()">🩸 Omba Damu (Maabara)</button>
             <button class="btn b-orange" style="flex:1;" onclick="openReferralModal()">🔄 Omba Referral (Nje)</button>
         </div>
-        <h4 style="margin-top:10px; font-size:.95rem;">📋 Orodha ya Wagonjwa 5 wa Leo (Referral Prep)</h4>
-        <table><thead><tr><th>Jina</th><th>EDD</th><th>Vipimo</th><th>Hali</th></tr></thead><tbody>${prepRows}</tbody></table>
       </div>
 
       <div class="card" style="border:3px solid #c62828;">
@@ -3590,7 +3626,6 @@ async function closeLabour() {
     alert(`✅ Uchunguzi wa ${patient.name} umekamilika. Taarifa zimehifadhiwa kwenye kadi yake ya kliniki na anaweza kuonekana kwenye Postnatal Ward.`);
     render('nurse_labour');
 }
-
 
 /* ================= INIT ================= */
 (async()=>{
