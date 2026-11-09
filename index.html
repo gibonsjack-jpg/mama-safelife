@@ -1497,7 +1497,7 @@ async function highRiskBlock() {
   const clients = await getClients(); const highRisk = [];
   for(const name in clients){
     const c = clients[name];
-    if((c.status==='pregnant'||c.status==='postnatal') && isClientHighRisk(c)) {
+    if((c.status==='pregnant'||c.status==='postnatal') && isClientHighRisk(c) && !c.attendedByNurse) {
       c.risks = calculateRiskAssessment(c.vitals);
       highRisk.push({name, ...c});
     }
@@ -1626,6 +1626,23 @@ async function saveVisit() {
     $('addVisitModal').classList.remove('on');
     openPatientCard(name); // Refresh card
     render(myRole); // Refresh dashboard
+}
+
+/* ================= EDD UPDATE LOGIC ================= */
+function openEddModal(name) {
+    $('eddUpdateModal').classList.add('on');
+    $('edd_patient_name').value = name;
+}
+async function saveEDD() {
+    const name = $('edd_patient_name').value;
+    const date = $('edd_date').value;
+    if(!name || !date) return alert('Chagua tarehe');
+    const client = await getClient(name);
+    client.edd = date;
+    await setClient(name, client);
+    alert('✅ EDD imehifadhiwa!');
+    $('eddUpdateModal').classList.remove('on');
+    render(myRole);
 }
 
 /* ================= MANUAL VITALS ================= */
@@ -2786,19 +2803,32 @@ async function render(role){
     const vitalSubs = await renderVitalSubmissions();
     const msgBlock = await renderMessages();
     
-    // NEW: At Risk Dashboard (Eclampsia & PPH)
+    // NEW: At Risk Dashboard (Eclampsia & PPH & Hypothermia)
     const allClients = Object.values(await getClients());
-    const atRiskPPH = allClients.filter(c => calculateRiskAssessment(c.vitals || {}).pph === 'HIGH');
-    const atRiskEclampsia = allClients.filter(c => calculateRiskAssessment(c.vitals || {}).ecl === 'HIGH');
+    // Filter out attended patients
+    const activeRiskClients = allClients.filter(c => !c.attendedByNurse);
+
+    const atRiskList = activeRiskClients.filter(c => {
+        const r = calculateRiskAssessment(c.vitals || {});
+        return (r.pph === 'HIGH' || r.ecl === 'HIGH' || r.hypo === 'HIGH' || r.distress === 'HIGH' || r.iufd === 'HIGH');
+    });
     
-    let riskRows = [...atRiskPPH, ...atRiskEclampsia].filter((v,i,a)=>a.findIndex(t=>t.name===v.name)===i).map(p => {
+    let riskRows = atRiskList.map(p => {
         const r = calculateRiskAssessment(p.vitals || {});
         return `<tr>
             <td><b>${p.name}</b></td>
             <td>BP: ${p.vitals?.systolic||'-'}/${p.vitals?.diastolic||'-'}</td>
-            <td>Shock Index: <b style="color:${r.si>=0.9?'#c62828':'#2e7d32'}">${r.si}</b></td>
-            <td>${r.pph==='HIGH'?'🚨 PPH':''} ${r.ecl==='HIGH'?'🚨 Eclampsia':''}</td>
-            <td><button class="btn2 b-blue" onclick="openPatientCard('${p.name}')">Kadi</button></td>
+            <td>SI: ${r.si} | Joto: ${p.vitals?.temperature || '-'}°C</td>
+            <td>
+                ${r.pph==='HIGH'?'<span class="badge bg-r">PPH</span> ':''}
+                ${r.ecl==='HIGH'?'<span class="badge bg-r">Eclampsia</span> ':''}
+                ${r.hypo==='HIGH'?'<span class="badge bg-r">Hypothermia</span> ':''}
+                ${r.distress==='HIGH'?'<span class="badge bg-r">Distress</span> ':''}
+            </td>
+            <td>
+                <button class="btn2 b-blue" onclick="openPatientCard('${p.name}')">Kadi</button>
+                <button class="btn2 b-green" onclick="attendRiskPatient('${p.name}')">✅ Hudumia</button>
+            </td>
         </tr>`;
     }).join('');
     if(!riskRows) riskRows = '<tr><td colspan="5" class="empty">Hakuna mgonjwa hatarini kwa sasa.</td></tr>';
@@ -2812,11 +2842,11 @@ async function render(role){
       
       <!-- AT RISK DASHBOARD -->
       <div class="card" style="border:3px solid #c62828;">
-        <h3 style="color:#c62828; border:none; margin:0;">🚨 At Risk to Develop PPH / Eclampsia</h3>
+        <h3 style="color:#c62828; border:none; margin:0;">🚨 At Risk to Develop PPH / Eclampsia / Hypothermia</h3>
         <div style="display:flex; justify-content:space-between; align-items:center;">
             ${mockSeedBtn}
         </div>
-        <table><thead><tr><th>Mgonjwa</th><th>BP</th><th>Shock Index</th><th>Risk</th><th>Kitendo</th></tr></thead><tbody>${riskRows}</tbody></table>
+        <table><thead><tr><th>Mgonjwa</th><th>BP</th><th>Vipimo</th><th>Risk</th><th>Kitendo</th></tr></thead><tbody>${riskRows}</tbody></table>
       </div>
 
       <div class="card" style="border:3px solid #e65100;">
@@ -3343,7 +3373,7 @@ async function openLCG(patientId) {
     $('lcgTitle').textContent = `📋 WHO Labour Care Guide — ${data.name}`;
     $('lcgName').value = data.name;
     $('lcgIP').value = data.header?.lcgIP || data.ip || '';
-    $('lcgPara').value = data.header?.lcgPara || data.parity || '';
+    $('lcgPara').value = data.header?.lcgPara || data.para || '';
     $('lcgActiveDate').value = data.header?.lcgActiveDate || new Date().toISOString().slice(0,10);
     $('lcgAdmTime').value = data.header?.lcgAdmTime || '';
     $('lcgRisk').value = data.header?.lcgRisk || '';
