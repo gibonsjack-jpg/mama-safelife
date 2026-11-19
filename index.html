@@ -617,6 +617,19 @@ table.lcg td.stage-sep, table.lcg th.stage-sep { border-left: 3px solid #333; }
   <button class="btn b-gray" style="margin-top:8px" onclick="document.getElementById('wardEmergencyModal').classList.remove('on')">FUNGA</button>
 </div></div>
 
+<!-- ================= CLIENT EMERGENCY MODAL (FIX: ilikuwa haipo) ================= -->
+<div id="em" class="mod"><div class="mc" style="max-width:460px;text-align:center;">
+  <h2 style="color:#c62828;">🚨 Chagua Aina ya Dharura</h2>
+  <p style="font-size:.85rem;color:#555;margin-bottom:10px;">Bonyeza dharura uliyo nayo. Msaada utatumwa mara moja pamoja na eneo lako.</p>
+  <button class="btn b-red" onclick="sendEm('PPH (Kuvuja damu)')">🩸 Kuvuja damu nyingi</button>
+  <button class="btn b-red" onclick="sendEm('Eclampsia (Degedege / kichwa kuuma sana)')">⚡ Degedege / Kichwa kuuma sana</button>
+  <button class="btn b-red" onclick="sendEm('Shida ya Kupumua')">😮‍💨 Shida ya kupumua</button>
+  <button class="btn b-red" onclick="sendEm('Uchungu / Maumivu makali')">🤰 Uchungu au maumivu makali</button>
+  <button class="btn b-red" onclick="sendEm('Mtoto hachezi tumboni')">👶 Mtoto hachezi tumboni</button>
+  <button class="btn b-orange" onclick="sendEm('Dharura nyingine')">🚨 Dharura nyingine</button>
+  <button class="btn b-gray" style="margin-top:10px" onclick="document.getElementById('em').classList.remove('on')">FUNGA</button>
+</div></div>
+
 <!-- ================= CHW MESSAGE MODAL ================= -->
 <div id="chwMessageModal" class="mod"><div class="mc" style="max-width:500px;">
   <h2>💬 Uliza Maendeleo ya Mteja</h2>
@@ -2582,7 +2595,7 @@ async function renderClient(user){
       <div class="em">
         <h3 style="color:#d32f2f;border:none;padding:0">🚨 KITUFE CHA DHARURA</h3>
         <p style="font-size:.85rem; margin-bottom:10px;">Bonyeza kitufe hiki ikiwa unahisi maumivu makali au dharura yoyote.</p>
-        <button class="pulse" onclick="$('em').classList.add('on')">OMBA<br>MSAADA</button>
+        <button class="pulse" onclick="document.getElementById('em').classList.add('on')">OMBA<br>MSAADA</button>
       </div>
       <div class="card">
         <h3>📈 Mwenendo wa Afya (Graph)</h3>
