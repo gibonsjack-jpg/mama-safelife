@@ -592,6 +592,31 @@ table.lcg td.stage-sep, table.lcg th.stage-sep { border-left: 3px solid #333; }
   <button class="btn b-gray" style="margin-top:8px" onclick="document.getElementById('chwEmergencyModal').classList.remove('on')">FUNGA</button>
 </div></div>
 
+<!-- ================= WARD EMERGENCY MODAL (FIX: ilikuwa haipo) ================= -->
+<div id="wardEmergencyModal" class="mod"><div class="mc" style="max-width:500px;">
+  <h2>🚨 Omba Dharura (Wodi)</h2>
+  <label>Chagua Mteja:</label>
+  <select id="wardEmPatient"></select>
+  <label>Aina ya Dharura:</label>
+  <select id="wardEmType">
+    <option value="PPH (Kuvuja damu)">PPH (Kuvuja damu)</option>
+    <option value="Eclampsia">Eclampsia</option>
+    <option value="Shida ya Kupumua">Shida ya Kupumua</option>
+    <option value="Maumivu makali">Maumivu makali</option>
+    <option value="Nyingine">Nyingine</option>
+  </select>
+  <label>Hospitali / Wodi:</label>
+  <select id="wardEmLocation">
+    <option value="Labour Ward">Labour Ward (Wodi ya Wazazi)</option>
+    <option value="Theater">Theater</option>
+    <option value="Tunduma District Hospital">Tunduma District Hospital</option>
+    <option value="Mbeya Zonal Referral Hospital">Mbeya Zonal Referral Hospital</option>
+    <option value="Vwawa District Hospital">Vwawa District Hospital</option>
+  </select>
+  <button class="btn b-red" onclick="sendWardEmergency()">🚨 TUMA DHARURA</button>
+  <button class="btn b-gray" style="margin-top:8px" onclick="document.getElementById('wardEmergencyModal').classList.remove('on')">FUNGA</button>
+</div></div>
+
 <!-- ================= CHW MESSAGE MODAL ================= -->
 <div id="chwMessageModal" class="mod"><div class="mc" style="max-width:500px;">
   <h2>💬 Uliza Maendeleo ya Mteja</h2>
@@ -1833,11 +1858,21 @@ async function sendEm(type){
 
 /* ================= SEND WARD EMERGENCY ================= */
 async function openWardEmergencyModal() {
-  const clients = await getClients();
+  const modal = $('wardEmergencyModal');
+  if (!modal) { alert('Hitilafu: dirisha la dharura halipo.'); return; }
+  // Fungua dirisha mara moja, hata kama kupakia wateja kunachelewa au kunashindwa
+  modal.classList.add('on');
   const sel = $('wardEmPatient');
-  sel.innerHTML = Object.keys(clients).map(n => `<option value="${n}">${n} (${clients[n].phone || '-'})</option>`).join('');
-  $('wardEmergencyModal').classList.add('on');
+  try {
+    const clients = (await getClients()) || {};
+    sel.innerHTML = Object.keys(clients).map(n => `<option value="${n}">${n} (${clients[n].phone || '-'})</option>`).join('')
+      || '<option value="">Hakuna wateja</option>';
+  } catch (e) {
+    console.error('openWardEmergencyModal:', e);
+    sel.innerHTML = '<option value="">Imeshindwa kupakia wateja</option>';
+  }
 }
+window.openWardEmergencyModal = openWardEmergencyModal;
 
 async function sendWardEmergency() {
   const patientName = $('wardEmPatient').value;
